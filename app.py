@@ -1,28 +1,71 @@
+"""Map visualisator for Madras project."""
 import json
 from dataclasses import dataclass
 
 import folium
 import streamlit as st
 from streamlit_folium import st_folium
+from typing import Dict, Tuple
 
 
 @dataclass
 class Camera:
+    """Data class representing a camera with its location and video URL."""
+
     location: tuple
     url: str
 
 
-def load_cameras_from_json(file_path: str):
-    with open(file_path, "r") as file:
-        data = json.load(file)
-        cameras = {}
-        for name, info in data.items():
-            cameras[name] = Camera(location=tuple(info["location"]), url=info["url"])
-        return cameras
+def load_cameras_from_json(file_path: str) -> Dict[str, Camera]:
+    """
+    Load camera data from a JSON file and return a dict. of Camera objects.
+
+    Args:
+    file_path (str): The path to the JSON file.
+
+    Returns:
+    Dict[str, Camera]: A dictionary mapping camera names to Camera objects.
+    """
+    try:
+        with open(file_path, "r") as file:
+            data = json.load(file)
+    except FileNotFoundError:
+        st.error(f"File not found: {file_path}")
+        return {}
+    except json.JSONDecodeError:
+        st.error(f"Error decoding JSON from file: {file_path}")
+        return {}
+
+    cameras = {}
+    for name, info in data.items():
+        try:
+            # Ensure the data structure is as expected
+            location = tuple(info["location"])
+            url = info["url"]
+            cameras[name] = Camera(location=location, url=url)
+        except KeyError as e:
+            # Handle missing keys in the data
+            st.error(f"Missing key in camera data: {e}")
+            continue  # Skip this camera and continue with the next
+        except Exception as e:
+            # Catch any other unexpected errors
+            st.error(f"Error processing camera data: {e}")
+            continue
+
+    return cameras
 
 
-def create_map(center, zoom_start=16):
-    m = folium.Map(location=center, zoom_start=zoom_start)
+def create_map(center: Tuple[float, float], zoom: int = 16) -> folium.Map:
+    """Create a folium map with camera markers and polygon layers.
+
+    Args:
+    center (Tuple[float, float]): The center of the map (latitude, longitude).
+    zoom_start (int): The initial zoom level of the map.
+
+    Returns:
+    folium.Map: A folium map object.
+    """
+    m = folium.Map(location=center, zoom_start=zoom)
     camera_layers = []
     for name in cameras.keys():
         camera_layers.append(
@@ -84,7 +127,8 @@ def create_map(center, zoom_start=16):
     return m
 
 
-def setup():
+def setup() -> None:
+    """Set up the Streamlit page configuration."""
     st.set_page_config(
         page_title="Madras Project",
         page_icon=":bar_chart:",
@@ -101,7 +145,12 @@ def setup():
     )
 
 
-def main(cameras):
+def main(cameras: Dict[str, Camera]) -> None:
+    """The main function to run the Streamlit app.
+
+    Args:
+    cameras (Dict[str, Camera]): A dictionary of Camera objects.
+    """
     center = [45.76322690683106, 4.83001470565796]  # Coordinates for Lyon, France
     m = create_map(center)
     map_data = st_folium(m, width=800, height=800)
