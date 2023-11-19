@@ -16,6 +16,13 @@ class Camera:
     url: str
 
 
+tile_layers = {
+    "Open Street Map": "openstreetmap",
+    "CartoDB Positron": "CartoDB positron",
+    "CartoDB Dark_Matter": "CartoDB dark_matter",
+}
+
+
 def load_cameras_from_json(file_path: str) -> Dict[str, Camera]:
     """
     Load camera data from a JSON file and return a dict. of Camera objects.
@@ -55,7 +62,7 @@ def load_cameras_from_json(file_path: str) -> Dict[str, Camera]:
     return cameras
 
 
-def create_map(center: Tuple[float, float], zoom: int = 16) -> folium.Map:
+def create_map(center: Tuple[float, float], tile_layer, zoom: int = 16) -> folium.Map:
     """Create a folium map with camera markers and polygon layers.
 
     Args:
@@ -65,7 +72,8 @@ def create_map(center: Tuple[float, float], zoom: int = 16) -> folium.Map:
     Returns:
     folium.Map: A folium map object.
     """
-    m = folium.Map(location=center, zoom_start=zoom)
+    m = folium.Map(location=center, zoom_start=zoom, tiles=tile_layer)
+
     camera_layers = []
     for name in cameras.keys():
         camera_layers.append(
@@ -118,7 +126,6 @@ def create_map(center: Tuple[float, float], zoom: int = 16) -> folium.Map:
         polygon.add_to(layer)
 
     for (name, camera), layer in zip(cameras.items(), camera_layers):
-        print(name, camera)
         coords = camera.location
         tooltip = name
         folium.Marker(location=coords, tooltip=tooltip).add_to(layer)
@@ -145,15 +152,15 @@ def setup() -> None:
     )
 
 
-def main(cameras: Dict[str, Camera]) -> None:
-    """The main function to run the Streamlit app.
+def main(cameras: Dict[str, Camera], selected_layer) -> None:
+    """Implement the main logic of the app.
 
     Args:
     cameras (Dict[str, Camera]): A dictionary of Camera objects.
     """
     center = [45.76322690683106, 4.83001470565796]  # Coordinates for Lyon, France
-    m = create_map(center)
-    map_data = st_folium(m, width=800, height=800)
+    m = create_map(center, tile_layer=tile_layers[selected_layer])
+    map_data = st_folium(m, width=1200, height=800)
     placeholder = st.sidebar.empty()
     video_name = map_data.get("last_object_clicked_tooltip")
     if video_name:
@@ -170,4 +177,5 @@ def main(cameras: Dict[str, Camera]) -> None:
 if __name__ == "__main__":
     setup()
     cameras = load_cameras_from_json("cameras.json")
-    main(cameras)
+    selected_layer = st.selectbox("Choose a Map Style:", list(tile_layers.keys()))
+    main(cameras, selected_layer)
