@@ -1,10 +1,74 @@
 {
     "camera1": {
-        "location": [45.76104133012638, 4.826495647430421],
-        "url": "https://youtu.be/EVgS2sGqrMk?si=nnApDBU_RpagUwbC"
+        "location": [
+            45.767796,
+            4.833615
+        ],
+        "url": "https://youtu.be/EVgS2sGqrMk?si=nnApDBU_RpagUwbC",
+        "name": "restaurant_l'Etage"
     },
     "camera2": {
-        "location": [45.76744812081226, 4.833490848541261],
-        "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6"
+        "location": [
+            45.767562,
+            4.834459
+        ],
+        "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6",
+        "name": "bell_tower_city_hall"
+    },
+    "camera3": {
+        "location": [
+            45.767340,
+            4.834302
+        ],
+        "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6",
+        "name": "city_hall_corner"
+    },
+    "camera4": {
+        "location": [
+            45.767787,
+            4.833559
+        ],
+        "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6",
+        "name": "airbnb_terreaux_1"
+    },
+    "camera5": {
+        "location": [
+            45.767789,
+            4.833597
+        ],
+        "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6",
+        "name": "airbnb_terreaux_2"
+    },
+    "camera6": {
+        "location": [
+            45.767011,
+            4.832321
+        ],
+        "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6",
+        "name": "airbnb_street_Constantine_1"
+    },
+    "camera7": {
+        "location": [
+            45.767023,
+            4.832403
+        ],
+        "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6",
+        "name": "airbnb_street_Constantine_2"
+    },
+    "camera8": {
+        "location": [
+            45.761126,
+            4.826193
+        ],
+        "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6",
+        "name": "Saint_Jean_1"
+    },
+    "camera9": {
+        "location": [
+            45.761057,
+            4.826173
+        ],
+        "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6",
+        "name": "Saint_Jean_2"
     }
 }

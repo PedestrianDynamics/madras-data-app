@@ -14,6 +14,7 @@ class Camera:
 
     location: tuple
     url: str
+    name: str
 
 
 tile_layers = {
@@ -44,12 +45,13 @@ def load_cameras_from_json(file_path: str) -> Dict[str, Camera]:
         return {}
 
     cameras = {}
-    for name, info in data.items():
+    for key, info in data.items():
         try:
             # Ensure the data structure is as expected
             location = tuple(info["location"])
             url = info["url"]
-            cameras[name] = Camera(location=location, url=url)
+            name = info["name"]
+            cameras[key] = Camera(location=location, url=url, name=name)
         except KeyError as e:
             # Handle missing keys in the data
             st.error(f"Missing key in camera data: {e}")
@@ -125,11 +127,12 @@ def create_map(center: Tuple[float, float], tile_layer, zoom: int = 16) -> foliu
     for polygon, layer in zip(polygons, polygon_layers):
         polygon.add_to(layer)
 
-    for (name, camera), layer in zip(cameras.items(), camera_layers):
+    for (key, camera), layer in zip(cameras.items(), camera_layers):
         coords = camera.location
-        tooltip = name
+        tooltip = f"{key}: {camera.name}"
         folium.Marker(location=coords, tooltip=tooltip).add_to(layer)
 
+    # folium.FitOverlays().add_to(m)
     folium.LayerControl().add_to(m)
     return m
 
@@ -165,7 +168,7 @@ def main(cameras: Dict[str, Camera], selected_layer) -> None:
     video_name = map_data.get("last_object_clicked_tooltip")
     if video_name:
         placeholder.info(f"Selected Camera: {video_name}")
-        camera = cameras.get(video_name)
+        camera = cameras.get(video_name.split(":")[0])
         if camera:
             st.sidebar.video(camera.url)
         else:
