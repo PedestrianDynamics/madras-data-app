@@ -1,3 +1,4 @@
+
 {
     "camera1": {
         "location": [
@@ -5,7 +6,8 @@
             4.833615
         ],
         "url": "https://youtu.be/EVgS2sGqrMk?si=nnApDBU_RpagUwbC",
-        "name": "restaurant_l'Etage"
+        "name": "restaurant_l'Etage",
+        "field":  [[45.767355, 4.834344], [45.76772877531061, 4.833860993385316], [45.767571608965504, 4.833297729492188], [45.767355, 4.834344]]
     },
     "camera2": {
         "location": [
@@ -13,7 +15,8 @@
             4.834459
         ],
         "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6",
-        "name": "bell_tower_city_hall"
+        "name": "bell_tower_city_hall",
+        "field":  [[45.767355, 4.834344], [45.76772877531061, 4.833860993385316], [45.767571608965504, 4.833297729492188], [45.767355, 4.834344]]
     },
     "camera3": {
         "location": [
@@ -21,7 +24,8 @@
             4.834302
         ],
         "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6",
-        "name": "city_hall_corner"
+        "name": "city_hall_corner",
+        "field":  [[45.767355, 4.834344], [45.76772877531061, 4.833860993385316], [45.767571608965504, 4.833297729492188], [45.767355, 4.834344]]
     },
     "camera4": {
         "location": [
@@ -29,7 +33,8 @@
             4.833559
         ],
         "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6",
-        "name": "airbnb_terreaux_1"
+        "name": "airbnb_terreaux_1",
+        "field":  [[45.767355, 4.834344], [45.76772877531061, 4.833860993385316], [45.767571608965504, 4.833297729492188], [45.767355, 4.834344]]
     },
     "camera5": {
         "location": [
@@ -37,7 +42,8 @@
             4.833597
         ],
         "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6",
-        "name": "airbnb_terreaux_2"
+        "name": "airbnb_terreaux_2",
+        "field" : [[45.767355, 4.834344], [45.76772877531061, 4.833860993385316], [45.767571608965504, 4.833297729492188], [45.767355, 4.834344]]
     },
     "camera6": {
         "location": [
@@ -45,7 +51,8 @@
             4.832321
         ],
         "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6",
-        "name": "airbnb_street_Constantine_1"
+        "name": "airbnb_street_Constantine_1",
+        "field":  [[45.767355, 4.834344], [45.76772877531061, 4.833860993385316], [45.767571608965504, 4.833297729492188], [45.767355, 4.834344]]
     },
     "camera7": {
         "location": [
@@ -53,7 +60,8 @@
             4.832403
         ],
         "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6",
-        "name": "airbnb_street_Constantine_2"
+        "name": "airbnb_street_Constantine_2",
+        "field":  [[45.767355, 4.834344], [45.76772877531061, 4.833860993385316], [45.767571608965504, 4.833297729492188], [45.767355, 4.834344]]
     },
     "camera8": {
         "location": [
@@ -61,7 +69,8 @@
             4.826193
         ],
         "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6",
-        "name": "Saint_Jean_1"
+        "name": "Saint_Jean_1",
+        "field":  [[45.767355, 4.834344], [45.76772877531061, 4.833860993385316], [45.767571608965504, 4.833297729492188], [45.767355, 4.834344]]
     },
     "camera9": {
         "location": [
@@ -69,6 +78,7 @@
             4.826173
         ],
         "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6",
-        "name": "Saint_Jean_2"
+        "name": "Saint_Jean_2",
+        "field":  [[45.767355, 4.834344], [45.76772877531061, 4.833860993385316], [45.767571608965504, 4.833297729492188], [45.767355, 4.834344]]
     }
 }
