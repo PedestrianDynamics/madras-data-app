@@ -184,4 +184,12 @@ def main(cameras: Dict[str, Camera], selected_layer) -> None:
 def call_main():
     cameras = load_cameras_from_json("cameras.json")
     selected_layer = st.selectbox("Choose a Map Style:", list(tile_layers.keys()))
+    st.markdown(
+        """
+        **Layer Selection:**
+        Use the layer control button in the top right corner of the map to toggle different layers. 
+        You can select video overlays, camera markers, and other features from this control panel.
+        """,
+        unsafe_allow_html=True,
+    )
     main(cameras, selected_layer)
