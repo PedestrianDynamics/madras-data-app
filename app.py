@@ -1,4 +1,5 @@
 """Map visualisator for Madras project."""
+
 import json
 from dataclasses import dataclass
 
@@ -77,7 +78,7 @@ def create_map(center: Tuple[float, float], tile_layer, zoom: int = 16) -> foliu
     Returns:
     folium.Map: A folium map object.
     """
-    m = folium.Map(location=center, zoom_start=zoom, tiles=tile_layer)
+    m = folium.Map(location=center, zoom_start=zoom, tiles=tile_layer, max_zoom=21)
 
     camera_layers = []
     for name in cameras.keys():
@@ -85,16 +86,6 @@ def create_map(center: Tuple[float, float], tile_layer, zoom: int = 16) -> foliu
             folium.FeatureGroup(name=name, show=True).add_to(m),
         )
 
-    polygon_layers = [
-        folium.FeatureGroup(name="Place des Taurraux", show=True, overlay=True).add_to(
-            m
-        ),
-        folium.FeatureGroup(
-            name="Place Saint-Jean",
-            show=True,
-            overlay=True,
-        ).add_to(m),
-    ]
     polygons = [
         folium.PolyLine(
             locations=[
@@ -125,6 +116,13 @@ def create_map(center: Tuple[float, float], tile_layer, zoom: int = 16) -> foliu
             fill=True,
         ),
     ]
+    polygon_layers = [
+        folium.FeatureGroup(name=name, show=True, overlay=True).add_to(m)
+        for name in [
+            "Place Saint-Jean",
+            "Place des Terraux",
+        ]
+    ]
 
     vision_fields = {}
     for name, camera in cameras.items():
@@ -133,7 +131,7 @@ def create_map(center: Tuple[float, float], tile_layer, zoom: int = 16) -> foliu
             tooltip="field " + name,
             fill_color="blue",
             color="red",
-            fill_opacity=0.1,
+            fill_opacity=0.2,
             fill=True,
         )
 
@@ -177,11 +175,12 @@ def main(cameras: Dict[str, Camera], selected_layer) -> None:
     """
     center = [45.76322690683106, 4.83001470565796]  # Coordinates for Lyon, France
     m = create_map(center, tile_layer=tile_layers[selected_layer])
-    map_data = st_folium(m, width=1600, height=1200)
+    map_data = st_folium(m, width=950, height=800)
     st.info(map_data)
-    st.sidebar.info(
-        f"[{map_data['last_clicked']['lat']}, {map_data['last_clicked']['lng']}]"
-    )
+    if map_data["last_clicked"] is not None:
+        st.sidebar.info(
+            f"[{map_data['last_clicked']['lat']}, {map_data['last_clicked']['lng']}]"
+        )
     placeholder = st.sidebar.empty()
     video_name = map_data.get("last_object_clicked_tooltip")
     if video_name:
