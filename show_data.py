@@ -1,18 +1,14 @@
 """ Show general results, including ploting, animation, ..."""
 
+import time
 import pedpy
 import streamlit as st
-from shapely import Polygon, difference
+from shapely import Polygon
 
-from anim import animate
-from pathlib import Path
-import numpy as np
-import pandas as pd
-import time
-
-import plots
 import datafactory
 import docs
+import plots
+from anim import animate
 
 # import cProfile
 # import pstats

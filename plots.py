@@ -1,14 +1,12 @@
-import plotly.graph_objects as go
-from plotly.subplots import make_subplots
+"""Plot functionalities for the app."""
+
 import numpy as np
 import pandas as pd
-import streamlit as st
-
-from shapely import Polygon
-import glob
-from plotly.graph_objs import Figure
-
 import pedpy
+import plotly.graph_objects as go
+import streamlit as st
+from plotly.graph_objs import Figure
+from plotly.subplots import make_subplots
 
 
 def plot_trajectories(
