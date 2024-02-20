@@ -38,10 +38,10 @@ def init_sidebar():
     c1, c2 = st.sidebar.columns((1.8, 0.2))
     tab0, tab1, tab2, tab3 = st.tabs(
         [
-            "ℹ️ About",
             "🗺️ Map",
             "👫🏻 View trajectories",
             "📉 Analysis",
+            "ℹ️ About",
         ]
     )
 

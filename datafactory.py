@@ -6,9 +6,8 @@ from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Dict, List, Union
-
-import pandas as pd
 import pedpy
+
 import requests
 import streamlit as st
 
@@ -48,6 +47,12 @@ def init_session_state():
 
     if not hasattr(st.session_state, "selected_file"):
         st.session_state.selected_file = ""
+
+    if not hasattr(st.session_state, "file_changes"):
+        st.session_state.file_changed = ""
+
+    if not hasattr(st.session_state, "trajectory_data"):
+        st.session_state.trajectoryData = pedpy.TrajectoryData
 
     dataconfig = datafactory.DataConfig(Path("AppData"))
     st.session_state.files = dataconfig.files
@@ -120,9 +125,8 @@ def download_and_unzip_files(
 def load_file(filename: str) -> pedpy.TrajectoryData:
     """Loads and processes a file to create a TrajectoryData object.
 
-    This function reads a space-separated values file into a pandas DataFrame,
-    renames columns to match expected format, calculates frames per second (fps)
-    from the data, and creates a TrajectoryData object with the processed data.
+    This function reads a space-separated values file into a pedpy-trajectoryData
+    fps = 16 and unit=meters
 
     Parameters:
     - filename (str): The path to the file to be loaded.
@@ -131,9 +135,10 @@ def load_file(filename: str) -> pedpy.TrajectoryData:
     - An instance of TrajectoryData containing the processed data and frame rate.
     """
 
-    # Read the file, assuming space-separated values and a header
-    data = pd.read_csv(filename, delim_whitespace=True, header=0)
-
-    trajectory_data = pedpy.TrajectoryData(data=data, frame_rate=16)
+    trajectory_data = pedpy.load_trajectory(
+        trajectory_file=Path(filename),
+        default_frame_rate=16,
+        default_unit=pedpy.TrajectoryUnit.METER,
+    )
 
     return trajectory_data
