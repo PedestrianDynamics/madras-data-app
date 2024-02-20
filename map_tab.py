@@ -162,23 +162,25 @@ def main(cameras: Dict[str, Camera], selected_layer) -> None:
     """
     center = [45.76322690683106, 4.83001470565796]  # Coordinates for Lyon, France
     m = create_map(center, tile_layer=tile_layers[selected_layer], cameras=cameras)
-    map_data = st_folium(m, width=950, height=800)
-    st.info(map_data)
-    if map_data["last_clicked"] is not None:
-        st.sidebar.info(
-            f"[{map_data['last_clicked']['lat']}, {map_data['last_clicked']['lng']}]"
-        )
-    placeholder = st.sidebar.empty()
+    c1, c2 = st.columns((0.8, 0.2))
+    with c1:
+        map_data = st_folium(m, width=800, height=700)
+    # st.info(map_data)
+    # if map_data["last_clicked"] is not None:
+    #     c2.info(
+    #         f"Clicked: [{map_data['last_clicked']['lat']:.4}, {map_data['last_clicked']['lng']:.4}]"
+    #     )
+    placeholder = c2.empty()
     video_name = map_data.get("last_object_clicked_tooltip")
     if video_name:
-        placeholder.info(f"Selected Camera: {video_name}")
+        placeholder.info(f"{video_name}")
         camera = cameras.get(video_name.split(":")[0])
         if camera:
-            st.sidebar.video(camera.url)
+            c2.video(camera.url)
         else:
-            st.sidebar.error(f"No video linked to {video_name}.")
+            placeholder.error(f"No video linked to {video_name}.")
     else:
-        st.sidebar.error("No camera selected.")
+        placeholder.error("No camera selected.")
 
 
 def call_main():

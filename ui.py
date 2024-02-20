@@ -15,7 +15,7 @@ def setup_app() -> None:
             "About": "# Field observation for Madras project.\n This is a tool to analyse and visualise several field data of pedestrian dynamics during the festival of lights in 2022:\n\n :flag-fr: - :flag-de: Germany.",
         },
     )
-    st.title("Madras project: Festival of light 2022")
+    # st.title("Madras project: Festival of light 2022")
 
 
 def init_app_looks():
@@ -36,25 +36,13 @@ def init_app_looks():
 def init_sidebar():
     """Init sidebar and 3 tabs."""
     c1, c2 = st.sidebar.columns((1.8, 0.2))
-    flag = c2.empty()
-    tab1, tab2, tab3 = st.tabs(
+    tab0, tab1, tab2, tab3 = st.tabs(
         [
+            "ℹ️ About",
             "🗺️ Map",
             "👫🏻 View trajectories",
             "📉 Analysis",
         ]
     )
 
-    # country = c1.selectbox("Select a country:", st.session_state.config.countries)
-    # if "jap" in country:
-    #     flag.write(":flag-jp:")
-    # if "aus" in country:
-    #     flag.write(":flag-ac:")
-    # if "chn" in country:
-    #     flag.write(":flag-cn:")
-    # if "ger" in country:
-    #     flag.write(":flag-de:")
-    # if "pal" in country:
-    #     flag.write(":flag-ps:")
-
-    return tab1, tab2, tab3
+    return tab0, tab1, tab2, tab3
