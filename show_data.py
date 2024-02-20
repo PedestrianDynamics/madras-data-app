@@ -12,7 +12,7 @@ import time
 
 import plots
 import datafactory
-
+import docs
 
 # import cProfile
 # import pstats
@@ -90,7 +90,7 @@ def run_tab2(selected_file, msg):
             value=None,
             min_value=1,
             max_value=4,
-            placeholder=f"Type a number in [1, 4]",
+            placeholder="Type a number in [1, 4]",
             format="%d",
         )
 
@@ -126,3 +126,72 @@ def run_tab2(selected_file, msg):
         # st.text_area("Profiling Results", profiling_results, height=300)
 
         st.plotly_chart(anm)
+
+
+def run_tab3(selected_file):
+    docs_expander = st.expander("Documentation (click to expand)", expanded=False)
+    with docs_expander:
+        docs.density_speed()
+
+    c0, c1, c2 = st.columns((1, 1, 1))
+
+    c2.write("**Speed calculation parameters**")
+    calculations = c0.radio(
+        "Choose calculation",
+        [
+            "time_series",
+            "FD",
+        ],
+        horizontal=True,
+    )
+    dv = c2.slider(
+        r"$\Delta t$",
+        1,
+        100,
+        10,
+        5,
+        help="To calculate the displacement over a specified number of frames. See Eq. (1)",
+    )
+    # diff_const = c2.slider("diff_const", 1, 500, 5, 1, help="window steady state")
+
+    if calculations == "time_series":
+        if selected_file != st.session_state.file_changed:
+            with st.status(f"Loading {selected_file}"):
+                trajectory_data = datafactory.load_file(selected_file)
+
+        st.session_state.trajectory_data = trajectory_data
+        st.session_state.file_changed = selected_file
+
+        trajectory_data = st.session_state.trajectory_data
+        min_x = trajectory_data.data["x"].min()
+        max_x = trajectory_data.data["x"].max()
+        min_y = trajectory_data.data["y"].min()
+        max_y = trajectory_data.data["y"].max()
+        rectangle_coords = [
+            [min_x, min_y],
+            [min_x, max_y],
+            [max_x, max_y],
+            [max_x, min_y],
+        ]
+        rectangle_polygon = Polygon(rectangle_coords)
+        walkable_area = pedpy.WalkableArea(rectangle_polygon)
+
+        individual_speed = pedpy.compute_individual_speed(
+            traj_data=trajectory_data,
+            frame_step=dv,
+            speed_calculation=pedpy.SpeedCalculation.BORDER_SINGLE_SIDED,
+        )
+        mean_speed = pedpy.compute_mean_speed_per_frame(
+            traj_data=trajectory_data,
+            measurement_area=walkable_area,
+            individual_speed=individual_speed,
+        )
+
+        classic_density = pedpy.compute_classic_density(
+            traj_data=trajectory_data, measurement_area=walkable_area
+        )
+
+        fig = plots.plot_time_series(classic_density, mean_speed, fps=16)
+        plots.show_fig(fig, html=True)
+    if calculations == "FD":
+        st.warning("Not yet implemented!")

@@ -22,7 +22,7 @@ if __name__ == "__main__":
     # Trajectories
     with tab2:
         msg = st.empty()
-        activate_tab2 = st.toggle("Activate", value=False)
+        activate_tab2 = st.toggle("Activate", key="tab2", value=False)
         if activate_tab2:
             filename = st.selectbox("Select a file:", st.session_state.files)
             st.session_state.selected_file = filename
@@ -30,9 +30,14 @@ if __name__ == "__main__":
 
     # Analysis
     with tab3:
-        st.warning("in progress ...")
-        st.info(st.session_state.selected_file)
-
+        activate_tab3 = st.toggle("Activate", key="tab3", value=False)
+        if activate_tab3:
+            filename = st.selectbox(
+                "Select a file:", st.session_state.files, key="tab3_filename"
+            )
+            st.session_state.selected_file = filename
+            show_data.run_tab3(filename)
     # Info
     with tab4:
-        st.info("More info later....")
+        st.info("More info later...")
+        st.info("Till then check https://www.madras-crowds.eu/")

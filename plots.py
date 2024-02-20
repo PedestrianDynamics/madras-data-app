@@ -6,6 +6,7 @@ import streamlit as st
 
 from shapely import Polygon
 import glob
+from plotly.graph_objs import Figure
 
 import pedpy
 
@@ -110,26 +111,21 @@ def plot_trajectories(
     return fig
 
 
-def plot_time_series(
-    data: pd.DataFrame, speed: pd.DataFrame, fps: int, ss_index: int, key_density
-) -> go.Figure:
-    density = data[key_density]
+def plot_time_series(density: pd.DataFrame, speed: pd.DataFrame, fps: int) -> go.Figure:
+
     fig = make_subplots(
         rows=1,
         cols=2,
         subplot_titles=(
-            f"Mean density: {np.mean(density):.2f} (+- {np.std(density):.2f}) 1/m/m",
-            f"Mean speed: {np.mean(speed['speed']):.2f} (+- {np.std(speed['speed']):.2f}) / m/s",
+            rf"$\mu= {np.mean(density.density):.2f}\; \pm {np.std(density.density):.2f}\; 1/m^2$",
+            rf"$\mu= {np.mean(speed):.2f}\;\pm {np.std(speed):.2f}\; m/s$",
         ),
     )
-    # st.dataframe(data)
-    if key_density == "individual_density":
-        data = data.sort_values(by="frame")
 
     fig.add_trace(
         go.Scatter(
-            x=data["frame"] / fps,
-            y=density,
+            x=density.index / fps,
+            y=density.density,
             line=dict(color="blue"),
             marker=dict(color="blue"),
             mode="lines",
@@ -140,8 +136,8 @@ def plot_time_series(
 
     fig.add_trace(
         go.Scatter(
-            x=speed["time"].loc[ss_index:],
-            y=speed["speed"].loc[ss_index:],
+            x=speed.index / fps,
+            y=speed,
             line=dict(color="blue"),
             marker=dict(color="blue"),
             mode="lines",
@@ -152,14 +148,28 @@ def plot_time_series(
 
     rmin = 0  # np.min(data["instantaneous_density"]) - 0.5
     rmax = 5  # np.max(data["instantaneous_density"]) + 0.5
-    vmax = np.max(speed["speed"]) + 0.5
+    vmax = np.max(speed) + 0.5
     fig.update_layout(
-        xaxis_title="Time / s",
+        xaxis_title=r"$t\; / s$",
+        title_font=dict(size=20),
         showlegend=False,
     )
-    fig.update_yaxes(range=[rmin, rmax], title_text="Density / 1/m/m", row=1, col=1)
-    fig.update_yaxes(range=[rmin, vmax], title_text="Speed / m/s", row=1, col=2)
-    fig.update_xaxes(title_text="Time / s", row=1, col=2)
+    fig.update_yaxes(
+        range=[rmin, rmax],
+        title_text=r"$\rho\; /\; 1/m^2$",
+        title_font=dict(size=20),
+        row=1,
+        col=1,
+    )
+    fig.update_yaxes(
+        range=[rmin, vmax],
+        title_text=r"$v\; /\; m/s$",
+        title_font=dict(size=20),
+        row=1,
+        col=2,
+    )
+    fig.update_xaxes(title_text=r"$t\; / s$", title_font=dict(size=20), row=1, col=2)
+    fig.update_xaxes(title_text=r"$t\; / s$", title_font=dict(size=20), row=1, col=1)
     return fig
 
 
@@ -317,3 +327,20 @@ def assign_direction_number(agent_data):
     # result_df = pd.merge(agent_data, direction_df, on='id')
 
     return direction_df
+
+
+def show_fig(fig: Figure, html: bool = False, height: int = 500) -> None:
+    """Workaround function to show figures having LaTeX-Code.
+
+    Args:
+        fig (Figure): A Plotly figure object to display.
+        html (bool, optional): Flag to determine if the figure should be shown as HTML. Defaults to False.
+        height (int, optional): Height of the HTML component if displayed as HTML. Defaults to 500.
+
+    Returns:
+        None
+    """
+    if not html:
+        st.plotly_chart(fig)
+    else:
+        st.components.v1.html(fig.to_html(include_mathjax="cdn"), height=height)
