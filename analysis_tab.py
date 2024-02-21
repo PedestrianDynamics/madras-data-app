@@ -322,7 +322,7 @@ def run_tab3(selected_file):
             end = time.time()
             st.info(f"Computation time: {end-start:.2f} seconds.")
 
-        if Path(figname).exists:
+        if Path(figname).exists():
             plots.download_file(figname, msg)
         else:
             st.warning(
