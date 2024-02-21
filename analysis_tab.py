@@ -5,7 +5,8 @@ import streamlit as st
 from shapely import Polygon
 from pathlib import Path
 import pickle
-
+import os
+import glob
 import datafactory
 import docs
 import plots
@@ -74,15 +75,28 @@ def run_tab3(selected_file):
         docs.density_speed()
 
     c0, c1, c2 = st.columns((1, 1, 1))
+    if c1.button(
+        "Delete Precalculated Files",
+        help="To enhance performance, some densities/speeds are loaded instead of calculated. With this button you can delete these files and hence start fresh claculations",
+    ):
+        precalculated_files_pattern = "AppData/*.pkl"
+        files_to_delete = glob.glob(precalculated_files_pattern)
+        for file_path in files_to_delete:
+            try:
+                os.remove(file_path)
+                st.toast(f"Deleted {file_path}", icon="✅")
+            except Exception as e:
+                st.error(f"Error deleting {file_path}: {e}")
 
     c2.write("**Speed calculation parameters**")
     calculations = c0.radio(
         "Choose calculation",
         [
             "time_series",
-            "FD",
+            "FD_classical",
+            "FD_voronoi",
         ],
-        horizontal=True,
+        horizontal=False,
     )
     dv = c2.slider(
         r"$\Delta t$",
@@ -123,22 +137,32 @@ def run_tab3(selected_file):
         figname = selected_file.split("/")[-1].split(".txt")[0] + ".pdf"
         plots.show_fig(fig, figname=figname, html=True, write=True)
 
-    if calculations == "FD":
-        st.warning("Not yet implemented!")
+    if calculations == "FD_classical":
         densities = {}
         speeds = {}
-        for filename in st.session_state.files:
-            basename = filename.split("/")[-1].split(".txt")[0]
-            precalculated_density = f"AppData/density_{basename}.pkl"
-            precalculated_speed = f"AppData/speed_{basename}_{dv}.pkl"
+        with st.status("Calculating...", expanded=True):
+            progress_bar = st.progress(0)
+            progress_status = st.empty()
 
-            speeds[basename] = calculate_or_load_speed(
-                precalculated_speed, filename, dv
-            )
-            densities[basename] = calculate_or_load_classical_density(
-                precalculated_density, filename
-            )
+            msg = st.empty()
+            for i, filename in enumerate(st.session_state.files):
+                basename = filename.split("/")[-1].split(".txt")[0]
+                precalculated_density = f"AppData/density_{basename}.pkl"
+                precalculated_speed = f"AppData/speed_{basename}_{dv}.pkl"
 
-        figname = "fundamental_diagram.pdf"
+                speeds[basename] = calculate_or_load_speed(
+                    precalculated_speed, filename, dv
+                )
+                densities[basename] = calculate_or_load_classical_density(
+                    precalculated_density, filename
+                )
+                progress = int(100 * (i + 1) / len(st.session_state.files))
+                progress_bar.progress(progress)
+                progress_status.text(f"> {progress}%")
+
+        figname = "fundamental_diagram_classical.pdf"
         fig = plots.plot_fundamental_diagram_all(densities, speeds)
         plots.show_fig(fig, figname=figname, html=True, write=True)
+
+    if calculations == "FD_voronoi":
+        st.warning("not yet implemented!")
