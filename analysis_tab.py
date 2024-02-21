@@ -361,8 +361,16 @@ def run_tab3(selected_file):
         plots.show_fig(fig, figname="flow.pdf")
 
     if calculations == "Profiles":
-        c1, c2 = st.columns((1, 1))
-
+        c1, c2, c3 = st.columns((1, 1, 1))
+        chose_method = c3.radio(
+            "Method",
+            ["Gaussian", "Classic"],
+            help="See [PedPy-documentation](https://pedpy.readthedocs.io/en/latest/user_guide.html#density-profiles).",
+        )
+        method = {
+            "Classic": pedpy.DensityMethod.CLASSIC,
+            "Gaussian": pedpy.DensityMethod.GAUSSIAN,
+        }
         grid_size = c1.number_input(
             "Grid size",
             value=0.4,
@@ -386,7 +394,7 @@ def run_tab3(selected_file):
             data=trajectory_data.data,
             walkable_area=walkable_area,
             grid_size=grid_size,
-            density_method=pedpy.DensityMethod.GAUSSIAN,
+            density_method=method[chose_method],
             gaussian_width=width,
         )
         fig, ax0 = plt.subplots(nrows=1, ncols=1)
