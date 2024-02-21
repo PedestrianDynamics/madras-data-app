@@ -28,17 +28,10 @@ url = "https://go.fzj.de/voronoi-data"
 
 def is_running_locally() -> bool:
     """Check if the Streamlit app is running locally."""
-    hostname = socket.gethostname()
-    ip_address = socket.gethostbyname(hostname)
-    st.info(hostname)
-    st.info(ip_address)
+
+    streamlit_server = "/mount/src/madras-data-app"
     current_working_directory = os.getcwd()
-    st.info(current_working_directory)
-    return (
-        ip_address == "127.0.0.1"
-        or ip_address.startswith("192.168.")
-        or hostname == "localhost"
-    )
+    return current_working_directory != streamlit_server
 
 
 def download(url: str, destination: Union[str, Path]) -> None:
