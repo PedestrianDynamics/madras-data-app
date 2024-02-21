@@ -175,9 +175,7 @@ def plot_time_series(density: pd.DataFrame, speed: pd.DataFrame, fps: int) -> go
     return fig
 
 
-def plot_fundamental_diagram(
-    country, density: pd.DataFrame, speed: pd.DataFrame
-) -> go.Figure:
+def plot_fundamental_diagram(density: pd.DataFrame, speed: pd.DataFrame) -> go.Figure:
     fig = go.Figure()
 
     fig.add_trace(
@@ -189,16 +187,13 @@ def plot_fundamental_diagram(
         ),
     )
 
-    # rmin = 0  # np.min(data["instantaneous_density"]) - 0.5
-    # rmax = np.max(density) + 0.5
     vmin = np.min(speed) - 0.05
     vmax = np.max(speed) + 0.05
     fig.update_layout(
-        title=f"Country: {country}",
-        xaxis_title="Density / 1/m/m",
+        xaxis_title=r"$\rho\; /\; 1/m^2$",
         showlegend=False,
     )
-    fig.update_yaxes(range=[vmin, vmax], title_text="Speed / m/s")
+    fig.update_yaxes(range=[vmin, vmax], title_text=r"$v\; /\; m/s$")
     fig.update_xaxes(
         scaleanchor="y",
         scaleratio=1,
@@ -207,7 +202,7 @@ def plot_fundamental_diagram(
     return fig
 
 
-def plot_fundamental_diagram_all(country_data) -> go.Figure:
+def plot_fundamental_diagram_all(density_dict, speed_dict) -> go.Figure:
     fig = go.Figure()
 
     rmax = -1
@@ -216,22 +211,26 @@ def plot_fundamental_diagram_all(country_data) -> go.Figure:
     colors_const = ["blue", "red", "green", "magenta", "black"]
     marker_shapes = ["circle", "square", "diamond", "cross", "x-thin"]  # Example shapes
 
-    colors = {}
-    for country, color in zip(country_data.keys(), colors_const):
-        colors[country] = color
+    colors = []
+    filenames = []
+    for filename, color in zip(density_dict.keys(), colors_const):
+        colors.append(color)
+        filenames.append(filename)
 
-    for i, (country, (density, speed)) in enumerate(country_data.items()):
+    for i, (density, speed) in enumerate(
+        zip(density_dict.values(), speed_dict.values())
+    ):
         fig.add_trace(
             go.Scatter(
-                x=density[::50],
-                y=speed[::50],
+                x=density.density,
+                y=speed.speed,
                 marker=dict(
-                    color=colors[country],
+                    color=colors[i % len(color)],
                     opacity=0.5,
                     symbol=marker_shapes[i % len(marker_shapes)],
                 ),
                 mode="markers",
-                name=f"{country}",
+                name=f"{filenames[i%len(filenames)]}",
                 showlegend=True,
             )
         )
@@ -244,7 +243,10 @@ def plot_fundamental_diagram_all(country_data) -> go.Figure:
     vmin -= 0.05
 
     # vmax = 2.0
-    fig.update_yaxes(range=[vmin, vmax], title_text=r"$v\; / \frac{m}{s}$")
+    fig.update_yaxes(
+        # range=[vmin, vmax],
+        title_text=r"$v\; / \frac{m}{s}$"
+    )
     fig.update_xaxes(
         title_text=r"$\rho / m^{-2}$",
         scaleanchor="y",
@@ -331,12 +333,19 @@ def assign_direction_number(agent_data):
     return direction_df
 
 
-def show_fig(fig: Figure, html: bool = False, height: int = 500) -> None:
+def show_fig(
+    fig: Figure,
+    figname: str,
+    html: bool = False,
+    write: bool = False,
+    height: int = 500,
+) -> None:
     """Workaround function to show figures having LaTeX-Code.
 
     Args:
         fig (Figure): A Plotly figure object to display.
         html (bool, optional): Flag to determine if the figure should be shown as HTML. Defaults to False.
+        write (bool, optional): Flag to write the fig as a file and make a download button
         height (int, optional): Height of the HTML component if displayed as HTML. Defaults to 500.
 
     Returns:
@@ -346,3 +355,12 @@ def show_fig(fig: Figure, html: bool = False, height: int = 500) -> None:
         st.plotly_chart(fig)
     else:
         st.components.v1.html(fig.to_html(include_mathjax="cdn"), height=height)
+
+    fig.write_image(figname)
+    with open(figname, "rb") as pdf_file:
+        st.download_button(
+            label=f"Download {figname}",
+            data=pdf_file,
+            file_name=figname,
+            mime="application/octet-stream",
+        )
