@@ -6,7 +6,7 @@ import pickle
 import time
 from pathlib import Path
 
-# import matplotlib.pyplot as plt
+import matplotlib.pyplot as plt
 from plotly.graph_objs import Figure
 
 import pedpy
@@ -361,25 +361,41 @@ def run_tab3(selected_file):
         plots.show_fig(fig, figname="flow.pdf")
 
     if calculations == "Profiles":
-        grid_size = 0.4
-        st.info(f"pedpy version: {pedpy.__version__}")
+        c1, c2 = st.columns((1, 1))
 
-        # gaussian_density_profile = pedpy.compute_profiles(
-        #     data=trajectory_data,
-        #     walkable_area=walkable_area,
-        #     grid_size=grid_size,
-        #     density_method=pedpy.DensityMethod.GAUSSIAN,
-        #     gaussian_width=0.5,
-        # )
-        # fig, ax0 = plt.subplots(nrows=1, ncols=1)
-        # pedpy.plot_profiles(
-        #     walkable_area=walkable_area,
-        #     profiles=gaussian_density_profile,
-        #     axes=ax0,
-        #     label="$\\rho$ / 1/$m^2$",
-        #     vmin=0,
-        #     vmax=12,
-        #     title="Density",
-        # )
-        # fig.tight_layout(pad=2)
-        # st.pyplot(fig)
+        grid_size = c1.number_input(
+            "Grid size",
+            value=0.4,
+            min_value=0.05,
+            max_value=1.0,
+            step=0.05,
+            placeholder="Type the grid size",
+            format="%.2f",
+        )
+        width = c2.number_input(
+            "Gaussian width",
+            value=0.5,
+            min_value=0.2,
+            max_value=1.0,
+            step=0.1,
+            placeholder="full width at half maximum for Gaussian.",
+            format="%.2f",
+        )
+
+        gaussian_density_profile = pedpy.compute_density_profile(
+            data=trajectory_data.data,
+            walkable_area=walkable_area,
+            grid_size=grid_size,
+            density_method=pedpy.DensityMethod.GAUSSIAN,
+            gaussian_width=width,
+        )
+        fig, ax0 = plt.subplots(nrows=1, ncols=1)
+        pedpy.plot_profiles(
+            walkable_area=walkable_area,
+            profiles=gaussian_density_profile,
+            axes=ax0,
+            label="$\\rho$ / 1/$m^2$",
+            title="Density",
+        )
+        fig.tight_layout(pad=2)
+        st.pyplot(fig)

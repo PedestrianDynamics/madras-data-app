@@ -2,6 +2,7 @@ streamlit
 streamlit_folium
 folium
 pandas
-pedpy
+pedpy@git+https://github.com/PedestrianDynamics/PedPy.git
 plotly
 kaleido
+matplotlib
