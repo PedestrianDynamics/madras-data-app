@@ -118,6 +118,7 @@ def plot_time_series(density: pd.DataFrame, speed: pd.DataFrame, fps: int) -> go
             rf"$\mu= {np.mean(density.density):.2f}\; \pm {np.std(density.density):.2f}\; 1/m^2$",
             rf"$\mu= {np.mean(speed):.2f}\;\pm {np.std(speed):.2f}\; m/s$",
         ),
+        horizontal_spacing=0.2,
     )
 
     fig.add_trace(
@@ -144,12 +145,11 @@ def plot_time_series(density: pd.DataFrame, speed: pd.DataFrame, fps: int) -> go
         col=2,
     )
 
-    rmin = 0  # np.min(data["instantaneous_density"]) - 0.5
-    rmax = 5  # np.max(data["instantaneous_density"]) + 0.5
-    vmax = np.max(speed) + 0.5
+    rmin = np.min(density.density) - 0.1
+    rmax = np.max(density.density) + 0.1
+    vmax = np.max(speed) + 0.1
+    vmin = np.min(speed) - 0.1
     fig.update_layout(
-        xaxis_title=r"$t\; / s$",
-        title_font=dict(size=20),
         showlegend=False,
     )
     fig.update_yaxes(
@@ -160,14 +160,18 @@ def plot_time_series(density: pd.DataFrame, speed: pd.DataFrame, fps: int) -> go
         col=1,
     )
     fig.update_yaxes(
-        range=[rmin, vmax],
+        range=[vmin, vmax],
         title_text=r"$v\; /\; m/s$",
         title_font=dict(size=20),
+        # scaleanchor="x",
+        scaleratio=1,
         row=1,
         col=2,
     )
+
     fig.update_xaxes(title_text=r"$t\; / s$", title_font=dict(size=20), row=1, col=2)
     fig.update_xaxes(title_text=r"$t\; / s$", title_font=dict(size=20), row=1, col=1)
+
     return fig
 
 
