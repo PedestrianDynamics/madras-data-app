@@ -50,7 +50,6 @@ def run_tab3(selected_file):
         5,
         help="To calculate the displacement over a specified number of frames. See Eq. (1)",
     )
-    # diff_const = c2.slider("diff_const", 1, 500, 5, 1, help="window steady state")
 
     if calculations == "time_series":
         if selected_file != st.session_state.file_changed:
@@ -62,6 +61,7 @@ def run_tab3(selected_file):
 
         trajectory_data = st.session_state.trajectory_data
         walkable_area = setup_walkable_area(trajectory_data)
+
         individual_speed = pedpy.compute_individual_speed(
             traj_data=trajectory_data,
             frame_step=dv,
@@ -78,6 +78,16 @@ def run_tab3(selected_file):
         )
 
         fig = plots.plot_time_series(classic_density, mean_speed, fps=16)
+        figname = selected_file.split("/")[-1].split(".txt")[0] + ".pdf"
         plots.show_fig(fig, html=True)
+        fig.write_image(figname)
+        with open(figname, "rb") as pdf_file:
+            st.download_button(
+                label=f"Download {figname}",
+                data=pdf_file,
+                file_name=figname,
+                mime="application/octet-stream",
+            )
+
     if calculations == "FD":
         st.warning("Not yet implemented!")
