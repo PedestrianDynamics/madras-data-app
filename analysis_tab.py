@@ -20,7 +20,7 @@ import datafactory
 import docs
 import plots
 import requests
-
+import os
 
 voronoi_results = "voronoi_density_speed.pkl"
 url = "https://go.fzj.de/voronoi-data"
@@ -32,6 +32,8 @@ def is_running_locally() -> bool:
     ip_address = socket.gethostbyname(hostname)
     st.info(hostname)
     st.info(ip_address)
+    current_working_directory = os.getcwd()
+    st.info(current_working_directory)
     return (
         ip_address == "127.0.0.1"
         or ip_address.startswith("192.168.")
