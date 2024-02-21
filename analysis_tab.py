@@ -30,6 +30,8 @@ def is_running_locally() -> bool:
     """Check if the Streamlit app is running locally."""
     hostname = socket.gethostname()
     ip_address = socket.gethostbyname(hostname)
+    st.info(hostname)
+    st.info(ip_address)
     return (
         ip_address == "127.0.0.1"
         or ip_address.startswith("192.168.")
