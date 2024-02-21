@@ -4,3 +4,4 @@ folium
 pandas
 pedpy
 plotly
+kaleido
