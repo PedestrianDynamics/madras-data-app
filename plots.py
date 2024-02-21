@@ -251,7 +251,7 @@ def plot_fundamental_diagram_all(density_dict, speed_dict) -> go.Figure:
     return fig
 
 
-def plot_x_y(x, y, title, xlabel, ylabel, threshold=0):
+def plot_x_y(x, y, title, xlabel, ylabel, color, threshold=0):
 
     x = np.unique(x)
     fig = make_subplots(
@@ -261,28 +261,19 @@ def plot_x_y(x, y, title, xlabel, ylabel, threshold=0):
         x_title=xlabel,
         y_title=ylabel,
     )
-    if threshold:
-        trace_threshold = go.Scatter(
-            x=[x[0], x[-1]],
-            y=[threshold, threshold],
-            mode="lines",
-            showlegend=True,
-            name="Social Distance = 1.5 m",
-            line=dict(width=4, dash="dash", color="gray"),
-        )
-        fig.append_trace(trace_threshold, row=1, col=1)
 
     trace = go.Scatter(
         x=x,
         y=y,
         mode="lines",
-        showlegend=False,
-        line=dict(width=3, color="blue"),
+        showlegend=True,
+        name=title,
+        line=dict(width=3, color=color),
         fill="none",
     )
 
     fig.append_trace(trace, row=1, col=1)
-    return fig
+    return trace, fig
 
 
 def assign_direction_number(agent_data):
@@ -352,10 +343,14 @@ def show_fig(
         st.components.v1.html(fig.to_html(include_mathjax="cdn"), height=height)
 
     fig.write_image(figname)
+
+
+def download_file(figname, col):
     with open(figname, "rb") as pdf_file:
-        st.download_button(
-            label=f"Download {figname}",
+        col.download_button(
+            label=f"Download",
             data=pdf_file,
             file_name=figname,
             mime="application/octet-stream",
+            help=f"Download {figname}",
         )

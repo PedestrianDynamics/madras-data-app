@@ -1,6 +1,20 @@
 import streamlit as st
 
 
+def flow(measurement_lines):
+    st.write(
+        rf"""
+        The N-t diagram shows how many pedestrian have crossed the measurement line at a specific time.
+
+        Measurementlines are:
+        - Left: {measurement_lines[0].line}
+        - Top:  {measurement_lines[1].line}
+        - Right:  {measurement_lines[2].line}
+        - Buttom:  {measurement_lines[3].line}
+        """
+    )
+
+
 def density_speed():
     st.write(
         r"""
