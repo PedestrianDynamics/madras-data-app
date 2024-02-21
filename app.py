@@ -6,7 +6,8 @@ import ui
 
 import map_tab
 import datafactory
-import show_data
+import traj_tab
+import analysis_tab
 
 if __name__ == "__main__":
     ui.setup_app()
@@ -26,7 +27,7 @@ if __name__ == "__main__":
         if activate_tab2:
             filename = st.selectbox("Select a file:", st.session_state.files)
             st.session_state.selected_file = filename
-            show_data.run_tab2(filename, msg)
+            traj_tab.run_tab2(filename, msg)
 
     # Analysis
     with tab3:
@@ -36,7 +37,7 @@ if __name__ == "__main__":
                 "Select a file:", st.session_state.files, key="tab3_filename"
             )
             st.session_state.selected_file = filename
-            show_data.run_tab3(filename)
+            analysis_tab.run_tab3(filename)
     # Info
     with tab4:
         st.info("More info later...")
