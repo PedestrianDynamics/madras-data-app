@@ -5,10 +5,10 @@ import os
 import pickle
 import time
 from pathlib import Path
-
+from typing import Union
 import matplotlib.pyplot as plt
 from plotly.graph_objs import Figure
-
+import socket
 import pedpy
 
 # from pedpy import compute_density_profile, DensityMethod
@@ -19,6 +19,49 @@ from shapely import Polygon
 import datafactory
 import docs
 import plots
+import requests
+
+
+voronoi_results = "voronoi_density_speed.pkl"
+url = "https://go.fzj.de/voronoi-data"
+
+
+def is_running_locally() -> bool:
+    """Check if the Streamlit app is running locally."""
+    hostname = socket.gethostname()
+    ip_address = socket.gethostbyname(hostname)
+    return (
+        ip_address == "127.0.0.1"
+        or ip_address.startswith("192.168.")
+        or hostname == "localhost"
+    )
+
+
+def download(url: str, destination: Union[str, Path]) -> None:
+    """
+    Downloads a file from a specified URL and saves it to a given destination,
+    """
+    # Send a GET request
+    response = requests.get(url, stream=True)
+
+    # Total size in bytes.
+    total_size = int(response.headers.get("content-length", 0))
+    block_size = 1024  # 1 Kbyte
+    progress_bar = st.progress(0)
+    progress_status = st.empty()
+    written = 0
+
+    with open(destination, "wb") as f:
+        for data in response.iter_content(block_size):
+            written += len(data)
+            f.write(data)
+            # Update progress bar
+            progress = int(100 * written / total_size)
+            progress_bar.progress(progress)
+            progress_status.text(f"> {progress}%")
+
+    progress_status.text("Download complete.")
+    progress_bar.empty()  # clear  the progress bar after completion
 
 
 def get_measurement_lines(trajectory_data):
@@ -187,7 +230,14 @@ def run_tab3(selected_file):
     c2.write("**Speed calculation parameters**")
     calculations = c0.radio(
         "Choose calculation",
-        ["Time series", "FD_classical", "FD_voronoi", "Flow", "Profiles"],
+        [
+            "Time series",
+            "FD_classical",
+            "FD_voronoi",
+            "FD_voronoi (local)",
+            "N-T",
+            "Profiles",
+        ],
         horizontal=False,
     )
     dv = c2.slider(
@@ -256,7 +306,8 @@ def run_tab3(selected_file):
         fig = plots.plot_fundamental_diagram_all(densities, speeds)
         plots.show_fig(fig, figname=figname, html=True, write=True)
 
-    if calculations == "FD_voronoi":
+    # we can run this function only locally. Streamlit server has some memory-limits
+    if calculations == "FD_voronoi (local)":
         voronoi_polygons = {}
         voronoi_density = {}
         voronoi_speed = {}
@@ -267,7 +318,16 @@ def run_tab3(selected_file):
         calculate = c1.button(
             "Calculate", type="primary", help="Calculate fundamental diagram Voronoi"
         )
-        if calculate:
+        if not is_running_locally():
+            st.warning(
+                """
+                This calculation is disabled when running in a deployed environment.\n
+                You should run the app locally:
+                """
+            )
+            st.code("streamlit run app.py")
+
+        if is_running_locally() and calculate:
             with st.status("Calculating Voronoi FD ...", expanded=True):
                 progress_bar = st.progress(0)
                 progress_status = st.empty()
@@ -305,7 +365,6 @@ def run_tab3(selected_file):
                             filename,
                         )
                     )
-
                     voronoi_speed[basename] = calculate_or_load_voronoi_speed(
                         precalculated_voronoi_speed,
                         intersecting[basename],
@@ -316,6 +375,12 @@ def run_tab3(selected_file):
                     progress = int(100 * (i + 1) / len(st.session_state.files))
                     progress_bar.progress(progress)
                     progress_status.text(f"> {progress}%")
+
+            with open(voronoi_results, "wb") as f:
+                pickle.dump(
+                    (voronoi_density, voronoi_speed), f, pickle.HIGHEST_PROTOCOL
+                )
+
             fig = plots.plot_fundamental_diagram_all(voronoi_density, voronoi_speed)
 
             plots.show_fig(fig, figname=figname, html=True, write=True)
@@ -329,7 +394,31 @@ def run_tab3(selected_file):
                 f"File {figname} does not exist yet! You should calculate it first"
             )
 
-    if calculations == "Flow":
+    if calculations == "FD_voronoi":
+        voronoi_density = {}
+        voronoi_speed = {}
+        figname = "fundamental_diagram_voronoi.pdf"
+        msg = st.empty()
+        if not Path(voronoi_results).exists():
+            msg.warning(f"{voronoi_results} does not exist yet!")
+            with st.status("Downloading ...", expanded=True):
+                download(url, voronoi_results)
+
+        if Path(voronoi_results).exists():
+            with open(voronoi_results, "rb") as f:
+                voronoi_density, voronoi_speed = pickle.load(f)
+
+            fig = plots.plot_fundamental_diagram_all(voronoi_density, voronoi_speed)
+            plots.show_fig(fig, figname=figname, html=True, write=True)
+
+        if Path(figname).exists():
+            plots.download_file(figname, msg)
+        else:
+            st.warning(
+                f"File {figname} does not exist yet! You should calculate it first"
+            )
+
+    if calculations == "N-T":
         measurement_lines = get_measurement_lines(trajectory_data)
         docs_expander = st.expander("Documentation (click to expand)", expanded=False)
         with docs_expander:
