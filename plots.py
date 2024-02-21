@@ -175,41 +175,34 @@ def plot_time_series(density: pd.DataFrame, speed: pd.DataFrame, fps: int) -> go
     return fig
 
 
-def plot_fundamental_diagram(density: pd.DataFrame, speed: pd.DataFrame) -> go.Figure:
-    fig = go.Figure()
-
-    fig.add_trace(
-        go.Scatter(
-            x=density[::50],
-            y=speed[::50],
-            marker=dict(color="blue"),
-            mode="markers",
-        ),
-    )
-
-    vmin = np.min(speed) - 0.05
-    vmax = np.max(speed) + 0.05
-    fig.update_layout(
-        xaxis_title=r"$\rho\; /\; 1/m^2$",
-        showlegend=False,
-    )
-    fig.update_yaxes(range=[vmin, vmax], title_text=r"$v\; /\; m/s$")
-    fig.update_xaxes(
-        scaleanchor="y",
-        scaleratio=1,
-    )
-
-    return fig
-
-
 def plot_fundamental_diagram_all(density_dict, speed_dict) -> go.Figure:
     fig = go.Figure()
 
     rmax = -1
     vmax = -1
 
-    colors_const = ["blue", "red", "green", "magenta", "black"]
-    marker_shapes = ["circle", "square", "diamond", "cross", "x-thin"]  # Example shapes
+    colors_const = [
+        "blue",
+        "red",
+        "green",
+        "magenta",
+        "black",
+        "cyan",
+        "yellow",
+        "orange",
+        "purple",
+    ]
+    marker_shapes = [
+        "circle",
+        "square",
+        "diamond",
+        "cross",
+        "x-thin",
+        "triangle-up",
+        "hexagon",
+        "star",
+        "pentagon",
+    ]
 
     colors = []
     filenames = []
@@ -245,12 +238,14 @@ def plot_fundamental_diagram_all(density_dict, speed_dict) -> go.Figure:
     # vmax = 2.0
     fig.update_yaxes(
         # range=[vmin, vmax],
-        title_text=r"$v\; / \frac{m}{s}$"
+        title_text=r"$v\; / \frac{m}{s}$",
+        title_font=dict(size=20),
+        scaleanchor="x",
+        scaleratio=1,
     )
     fig.update_xaxes(
         title_text=r"$\rho / m^{-2}$",
-        scaleanchor="y",
-        scaleratio=1,
+        title_font=dict(size=20),
     )
 
     return fig
