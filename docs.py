@@ -68,9 +68,13 @@ def about():
     # Multi-agent modelling of dense crowd dynamics: Predict & Understand (MADRAS)
     
     ## Overview
-    The [MADRAS-project](https://www.madras-crowds.eu/) is a collaborative cooperation funded by [ANR](https://anr.fr) :flag-fr: and [DFG](htpps://dfg.de) :flag-de:, aims to develop innovative agent-based models to predict and understand dense crowd dynamics (from 2 to 8 ped/m²) and to apply these models in a large-scale case study.
+    The [MADRAS-project](https://www.madras-crowds.eu/) is a collaborative cooperation funded by [ANR](https://anr.fr) :flag-fr: and [DFG](htpps://dfg.de) :flag-de:, aims to develop innovative agent-based models to predict and understand dense crowd dynamics and to apply these models in a large-scale case study.
     This app offers a visualisation of data collection of the festival of lights in 2022, a distinguished open-air event that draws nearly two million visitors over four days.
-    
+    """
+    st.markdown(text)
+    st.image("images/fcaym-FdL22.png", caption="Festival of Lights in Lyon 2022.")
+
+    text2 = """
     This app is part of the MADRAS project, which focuses on collecting and analyzing videos of crowded scenes during the festival. The primary goal is to extract valuable pedestrian dynamics measurements to enhance our understanding of crowd behaviors during such large-scale events.
     
     ## Data Extraction and Analysis
@@ -82,4 +86,12 @@ def about():
     - **Speed and Flow Measurement**: Capabilities to measure and understand the average speed and flow of the crowd, aiding in the calibration and testing of print()edestrian models.
     - **Map Visualization**: An interactive map of the event, enabling users to visually explore the areas of interest and the locations of cameras.
     """
-    st.markdown(text)
+    st.markdown(text2)
+    text3 = """
+    Selected scenes of the Festival of Lights are also used as reference scenarios for numerical simulations. The collection of crowd videos is done in the strict respect of the privacy and personal data protection of the filmed visitors. The videos are processed anonymously, without distinguishing the filmed persons by any criteria. All pedestrian dynamics data (as well as the models and simulation software) will be publicly available at the end of the project.
+    """
+    st.markdown(text3)
+    st.image(
+        "images/fbppj-FestivalOfLights2-min.png",
+        caption="Emplacement of cameras for the video recording during the Festival of Lights 2022.",
+    )

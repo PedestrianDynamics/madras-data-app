@@ -15,7 +15,7 @@ if __name__ == "__main__":
     ui.init_app_looks()
     datafactory.init_session_state()
 
-    tab1, tab2, tab3, tab4 = ui.init_sidebar()
+    tab4, tab1, tab2, tab3 = ui.init_sidebar()
 
     # Map
     with tab1:
