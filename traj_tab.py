@@ -41,7 +41,9 @@ def run_tab2(selected_file: str, msg: DeltaGenerator) -> None:
         frame_step=5,
         speed_calculation=pedpy.SpeedCalculation.BORDER_SINGLE_SIDED,
     )
-    data_with_speed = data_with_speed.merge(trajectory_data.data, on=["id", "frame"], how="left")
+    data_with_speed = data_with_speed.merge(
+        trajectory_data.data, on=["id", "frame"], how="left"
+    )
 
     ids = trajectory_data.data["id"].unique()
     start_time = time.time()
@@ -87,7 +89,9 @@ def run_tab2(selected_file: str, msg: DeltaGenerator) -> None:
             placeholder="Type a number in [1, 4]",
             format="%d",
         )
-        fig = plots.plot_trajectories(trajectory_data, sample_frame, uid, show_direction, walkable_area)
+        fig = plots.plot_trajectories(
+            trajectory_data, sample_frame, uid, show_direction, walkable_area
+        )
         c1.plotly_chart(fig)
 
         end_time = time.time()
