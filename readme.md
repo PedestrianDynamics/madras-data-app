@@ -22,12 +22,11 @@ This app is part of the [MADRAS project](https://www.madras-crowds.eu/), which f
 
 ## Local Execution Guide
 
-The app can be used by clicking on this link [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://madras-data-app.streamlit.app/).
+The app can be used by clicking on this link [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://madras-data-app.streamlit.app/)
 
 However, for optimal performance, especially for tasks that demand significant computing resources, consider operating the app on your local machine.
 
 To set up, follow these steps after downloading the repository:
-
 
 1. Environment Setup (Highly Recommended)
 

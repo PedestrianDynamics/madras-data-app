@@ -1,5 +1,6 @@
 """Collection of functions used throughout the app."""
 
+import os
 from pathlib import Path
 from typing import Union
 

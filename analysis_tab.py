@@ -242,7 +242,7 @@ def run_tab3(selected_file):
         calculate = c1.button(
             "Calculate", type="primary", help="Calculate fundamental diagram Voronoi"
         )
-        if not is_running_locally():
+        if not utilities.is_running_locally():
             st.warning(
                 """
                 This calculation is disabled when running in a deployed environment.\n
@@ -250,8 +250,11 @@ def run_tab3(selected_file):
                 """
             )
             st.code("streamlit run app.py")
+            st.warning(
+                "See [README](https://github.com/PedestrianDynamics/madras-data-app?tab=readme-ov-file#local-execution-guide) for more information."
+            )
 
-        if is_running_locally() and calculate:
+        if utilities.is_running_locally() and calculate:
             with st.status("Calculating Voronoi FD ...", expanded=True):
                 progress_bar = st.progress(0)
                 progress_status = st.empty()
