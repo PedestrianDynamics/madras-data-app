@@ -108,7 +108,7 @@ def run_tab2(selected_file, msg):
             walkable_area,
             width=800,
             height=800,
-            every_nth_frame=16 * 3,
+            every_nth_frame=16,
             radius=0.1,  # 0.75
             # title_note="(<span style='color:green;'>M</span>, <span style='color:blue;'>F</span>)",
         )

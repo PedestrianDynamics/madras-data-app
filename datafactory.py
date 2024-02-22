@@ -39,8 +39,19 @@ class DataConfig:
         self.files = glob.glob(f"{self.directory}/*.txt")
 
 
+def increment_frame_start(page_size):
+    st.session_state.start_frame += page_size
+
+
+def decrement_frame_start(page_size):
+    st.session_state.start_frame -= page_size
+
+
 def init_session_state():
     """Init session_state. throughout the app."""
+
+    if "start_frame" not in st.session_state:
+        st.session_state.start_frame = 0
 
     if not hasattr(st.session_state, "files"):
         st.session_state.files = []

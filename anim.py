@@ -16,7 +16,7 @@ import pandas as pd
 import pedpy
 import plotly.graph_objects as go
 import streamlit as st
-import time
+import datafactory
 
 DUMMY_SPEED = -1000
 
@@ -273,7 +273,7 @@ def _get_processed_frame_data(data_df, frame_num, max_agents):
 
 
 def animate(
-    data_df: pd.DataFrame,
+    data_df0: pd.DataFrame,
     area: pedpy.WalkableArea,
     *,
     every_nth_frame: int = 50,
@@ -282,6 +282,49 @@ def animate(
     radius: float = 0.1,
     title_note: str = "",
 ):
+    frames = data_df0["frame"].unique()
+    fr0 = frames.min()
+    fr1 = frames.max()
+    col1, col2, col3, col4, _ = st.columns((0.1, 0.1, 0.1, 0.2, 0.6))
+    page_size = col4.number_input(
+        "Number of frames",
+        value=500,
+        min_value=100,
+        max_value=1000,
+        help="How many frames to animae. (the larger the slower)",
+    )
+    every_nth_frame = col3.number_input(
+        "fps",
+        value=16,
+        min_value=16,
+        max_value=100,
+        help="Every nth frame.",
+    )
+
+    with col1:
+        st.text("Backward")
+        decrement = st.button(":arrow_backward:")
+        if decrement:
+            datafactory.decrement_frame_start(page_size)
+    with col2:
+        st.text("Forward")
+        increment = st.button(":arrow_forward:")
+        if increment:
+            datafactory.increment_frame_start(page_size)
+
+    if st.session_state.start_frame < fr0:
+        st.session_state.start_frame = fr0
+
+    # Ensure page_start doesn't go above total data length
+    if st.session_state.start_frame >= fr1:
+        st.session_state.start_frame = fr1 - page_size
+
+    # Calculate page_end
+    frame_end = st.session_state.start_frame + page_size
+    frame_start = st.session_state.start_frame
+    data_df = data_df0[
+        (data_df0["frame"] >= frame_start) & (data_df0["frame"] <= frame_end)
+    ]
     data_df["radius"] = radius
     min_speed = data_df["speed"].min()
     max_speed = data_df["speed"].max()
@@ -306,7 +349,8 @@ def animate(
         shapes, hover_traces, arrows = _get_shapes_for_frame(
             frame_data, min_speed, max_speed
         )
-        title = f"<b>{title_note + '  |  ' if title_note else ''}N: {agent_count}</b>"
+        # title = f"<b>{title_note + '  |  ' if title_note else ''}N: {agent_count}</b>"
+        title = f"<b>{title_note + '  |  ' if title_note else ''}Number of Agents: {initial_agent_count}. Frame: {frame_num}</b>"
         frame_name = str(int(frame_num))
         frame = go.Frame(
             data=geometry_traces + hover_traces,
