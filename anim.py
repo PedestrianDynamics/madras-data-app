@@ -285,19 +285,20 @@ def animate(
     frames = data_df0["frame"].unique()
     fr0 = frames.min()
     fr1 = frames.max()
-    col1, col2, col3, col4, _ = st.columns((0.1, 0.1, 0.1, 0.2, 0.6))
-    page_size = col4.number_input(
+    col1, col2, col3, col4, col5, _ = st.columns((0.1, 0.1, 0.1, 0.1, 0.1, 0.4))
+    page_size = col5.number_input(
         "Number of frames",
         value=500,
         min_value=100,
         max_value=1000,
         help="How many frames to animae. (the larger the slower)",
     )
-    every_nth_frame = col3.number_input(
+    every_nth_frame = col4.number_input(
         "fps",
         value=16,
-        min_value=16,
+        min_value=8,
         max_value=100,
+        step=16,
         help="Every nth frame.",
     )
 
@@ -311,6 +312,12 @@ def animate(
         increment = st.button(":arrow_forward:")
         if increment:
             datafactory.increment_frame_start(page_size)
+
+    with col3:
+        st.text("Reset")
+        reset = st.button(":leftwards_arrow_with_hook:")
+        if reset:
+            datafactory.reset_frame_start(fr0)
 
     if st.session_state.start_frame < fr0:
         st.session_state.start_frame = fr0

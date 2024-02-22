@@ -47,6 +47,10 @@ def decrement_frame_start(page_size):
     st.session_state.start_frame -= page_size
 
 
+def reset_frame_start(start):
+    st.session_state.start_frame = start
+
+
 def init_session_state():
     """Init session_state. throughout the app."""
 

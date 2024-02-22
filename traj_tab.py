@@ -23,9 +23,7 @@ def run_tab2(selected_file, msg):
     # todo
     msg.write("")
     if selected_file != st.session_state.file_changed:
-        with st.status(f"Loading {selected_file}"):
-            trajectory_data = datafactory.load_file(selected_file)
-
+        trajectory_data = datafactory.load_file(selected_file)
         st.session_state.trajectory_data = trajectory_data
         st.session_state.file_changed = selected_file
 
@@ -103,12 +101,12 @@ def run_tab2(selected_file, msg):
     if do_animate:
         #        pr = cProfile.Profile()
         #        pr.enable()
+
         anm = animate(
             data_with_speed,
             walkable_area,
             width=800,
             height=800,
-            every_nth_frame=16,
             radius=0.1,  # 0.75
             # title_note="(<span style='color:green;'>M</span>, <span style='color:blue;'>F</span>)",
         )
