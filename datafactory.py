@@ -87,15 +87,21 @@ def unzip_files(zip_path: str, destination: str) -> None:
             # Extract only if file (ignores directories)
             if not member.is_dir():
                 # Build target filename path
-                target_path = os.path.join(destination, os.path.basename(member.filename))
+                target_path = os.path.join(
+                    destination, os.path.basename(member.filename)
+                )
                 # Ensure target directory exists (e.g., if not extracting directories)
                 os.makedirs(os.path.dirname(target_path), exist_ok=True)
                 # Extract file
-                with zip_ref.open(member, "r") as source, open(target_path, "wb") as target:
+                with zip_ref.open(member, "r") as source, open(
+                    target_path, "wb"
+                ) as target:
                     shutil.copyfileobj(source, target)
 
 
-def download_and_unzip_files(url: str, destination: Union[str, Path], unzip_destination: Union[str, Path]) -> None:
+def download_and_unzip_files(
+    url: str, destination: Union[str, Path], unzip_destination: Union[str, Path]
+) -> None:
     """
     Downloads a ZIP file from a specified URL, saves it to a given destination, and unzips it into a specified directory.
     Displays the download and unzipping progress in a Streamlit app.

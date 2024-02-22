@@ -61,7 +61,6 @@ def get_measurement_lines(trajectory_data: pd.DataFrame):
     ]
 
 
-
 def setup_walkable_area(trajectory_data):
     """Create walkable_area from trajectories."""
     min_x = trajectory_data.data["x"].min()
@@ -76,4 +75,3 @@ def setup_walkable_area(trajectory_data):
     ]
     rectangle_polygon = Polygon(rectangle_coords)
     return pedpy.WalkableArea(rectangle_polygon)
-
