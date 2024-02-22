@@ -1,7 +1,13 @@
+"""Documentation texts for the app."""
+
+from typing import List
+
+import pedpy
 import streamlit as st
 
 
-def flow(measurement_lines):
+def flow(measurement_lines: List[pedpy.MeasurementLine]) -> None:
+    """Write documentation text for NT-diagram."""
     st.write(
         rf"""
         The N-t diagram shows how many pedestrian have crossed the measurement line at a specific time.
@@ -15,7 +21,8 @@ def flow(measurement_lines):
     )
 
 
-def density_speed():
+def density_speed() -> None:
+    """Write documentation text for density-speed calculations."""
     st.write(
         r"""
             ## Density:
@@ -63,7 +70,8 @@ def density_speed():
     )
 
 
-def about():
+def about() -> None:
+    """Write About text."""
     text = """
     # Multi-agent modelling of dense crowd dynamics: Predict & Understand (MADRAS)
 

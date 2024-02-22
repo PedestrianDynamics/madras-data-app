@@ -1,5 +1,8 @@
-import streamlit as st
 from pathlib import Path
+from typing import List
+
+import streamlit as st
+from streamlit.delta_generator import DeltaGenerator
 
 
 def setup_app() -> None:
@@ -18,7 +21,7 @@ def setup_app() -> None:
     # st.title("Madras project: Festival of light 2022")
 
 
-def init_app_looks():
+def init_app_looks() -> None:
     path = Path(__file__)
     ROOT_DIR = path.parent.absolute()
 
@@ -33,7 +36,7 @@ def init_app_looks():
     st.sidebar.image(f"{ROOT_DIR}/logo.png", use_column_width=True)
 
 
-def init_sidebar():
+def init_sidebar() -> List[DeltaGenerator]:
     """Init sidebar and 3 tabs."""
     c1, c2 = st.sidebar.columns((1.8, 0.2))
     tab0, tab1, tab2, tab3 = st.tabs(
@@ -45,4 +48,4 @@ def init_sidebar():
         ]
     )
 
-    return tab0, tab1, tab2, tab3
+    return [tab0, tab1, tab2, tab3]

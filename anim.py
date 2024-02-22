@@ -9,32 +9,41 @@ code here. Use it at your own peril.
 """
 
 
+from typing import List, Tuple, Dict, Any
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
-
 import pedpy
 import plotly.graph_objects as go
 import streamlit as st
+from plotly.graph_objs import Figure, Scatter
+from plotly.graph_objs.layout import Shape
+from shapely import Polygon
+
 import datafactory
 
 DUMMY_SPEED = -1000
 
 
-def _speed_to_color(speed, min_speed, max_speed):
+def _speed_to_color(speed: float, min_speed: float, max_speed: float) -> str:
     """Map a speed value to a color using a colormap."""
     normalized_speed = (speed - min_speed) / (max_speed - min_speed)
     r, g, b = plt.cm.jet_r(normalized_speed)[:3]
     return f"rgba({r*255:.0f}, {g*255:.0f}, {b*255:.0f}, 0.5)"
 
 
-def _get_line_color(disk_color):
+def _get_line_color(disk_color: str) -> str:
+    """Change line color based on brightness."""
     r, g, b, _ = [int(float(val)) for val in disk_color[5:-2].split(",")]
     brightness = (r * 299 + g * 587 + b * 114) / 1000
     return "black" if brightness > 127 else "white"
 
 
-def _create_orientation_line(row, line_length=0.2, color="black"):
+def _create_orientation_line(
+    row: pd.DataFrame, line_length: float = 0.2, color: str = "black"
+) -> Shape:
+    """Create orientation Shape object."""
     end_x = row["x"] + line_length * 0
     end_y = row["y"] + line_length * 0
 
@@ -48,7 +57,8 @@ def _create_orientation_line(row, line_length=0.2, color="black"):
     )
 
 
-def _get_geometry_traces(area):
+def _get_geometry_traces(area: Polygon) -> Scatter:
+    """Construct geometry traces."""
     geometry_traces = []
     x, y = area.exterior.xy
     geometry_traces.append(
@@ -78,7 +88,7 @@ def _get_geometry_traces(area):
     return geometry_traces
 
 
-def _get_colormap(frame_data, max_speed):
+def _get_colormap(frame_data: pd.DataFrame, max_speed: float) -> List[Scatter]:
     """Utilize scatter plots with varying colors for each agent instead of individual shapes.
 
     This trace is only to incorporate a colorbar in the plot.
@@ -103,8 +113,13 @@ def _get_colormap(frame_data, max_speed):
     return [scatter_trace]
 
 
-def _get_shapes_for_frame(frame_data, min_speed, max_speed):
-    def create_shape(row):
+def _get_shapes_for_frame(
+    frame_data: pd.DataFrame, min_speed: float, max_speed: float
+) -> Tuple[Shape, Scatter, Shape]:
+    """Construct circles as Shapes for agents, Hover and Directions."""
+
+    def create_shape(row: pd.DataFrame) -> Shape:
+        """Construct circles as Shapes for agents."""
         hover_trace = go.Scatter(
             x=[row["x"]],
             y=[row["y"]],
@@ -171,19 +186,19 @@ def _get_shapes_for_frame(frame_data, min_speed, max_speed):
 
 
 def _create_fig(
-    initial_agent_count,
-    initial_shapes,
-    initial_arrows,
-    initial_hover_trace,
-    initial_scatter_trace,
-    geometry_traces,
-    frames,
-    steps,
-    area_bounds,
-    width=800,
-    height=800,
+    initial_agent_count: int,
+    initial_shapes: Shape,
+    initial_arrows: Shape,
+    initial_hover_trace: Shape,
+    initial_scatter_trace: Shape,
+    geometry_traces: Shape,
+    frames: pd.DataFrame,
+    steps: List[Dict[str, Any]],
+    area_bounds: Tuple[float, float, float, float],
+    width: int = 800,
+    height: int = 800,
     title_note: str = "",
-):
+) -> Figure:
     """Creates a Plotly figure with animation capabilities.
 
     Returns:
@@ -212,7 +227,7 @@ def _create_fig(
     return fig
 
 
-def _get_animation_controls():
+def _get_animation_controls() -> Dict[str, Any]:
     """Returns the animation control buttons for the figure."""
     return {
         "buttons": [
@@ -239,7 +254,7 @@ def _get_animation_controls():
     }
 
 
-def _get_slider_controls(steps):
+def _get_slider_controls(steps: List[Dict[str, Any]]) -> Dict[str, Any]:
     """Returns the slider controls for the figure."""
     return {
         "active": 0,
@@ -260,7 +275,9 @@ def _get_slider_controls(steps):
     }
 
 
-def _get_processed_frame_data(data_df, frame_num, max_agents):
+def _get_processed_frame_data(
+    data_df: pd.DataFrame, frame_num: int, max_agents: int
+) -> Tuple[pd.DataFrame, int]:
     """Process frame data and ensure it matches the maximum agent count."""
     frame_data = data_df[data_df["frame"] == frame_num]
     agent_count = len(frame_data)
@@ -275,12 +292,12 @@ def animate(
     data_df0: pd.DataFrame,
     area: pedpy.WalkableArea,
     *,
-    every_nth_frame: int = 50,
     width: int = 800,
     height: int = 800,
     radius: float = 0.1,
     title_note: str = "",
-):
+) -> Figure:
+    """Animate a trajectory."""
     data_df0["radius"] = radius
     frames = data_df0["frame"].unique()
     fr0 = frames.min()
@@ -301,17 +318,17 @@ def animate(
         step=16,
         help="Every nth frame.",
     )
-
+    every_nth_frame = int(every_nth_frame)
     with col1:
         st.text("Backward")
         decrement = st.button(":arrow_backward:")
         if decrement:
-            datafactory.decrement_frame_start(page_size)
+            datafactory.decrement_frame_start(int(page_size))
     with col2:
         st.text("Forward")
         increment = st.button(":arrow_forward:")
         if increment:
-            datafactory.increment_frame_start(page_size)
+            datafactory.increment_frame_start(int(page_size))
 
     with col3:
         st.text("Reset")

@@ -6,17 +6,17 @@ from dataclasses import dataclass
 import folium
 import streamlit as st
 from streamlit_folium import st_folium
-from typing import Dict, Tuple
+from typing import Dict, Tuple, List, cast
 
 
 @dataclass
 class Camera:
     """Data class representing a camera with its location and video URL."""
 
-    location: tuple
+    location: Tuple[float, float]
     url: str
     name: str
-    field: list
+    field: List[List[float]]
 
 
 tile_layers = {
@@ -51,6 +51,13 @@ def load_cameras_from_json(file_path: str) -> Dict[str, Camera]:
         try:
             # Ensure the data structure is as expected
             location = tuple(info["location"])
+            assert (
+                isinstance(location, tuple) and len(location) == 2
+            ), "Location must be a tuple of two floats."
+            assert all(
+                isinstance(x, float) for x in location
+            ), "Location elements must be floats."
+            location = cast(Tuple[float, float], location)
             url = info["url"]
             name = info["name"]
             field = info["field"]
@@ -69,7 +76,7 @@ def load_cameras_from_json(file_path: str) -> Dict[str, Camera]:
 
 
 def create_map(
-    center: Tuple[float, float],
+    center: List[float],
     tile_layer: str,
     cameras: Dict[str, Camera],
     zoom: int = 16,
@@ -154,7 +161,7 @@ def create_map(
     return m
 
 
-def main(cameras: Dict[str, Camera], selected_layer) -> None:
+def main(cameras: Dict[str, Camera], selected_layer: str) -> None:
     """Implement the main logic of the app.
 
     Args:
@@ -183,9 +190,10 @@ def main(cameras: Dict[str, Camera], selected_layer) -> None:
         placeholder.error("No camera selected.")
 
 
-def call_main():
+def call_main() -> None:
     cameras = load_cameras_from_json("cameras.json")
     selected_layer = st.selectbox("Choose a Map Style:", list(tile_layers.keys()))
+    selected_layer = str(selected_layer)
     st.markdown(
         """
         **Layer Selection:**

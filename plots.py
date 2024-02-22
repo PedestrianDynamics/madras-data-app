@@ -1,21 +1,26 @@
 """Plot functionalities for the app."""
 
+from typing import Dict, TypeAlias, Tuple, Optional
+
 import numpy as np
 import pandas as pd
 import pedpy
 import plotly.graph_objects as go
 import streamlit as st
-from plotly.graph_objs import Figure
+from plotly.graph_objs import Figure, Scatter
 from plotly.subplots import make_subplots
+
+st_column: TypeAlias = st.delta_generator.DeltaGenerator
 
 
 def plot_trajectories(
     trajectory_data: pedpy.TrajectoryData,
     framerate: int,
-    uid: int,
-    show_direction: int,
+    uid: Optional[float],
+    show_direction: Optional[float],
     walkable_area: pedpy.WalkableArea,
 ) -> go.Figure:
+    """Plot trajectories and geometry."""
     fig = go.Figure()
     c1, c2, c3 = st.columns((1, 1, 1))
     data = trajectory_data.data
@@ -49,7 +54,6 @@ def plot_trajectories(
         )
     else:
         for uid, df in data.groupby("id"):
-
             direction = directions.loc[
                 directions["id"] == uid, "direction_number"
             ].iloc[0]
@@ -106,7 +110,7 @@ def plot_trajectories(
 
 
 def plot_time_series(density: pd.DataFrame, speed: pd.DataFrame, fps: int) -> go.Figure:
-
+    """Plot density and speed time series side-byside."""
     fig = make_subplots(
         rows=1,
         cols=2,
@@ -171,12 +175,11 @@ def plot_time_series(density: pd.DataFrame, speed: pd.DataFrame, fps: int) -> go
     return fig
 
 
-def plot_fundamental_diagram_all(density_dict, speed_dict) -> go.Figure:
+def plot_fundamental_diagram_all(
+    density_dict: Dict[str, pd.DataFrame], speed_dict: Dict[str, pd.DataFrame]
+) -> go.Figure:
+    """Plot fundamental diagram of all files."""
     fig = go.Figure()
-
-    rmax = -1
-    vmax = -1
-
     colors_const = [
         "blue",
         "red",
@@ -223,15 +226,6 @@ def plot_fundamental_diagram_all(density_dict, speed_dict) -> go.Figure:
                 showlegend=True,
             )
         )
-        rmax = max(rmax, np.max(density))
-        vmax = max(vmax, np.max(speed))
-        vmin = min(vmax, np.min(speed))
-
-    vmax += 0.05
-    rmax += 0.05
-    vmin -= 0.05
-
-    # vmax = 2.0
     fig.update_yaxes(
         # range=[vmin, vmax],
         title_text=r"$v\; / \frac{m}{s}$",
@@ -247,8 +241,10 @@ def plot_fundamental_diagram_all(density_dict, speed_dict) -> go.Figure:
     return fig
 
 
-def plot_x_y(x, y, title, xlabel, ylabel, color, threshold=0):
-
+def plot_x_y(
+    x: pd.Series, y: pd.Series, title: str, xlabel: str, ylabel: str, color: str
+) -> Tuple[Scatter, Figure]:
+    """Plot two arrays and return trace and fig."""
     x = np.unique(x)
     fig = make_subplots(
         rows=1,
@@ -272,9 +268,9 @@ def plot_x_y(x, y, title, xlabel, ylabel, color, threshold=0):
     return trace, fig
 
 
-def assign_direction_number(agent_data):
+def assign_direction_number(agent_data: pd.DataFrame) -> pd.DataFrame:
     """
-    Assigns a direction number to each agent based on their main direction of motion.
+    Assign a direction number to each agent based on their main direction of motion.
 
     Parameters:
     - agent_data (DataFrame): A DataFrame with columns 'id', 'frame', 'x', 'y', representing
@@ -306,12 +302,7 @@ def assign_direction_number(agent_data):
 
         direction_numbers.append((agent_id, direction_number))
 
-    # Create a DataFrame from the direction numbers
     return pd.DataFrame(direction_numbers, columns=["id", "direction_number"])
-
-    # Merge the direction DataFrame with the original agent_data DataFrame
-    # result_df = pd.merge(agent_data, direction_df, on='id')
-
 
 
 def show_fig(
@@ -335,12 +326,13 @@ def show_fig(
     if not html:
         st.plotly_chart(fig)
     else:
-        st.components.v1.html(fig.to_html(include_mathjax="cdn"), height=height)
+        st.components.v1.html(fig.to_html(include_mathjax="cdn"), height=height)  # type: ignore
 
     fig.write_image(figname)
 
 
-def download_file(figname, col=None):
+def download_file(figname: str, col: Optional[st_column] = None) -> None:
+    """Make download button for file."""
     with open(figname, "rb") as pdf_file:
         if col is None:
             st.download_button(

@@ -2,11 +2,11 @@
 
 import os
 from pathlib import Path
-from typing import Union
+from typing import Union, List
 
 import pandas as pd
 import pedpy
-import requests
+import requests  # type: ignore
 import streamlit as st
 from shapely import Polygon
 
@@ -46,7 +46,7 @@ def download(url: str, destination: Union[str, Path]) -> None:
     progress_bar.empty()  # clear  the progress bar after completion
 
 
-def get_measurement_lines(trajectory_data: pd.DataFrame):
+def get_measurement_lines(trajectory_data: pd.DataFrame) -> List[pedpy.MeasurementLine]:
     """Create 4 measurement lines inside the walkable_area"""
     eps = 1.0
     min_x = trajectory_data.data["x"].min() + eps
@@ -61,7 +61,7 @@ def get_measurement_lines(trajectory_data: pd.DataFrame):
     ]
 
 
-def setup_walkable_area(trajectory_data):
+def setup_walkable_area(trajectory_data: pd.DataFrame) -> pedpy.WalkableArea:
     """Create walkable_area from trajectories."""
     min_x = trajectory_data.data["x"].min()
     max_x = trajectory_data.data["x"].max()

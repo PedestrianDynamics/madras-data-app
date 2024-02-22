@@ -26,7 +26,7 @@ if __name__ == "__main__":
         msg = st.empty()
         activate_tab2 = st.toggle("Activate", key="tab2", value=False)
         if activate_tab2:
-            filename = st.selectbox("Select a file:", st.session_state.files)
+            filename = str(st.selectbox("Select a file:", st.session_state.files))
             st.session_state.selected_file = filename
             traj_tab.run_tab2(filename, msg)
 
@@ -34,8 +34,10 @@ if __name__ == "__main__":
     with tab3:
         activate_tab3 = st.toggle("Activate", key="tab3", value=False)
         if activate_tab3:
-            filename = st.selectbox(
-                "Select a file:", st.session_state.files, key="tab3_filename"
+            filename = str(
+                st.selectbox(
+                    "Select a file:", st.session_state.files, key="tab3_filename"
+                )
             )
             st.session_state.selected_file = filename
             analysis_tab.run_tab3(filename)

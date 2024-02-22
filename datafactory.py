@@ -2,16 +2,13 @@ import glob
 import os
 import shutil
 import zipfile
-from collections import defaultdict
 from dataclasses import dataclass, field
 from pathlib import Path
-from typing import Dict, List, Union
+from typing import List, Union
+
 import pedpy
-
-import requests
+import requests  # type:ignore
 import streamlit as st
-
-import datafactory
 
 
 @dataclass
@@ -20,17 +17,16 @@ class DataConfig:
 
     directory: Path
     files: List[str] = field(default_factory=list)
-    data: Dict[str, List] = field(default_factory=lambda: defaultdict(list))
+    # data: Dict[str, List] = field(default_factory=lambda: defaultdict(list))
     url: str = "https://go.fzj.de/madras-data"
 
-    def __post_init__(self):
+    def __post_init__(self) -> None:
         """Initialize the DataConfig instance by retrieving files for each country."""
         self.directory.parent.mkdir(parents=True, exist_ok=True)
         self.retrieve_files()
 
     def retrieve_files(self) -> None:
         """Retrieve the files for each country specified in the countries list."""
-
         if not self.directory.exists():
             st.warning(f"{self.directory} does not exist yet!")
             with st.status("Downloading ...", expanded=True):
@@ -39,21 +35,23 @@ class DataConfig:
         self.files = glob.glob(f"{self.directory}/*.txt")
 
 
-def increment_frame_start(page_size):
+def increment_frame_start(page_size: int) -> None:
+    """Increment animation starting frame."""
     st.session_state.start_frame += page_size
 
 
-def decrement_frame_start(page_size):
+def decrement_frame_start(page_size: int) -> None:
+    """Decrease animation starting frame."""
     st.session_state.start_frame -= page_size
 
 
-def reset_frame_start(start):
+def reset_frame_start(start: int) -> None:
+    """Reset animation starting frame to min(frames)."""
     st.session_state.start_frame = start
 
 
-def init_session_state():
-    """Init session_state. throughout the app."""
-
+def init_session_state() -> None:
+    """Init session_state throughout the app."""
     if "start_frame" not in st.session_state:
         st.session_state.start_frame = 0
 
@@ -69,14 +67,15 @@ def init_session_state():
     if not hasattr(st.session_state, "trajectory_data"):
         st.session_state.trajectoryData = pedpy.TrajectoryData
 
-    dataconfig = datafactory.DataConfig(Path("AppData"))
+    dataconfig = DataConfig(Path("AppData"))
     st.session_state.files = dataconfig.files
 
 
-def unzip_files(zip_path: str, destination: str) -> None:
+def unzip_files(zip_path: Union[str, Path], destination: Union[str, Path]) -> None:
     """
-    Unzips a ZIP file directly into the specified destination directory,
-    ignoring the original directory structure in the ZIP file.
+    Unzip a ZIP file directly into the specified destination directory.
+
+    Ignoring the original directory structure in the ZIP file.
 
     Parameters:
     - zip_path (str): The path to the ZIP file.
@@ -103,7 +102,9 @@ def download_and_unzip_files(
     url: str, destination: Union[str, Path], unzip_destination: Union[str, Path]
 ) -> None:
     """
-    Downloads a ZIP file from a specified URL, saves it to a given destination, and unzips it into a specified directory.
+    Download a ZIP file from a specified URL.
+
+    Saves it to a given destination, and unzips it into a specified directory.
     Displays the download and unzipping progress in a Streamlit app.
     """
     # Send a GET request
@@ -126,11 +127,6 @@ def download_and_unzip_files(
             progress_status.text(f"> {progress}%")
 
     progress_status.text("Download complete. Unzipping...")
-
-    # Unzip the file
-    # with zipfile.ZipFile(destination, "r") as zip_ref:
-    #     zip_ref.extractall(unzip_destination)
-
     unzip_files(destination, unzip_destination)
 
     progress_status.text("Unzipping complete.")

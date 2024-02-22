@@ -5,18 +5,18 @@ import os
 import pickle
 import time
 from pathlib import Path
+from typing import List, Tuple, TypeAlias, Optional
 
 import matplotlib.pyplot as plt
+import pandas as pd
 import pedpy
 import streamlit as st
 from plotly.graph_objs import Figure
-import pandas as pd
+
 import datafactory
 import docs
 import plots
 import utilities
-
-from typing import TypeAlias
 
 st_column: TypeAlias = st.delta_generator.DeltaGenerator
 
@@ -25,9 +25,9 @@ url = "https://go.fzj.de/voronoi-data"
 
 
 def calculate_or_load_classical_density(
-    precalculated_density,
-    filename,
-):
+    precalculated_density: str,
+    filename: str,
+) -> pd.DataFrame:
     """Calculate classical density or load existing calculation."""
     if not Path(precalculated_density).exists():
         trajectory_data = datafactory.load_file(filename)
@@ -46,9 +46,9 @@ def calculate_or_load_classical_density(
 
 
 def calculate_or_load_voronoi_diagrams(
-    precalculated_voronoi_polygons,
-    filename,
-):
+    precalculated_voronoi_polygons: str,
+    filename: str,
+) -> pd.DataFrame:
     """Calculate Voronoi diagrams or load existing calculation."""
     if not Path(precalculated_voronoi_polygons).exists():
         trajectory_data = datafactory.load_file(filename)
@@ -68,11 +68,11 @@ def calculate_or_load_voronoi_diagrams(
 
 
 def calculate_or_load_voronoi_speed(
-    precalculated_voronoi_speed,
-    intersecting,
-    individual_speed,
-    filename,
-):
+    precalculated_voronoi_speed: str,
+    intersecting: pd.DataFrame,
+    individual_speed: pd.DataFrame,
+    filename: str,
+) -> pd.Series:
     """Calculate Voronoi speed or load existing calculation."""
     if not Path(precalculated_voronoi_speed).exists():
         trajectory_data = datafactory.load_file(filename)
@@ -94,10 +94,10 @@ def calculate_or_load_voronoi_speed(
 
 
 def calculate_or_load_voronoi_density(
-    precalculated_voronoi_density,
-    voronoi_polygons,
-    filename,
-):
+    precalculated_voronoi_density: str,
+    voronoi_polygons: pd.DataFrame,
+    filename: str,
+) -> Tuple[pd.DataFrame, pd.DataFrame]:
     """Calculate Voronoi density or load existing calculation."""
     if not Path(precalculated_voronoi_density).exists():
         trajectory_data = datafactory.load_file(filename)
@@ -119,7 +119,7 @@ def calculate_or_load_voronoi_density(
 
 def calculate_or_load_individual_speed(
     precalculated_speed: str, filename: str, dv: int
-):
+) -> pd.DataFrame:
     """Calculate speed or load precalculated values if exist."""
     if not Path(precalculated_speed).exists():
         trajectory_data = datafactory.load_file(filename)
@@ -170,7 +170,7 @@ def calculate_time_series(
     plots.download_file(figname)
 
 
-def calculate_fd_classical(dv) -> None:
+def calculate_fd_classical(dv: int) -> None:
     """Calculate FD classical and write result in pdf file."""
     densities = {}
     speeds = {}
@@ -282,7 +282,7 @@ def calculate_fd_voronoi_local(c1: st_column, dv: int) -> None:
         st.warning(f"File {figname} does not exist yet! You should calculate it first")
 
 
-def download_fd_voronoi():
+def download_fd_voronoi() -> None:
     """Download preexisting voronoi calculation."""
     voronoi_density = {}
     voronoi_speed = {}
@@ -307,9 +307,9 @@ def download_fd_voronoi():
 
 
 def calculate_nt(
-    trajectory_data,
-    selected_file,
-):
+    trajectory_data: pedpy.TrajectoryData,
+    selected_file: str,
+) -> None:
     """Calculate N-T Diagram."""
     measurement_lines = utilities.get_measurement_lines(trajectory_data)
     docs_expander = st.expander("Documentation (click to expand)", expanded=False)
@@ -344,7 +344,6 @@ def calculate_nt(
     figname += ".pdf"
     plots.show_fig(fig, figname=figname)
     plots.download_file(figname)
-    return figname
 
 
 def calculate_profiles(
@@ -359,6 +358,7 @@ def calculate_profiles(
         ["Gaussian", "Classic"],
         help="See [PedPy-documentation](https://pedpy.readthedocs.io/en/latest/user_guide.html#density-profiles).",
     )
+    chose_method = str(chose_method)
     method = {
         "Classic": pedpy.DensityMethod.CLASSIC,
         "Gaussian": pedpy.DensityMethod.GAUSSIAN,
@@ -406,10 +406,9 @@ def calculate_profiles(
     st.pyplot(fig)
     fig.savefig(figname)
     plots.download_file(figname)
-    return figname
 
 
-def ui_tab3_analysis():
+def ui_tab3_analysis() -> Tuple[Optional[str], int, st_column]:
     """Prepare ui elements."""
     c0, c1, c2 = st.columns((1, 1, 1))
     if c1.button(
@@ -450,7 +449,7 @@ def ui_tab3_analysis():
     return calculations, dv, c1
 
 
-def prepare_data(selected_file):
+def prepare_data(selected_file: str) -> Tuple[pedpy.TrajectoryData, List[List[float]]]:
     """Load file, setup state_session and get walkable_area."""
     if selected_file != st.session_state.file_changed:
         trajectory_data = datafactory.load_file(selected_file)
@@ -463,7 +462,7 @@ def prepare_data(selected_file):
     return trajectory_data, walkable_area
 
 
-def run_tab3(selected_file):
+def run_tab3(selected_file: str) -> None:
     """Run the main logic in tab analysis."""
     calculations, dv, c1 = ui_tab3_analysis()
     trajectory_data, walkable_area = prepare_data(selected_file)
