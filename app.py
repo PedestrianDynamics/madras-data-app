@@ -40,5 +40,4 @@ if __name__ == "__main__":
             analysis_tab.run_tab3(filename)
     # Info
     with tab4:
-        st.info("More info later...")
-        st.info("Till then check https://www.madras-crowds.eu/")
+        docs.about()
