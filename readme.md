@@ -28,7 +28,7 @@ However, for optimal performance, especially for tasks that demand significant c
 
 To set up, follow these steps after downloading the repository:
 
-1. Environment Setup (Highly Recommended)
+**1. Environment Setup (Highly Recommended)**
 
 Create and activate a virtual environment to manage dependencies efficiently:
 
@@ -37,7 +37,7 @@ python3 -m venv .venv
 source .venv/bin/activate
 ```
 
-2. Install Dependencies
+**2. Install Dependencies**
 
 Ensure all required packages are installed:
 
@@ -46,7 +46,7 @@ Ensure all required packages are installed:
 pip install -r requirements.txt
 ```
 
-3. Launch the App
+**3. Launch the App**
 
 Start the app with the following command:
 
