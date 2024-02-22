@@ -345,12 +345,21 @@ def show_fig(
     fig.write_image(figname)
 
 
-def download_file(figname, col):
+def download_file(figname, col=None):
     with open(figname, "rb") as pdf_file:
-        col.download_button(
-            label=f"Download",
-            data=pdf_file,
-            file_name=figname,
-            mime="application/octet-stream",
-            help=f"Download {figname}",
-        )
+        if col is None:
+            st.download_button(
+                label=f"Download",
+                data=pdf_file,
+                file_name=figname,
+                mime="application/octet-stream",
+                help=f"Download {figname}",
+            )
+        else:
+            col.download_button(
+                label=f"Download",
+                data=pdf_file,
+                file_name=figname,
+                mime="application/octet-stream",
+                help=f"Download {figname}",
+            )

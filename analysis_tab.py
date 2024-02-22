@@ -5,93 +5,20 @@ import os
 import pickle
 import time
 from pathlib import Path
-from typing import Union
+
 import matplotlib.pyplot as plt
-from plotly.graph_objs import Figure
-import socket
 import pedpy
-
-# from pedpy import compute_density_profile, DensityMethod
-
 import streamlit as st
-from shapely import Polygon
+from plotly.graph_objs import Figure
 
 import datafactory
 import docs
 import plots
-import requests
-import os
+import utilities
+
 
 voronoi_results = "voronoi_density_speed.pkl"
 url = "https://go.fzj.de/voronoi-data"
-
-
-def is_running_locally() -> bool:
-    """Check if the Streamlit app is running locally."""
-
-    streamlit_server = "/mount/src/madras-data-app"
-    current_working_directory = os.getcwd()
-    return current_working_directory != streamlit_server
-
-
-def download(url: str, destination: Union[str, Path]) -> None:
-    """
-    Downloads a file from a specified URL and saves it to a given destination,
-    """
-    # Send a GET request
-    response = requests.get(url, stream=True)
-
-    # Total size in bytes.
-    total_size = int(response.headers.get("content-length", 0))
-    block_size = 1024  # 1 Kbyte
-    progress_bar = st.progress(0)
-    progress_status = st.empty()
-    written = 0
-
-    with open(destination, "wb") as f:
-        for data in response.iter_content(block_size):
-            written += len(data)
-            f.write(data)
-            # Update progress bar
-            progress = int(100 * written / total_size)
-            progress_bar.progress(progress)
-            progress_status.text(f"> {progress}%")
-
-    progress_status.text("Download complete.")
-    progress_bar.empty()  # clear  the progress bar after completion
-
-
-def get_measurement_lines(trajectory_data):
-    eps = 1.0
-    min_x = trajectory_data.data["x"].min() + eps
-    max_x = trajectory_data.data["x"].max() - eps
-    min_y = trajectory_data.data["y"].min() + eps
-    max_y = trajectory_data.data["y"].max() - eps
-    measurement_lines = [
-        pedpy.MeasurementLine([[min_x, min_y], [min_x, max_y]]),  # left
-        pedpy.MeasurementLine([[min_x, max_y], [max_x, max_y]]),  # top
-        pedpy.MeasurementLine([[max_x, max_y], [max_x, min_y]]),  # right
-        pedpy.MeasurementLine([[max_x, min_y], [min_x, min_y]]),  # buttom
-    ]
-
-    return measurement_lines
-
-
-def setup_walkable_area(trajectory_data):
-    min_x = trajectory_data.data["x"].min()
-    max_x = trajectory_data.data["x"].max()
-    min_y = trajectory_data.data["y"].min()
-    max_y = trajectory_data.data["y"].max()
-    rectangle_coords = [
-        [min_x, min_y],
-        [min_x, max_y],
-        [max_x, max_y],
-        [max_x, min_y],
-    ]
-    rectangle_polygon = Polygon(rectangle_coords)
-    walkable_area = pedpy.WalkableArea(rectangle_polygon)
-
-    return walkable_area
 
 
 def calculate_or_load_classical_density(
@@ -101,7 +28,7 @@ def calculate_or_load_classical_density(
     """Calculate classical density or load existing calculation."""
     if not Path(precalculated_density).exists():
         trajectory_data = datafactory.load_file(filename)
-        walkable_area = setup_walkable_area(trajectory_data)
+        walkable_area = utilities.setup_walkable_area(trajectory_data)
         classic_density = pedpy.compute_classic_density(
             traj_data=trajectory_data, measurement_area=walkable_area
         )
@@ -122,7 +49,7 @@ def calculate_or_load_voronoi_diagrams(
     """Calculate Voronoi diagrams or load existing calculation."""
     if not Path(precalculated_voronoi_polygons).exists():
         trajectory_data = datafactory.load_file(filename)
-        walkable_area = setup_walkable_area(trajectory_data)
+        walkable_area = utilities.setup_walkable_area(trajectory_data)
         voronoi_polygons = pedpy.compute_individual_voronoi_polygons(
             traj_data=trajectory_data, walkable_area=walkable_area
         )
@@ -146,7 +73,7 @@ def calculate_or_load_voronoi_speed(
     """Calculate Voronoi speed or load existing calculation."""
     if not Path(precalculated_voronoi_speed).exists():
         trajectory_data = datafactory.load_file(filename)
-        walkable_area = setup_walkable_area(trajectory_data)
+        walkable_area = utilities.setup_walkable_area(trajectory_data)
         voronoi_speed = pedpy.compute_voronoi_speed(
             traj_data=trajectory_data,
             individual_voronoi_intersection=intersecting,
@@ -171,7 +98,7 @@ def calculate_or_load_voronoi_density(
     """Calculate Voronoi density or load existing calculation."""
     if not Path(precalculated_voronoi_density).exists():
         trajectory_data = datafactory.load_file(filename)
-        walkable_area = setup_walkable_area(trajectory_data)
+        walkable_area = utilities.setup_walkable_area(trajectory_data)
         voronoi_density, intersecting = pedpy.compute_voronoi_density(
             individual_voronoi_data=voronoi_polygons,
             measurement_area=walkable_area,
@@ -246,13 +173,12 @@ def run_tab3(selected_file):
         help="To calculate the displacement over a specified number of frames. See Eq. (1)",
     )
     if selected_file != st.session_state.file_changed:
-        with st.status(f"Loading {selected_file}"):
-            trajectory_data = datafactory.load_file(selected_file)
-            st.session_state.trajectory_data = trajectory_data
-            st.session_state.file_changed = selected_file
+        trajectory_data = datafactory.load_file(selected_file)
+        st.session_state.trajectory_data = trajectory_data
+        st.session_state.file_changed = selected_file
 
     trajectory_data = st.session_state.trajectory_data
-    walkable_area = setup_walkable_area(trajectory_data)
+    walkable_area = utilities.setup_walkable_area(trajectory_data)
 
     if calculations == "Time series":
         docs_expander = st.expander("Documentation (click to expand)", expanded=False)
@@ -277,6 +203,7 @@ def run_tab3(selected_file):
         fig = plots.plot_time_series(classic_density, mean_speed, fps=16)
         figname = selected_file.split("/")[-1].split(".txt")[0] + ".pdf"
         plots.show_fig(fig, figname=figname, html=True, write=True)
+        plots.download_file(figname)
 
     if calculations == "FD_classical":
         densities = {}
@@ -399,7 +326,7 @@ def run_tab3(selected_file):
         if not Path(voronoi_results).exists():
             msg.warning(f"{voronoi_results} does not exist yet!")
             with st.status("Downloading ...", expanded=True):
-                download(url, voronoi_results)
+                utilities.download(url, voronoi_results)
 
         if Path(voronoi_results).exists():
             with open(voronoi_results, "rb") as f:
@@ -409,14 +336,14 @@ def run_tab3(selected_file):
             plots.show_fig(fig, figname=figname, html=True, write=True)
 
         if Path(figname).exists():
-            plots.download_file(figname, msg)
+            plots.download_file(figname)
         else:
             st.warning(
                 f"File {figname} does not exist yet! You should calculate it first"
             )
 
     if calculations == "N-T":
-        measurement_lines = get_measurement_lines(trajectory_data)
+        measurement_lines = utilities.get_measurement_lines(trajectory_data)
         docs_expander = st.expander("Documentation (click to expand)", expanded=False)
         with docs_expander:
             docs.flow(measurement_lines)
@@ -427,6 +354,7 @@ def run_tab3(selected_file):
             "Measurement line", options=names, default=names
         )
         fig = Figure()
+        figname = "NT=" + selected_file.split("/")[-1].split(".txt")[0]
         for i, (name, color) in enumerate(zip(selected_measurement_lines, colors)):
             measurement_line = measurement_lines[i]
             nt, _ = pedpy.compute_n_t(
@@ -443,9 +371,11 @@ def run_tab3(selected_file):
                 title=f"{name}",
             )
             fig.add_trace(trace)
+            figname += f"_{name}"
 
-        plots.show_fig(fig, figname="flow.pdf")
-
+        figname += ".pdf"
+        plots.show_fig(fig, figname=figname)
+        plots.download_file(figname)
     if calculations == "Profiles":
         c1, c2, c3 = st.columns((1, 1, 1))
         chose_method = c3.radio(
@@ -483,7 +413,7 @@ def run_tab3(selected_file):
             density_method=method[chose_method],
             gaussian_width=width,
         )
-        fig, ax0 = plt.subplots(nrows=1, ncols=1)
+        fig, ax0 = plt.subplots(nrows=1, ncols=1, figsize=(10, 6))
         pedpy.plot_profiles(
             walkable_area=walkable_area,
             profiles=gaussian_density_profile,
@@ -491,5 +421,12 @@ def run_tab3(selected_file):
             label="$\\rho$ / 1/$m^2$",
             title="Density",
         )
-        fig.tight_layout(pad=2)
+        figname = (
+            "density_profile_"
+            + selected_file.split("/")[-1].split(".txt")[0]
+            + str(chose_method)
+            + ".pdf"
+        )
         st.pyplot(fig)
+        fig.savefig(figname)
+        plots.download_file(figname)
