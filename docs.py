@@ -24,7 +24,7 @@ def density_speed():
             \rho = \frac{N}{A},
             $$
             where $N$ is the number of agents in the actual frame and $A$ the size of the observed area.
-        
+
             ## Speed
             The calculation of speed is based on the displacement in the $x$ and $y$ directions over time. The method involves the following steps:
             - Calculate Displacements: The displacement in both the $x$ and $y$ directions is calculated as the difference between successive positions, accounting for displacement over a specified number of frames ($\Delta t$). This is done separately for each entity, identified by its $id$. The mathematical expressions for these displacements are:
@@ -40,11 +40,11 @@ def density_speed():
     )
     st.write(
         """
-        where $\Delta x$ and $\Delta y$ represent the displacements in the $x$ and $y$ directions, respectively, and $\Delta t$ is the difference in frame indices used for the calculation.
+        where $\\Delta x$ and $\\Delta y$ represent the displacements in the $x$ and $y$ directions, respectively, and $\\Delta t$ is the difference in frame indices used for the calculation.
 
         - Compute Distance Traveled: The distance traveled between the frames is computed using the Pythagorean theorem, which combines the displacements in both directions:
         $$
-        \\text{distance} = \sqrt{\Delta x^2 + \Delta y^2}.
+        \\text{distance} = \\sqrt{\\Delta x^2 + \\Delta y^2}.
         $$
         - Calculate Speed: Finally, the speed is calculated as the ratio of the distance traveled to the time
         """
@@ -66,7 +66,7 @@ def density_speed():
 def about():
     text = """
     # Multi-agent modelling of dense crowd dynamics: Predict & Understand (MADRAS)
-    
+
     ## Overview
     The [MADRAS-project](https://www.madras-crowds.eu/) is a collaborative cooperation funded by [ANR](https://anr.fr) :flag-fr: and [DFG](htpps://dfg.de) :flag-de:, aims to develop innovative agent-based models to predict and understand dense crowd dynamics and to apply these models in a large-scale case study.
     This app offers a visualisation of data collection of the festival of lights in 2022, a distinguished open-air event that draws nearly two million visitors over four days.
@@ -76,11 +76,11 @@ def about():
 
     text2 = """
     This app is part of the MADRAS project, which focuses on collecting and analyzing videos of crowded scenes during the festival. The primary goal is to extract valuable pedestrian dynamics measurements to enhance our understanding of crowd behaviors during such large-scale events.
-    
+
     ## Data Extraction and Analysis
     The app provides an intuitive interface for users to interactively explore the collected data, understand crowd dynamics, and extract insights on pedestrian behaviors.
-    
-    
+
+
     - **Trajectory Plotting**: Allows users to plot and visualize the trajectories of visitors moving through the event space.
     - **Density Calculation**: Interactive tools to calculate and analyze crowd density in different areas of the festival.
     - **Speed and Flow Measurement**: Capabilities to measure and understand the average speed and flow of the crowd, aiding in the calibration and testing of print()edestrian models.

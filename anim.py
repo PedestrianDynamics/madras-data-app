@@ -5,7 +5,7 @@
 
 We make no promises about the functions from this file w.r.t. API stability. We
 reservere us the right to change the code here w.o. warning. Do not use the
-code here. Use it at your own peril. 
+code here. Use it at your own peril.
 """
 
 
@@ -38,15 +38,14 @@ def _create_orientation_line(row, line_length=0.2, color="black"):
     end_x = row["x"] + line_length * 0
     end_y = row["y"] + line_length * 0
 
-    orientation_line = go.layout.Shape(
+    return go.layout.Shape(
         type="line",
         x0=row["x"],
         y0=row["y"],
         x1=end_x,
         y1=end_y,
-        line=dict(color=color, width=3),
+        line={"color": color, "width": 3},
     )
-    return orientation_line
 
 
 def _get_geometry_traces(area):
@@ -88,14 +87,14 @@ def _get_colormap(frame_data, max_speed):
         x=frame_data["x"],
         y=frame_data["y"],
         mode="markers",
-        marker=dict(
-            size=frame_data["radius"] * 2,
-            color=frame_data["speed"],
-            colorscale="Jet_r",
-            colorbar=dict(title="Speed [m/s]"),
-            cmin=0,
-            cmax=max_speed,
-        ),
+        marker={
+            "size": frame_data["radius"] * 2,
+            "color": frame_data["speed"],
+            "colorscale": "Jet_r",
+            "colorbar": {"title": "Speed [m/s]"},
+            "cmin": 0,
+            "cmax": max_speed,
+        },
         text=frame_data["speed"],
         showlegend=False,
         hoverinfo="none",
@@ -111,7 +110,7 @@ def _get_shapes_for_frame(frame_data, min_speed, max_speed):
             y=[row["y"]],
             text=[f"ID: {row['id']}, Pos({row['x']:.2f},{row['y']:.2f})"],
             mode="markers",
-            marker=dict(size=1, opacity=1),
+            marker={"size": 1, "opacity": 1},
             hoverinfo="text",
             showlegend=False,
         )
@@ -120,7 +119,7 @@ def _get_shapes_for_frame(frame_data, min_speed, max_speed):
                 x=[row["x"]],
                 y=[row["y"]],
                 mode="markers",
-                marker=dict(size=1, opacity=0),
+                marker={"size": 1, "opacity": 0},
                 hoverinfo="none",
                 showlegend=False,
             )
@@ -133,7 +132,7 @@ def _get_shapes_for_frame(frame_data, min_speed, max_speed):
                     y0=row["y"] - row["radius"],
                     x1=row["x"] + row["radius"],
                     y1=row["y"] + row["radius"],
-                    line=dict(width=0),
+                    line={"width": 0},
                     fillcolor="rgba(255,255,255,0)",  # Transparent fill
                 ),
                 dummy_trace,
@@ -206,8 +205,8 @@ def _create_fig(
         autosize=False,
         width=width,
         height=height,
-        xaxis=dict(range=[minx - 0.5, maxx + 0.5]),
-        yaxis=dict(scaleanchor="x", scaleratio=1, range=[miny - 0.5, maxy + 0.5]),
+        xaxis={"range": [minx - 0.5, maxx + 0.5]},
+        yaxis={"scaleanchor": "x", "scaleratio": 1, "range": [miny - 0.5, maxy + 0.5]},
     )
 
     return fig
@@ -282,6 +281,7 @@ def animate(
     radius: float = 0.1,
     title_note: str = "",
 ):
+    data_df0["radius"] = radius
     frames = data_df0["frame"].unique()
     fr0 = frames.min()
     fr1 = frames.max()
@@ -332,7 +332,7 @@ def animate(
     data_df = data_df0[
         (data_df0["frame"] >= frame_start) & (data_df0["frame"] <= frame_end)
     ]
-    data_df["radius"] = radius
+
     min_speed = data_df["speed"].min()
     max_speed = data_df["speed"].max()
     max_agents = data_df.groupby("frame").size().max()

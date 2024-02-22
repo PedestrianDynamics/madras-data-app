@@ -53,14 +53,13 @@ def get_measurement_lines(trajectory_data: pd.DataFrame):
     max_x = trajectory_data.data["x"].max() - eps
     min_y = trajectory_data.data["y"].min() + eps
     max_y = trajectory_data.data["y"].max() - eps
-    measurement_lines = [
+    return [
         pedpy.MeasurementLine([[min_x, min_y], [min_x, max_y]]),  # left
         pedpy.MeasurementLine([[min_x, max_y], [max_x, max_y]]),  # top
         pedpy.MeasurementLine([[max_x, max_y], [max_x, min_y]]),  # right
         pedpy.MeasurementLine([[max_x, min_y], [min_x, min_y]]),  # buttom
     ]
 
-    return measurement_lines
 
 
 def setup_walkable_area(trajectory_data):
@@ -76,6 +75,5 @@ def setup_walkable_area(trajectory_data):
         [max_x, min_y],
     ]
     rectangle_polygon = Polygon(rectangle_coords)
-    walkable_area = pedpy.WalkableArea(rectangle_polygon)
+    return pedpy.WalkableArea(rectangle_polygon)
 
-    return walkable_area

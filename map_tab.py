@@ -189,7 +189,7 @@ def call_main():
     st.markdown(
         """
         **Layer Selection:**
-        Use the layer control button in the top right corner of the map to toggle different layers. 
+        Use the layer control button in the top right corner of the map to toggle different layers.
         You can select video overlays, camera markers, and other features from this control panel.
         """,
         unsafe_allow_html=True,
