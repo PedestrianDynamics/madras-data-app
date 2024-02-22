@@ -8,6 +8,7 @@ import map_tab
 import datafactory
 import traj_tab
 import analysis_tab
+import docs
 
 if __name__ == "__main__":
     ui.setup_app()
