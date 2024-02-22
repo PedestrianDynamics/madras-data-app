@@ -1,6 +1,9 @@
 # MADRAS Project Streamlit App
 [![madras-data-app](https://github.com/PedestrianDynamics/madras-data-app/actions/workflows/streamlit-actions.yml/badge.svg?branch=main)](https://github.com/PedestrianDynamics/madras-data-app/actions/workflows/streamlit-actions.yml)
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://madras-data-app.streamlit.app/)
+[![DOI](https://zenodo.org/badge/760394097.svg)](https://zenodo.org/doi/10.5281/zenodo.10694866)
+
+
 
 This application presents an interactive visualization of field observations conducted by 
 the MADRAS team during the Festival of Lights in Lyon, 2022, on December 8th. 
