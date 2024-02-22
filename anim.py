@@ -29,7 +29,7 @@ DUMMY_SPEED = -1000
 def _speed_to_color(speed: float, min_speed: float, max_speed: float) -> str:
     """Map a speed value to a color using a colormap."""
     normalized_speed = (speed - min_speed) / (max_speed - min_speed)
-    r, g, b = plt.cm.jet_r(normalized_speed)[:3]
+    r, g, b = plt.cm.jet_r(normalized_speed)[:3]  # type: ignore
     return f"rgba({r*255:.0f}, {g*255:.0f}, {b*255:.0f}, 0.5)"
 
 
