@@ -41,8 +41,8 @@ def plot_trajectories(
             go.Scatter(
                 x=df["x"][::framerate],
                 y=df["y"][::framerate],
-                line=dict(color=color_choice),
-                marker=dict(color=color_choice),
+                line={"color": color_choice},
+                marker={"color": color_choice},
                 mode="lines",
                 name=f"ID {uid}",
             )
@@ -60,8 +60,8 @@ def plot_trajectories(
                     go.Scatter(
                         x=df["x"][::framerate],
                         y=df["y"][::framerate],
-                        line=dict(color=color_choice),
-                        marker=dict(color=color_choice),
+                        line={"color": color_choice},
+                        marker={"color": color_choice},
                         mode="lines",
                         name=f"ID {uid}",
                     )
@@ -73,8 +73,8 @@ def plot_trajectories(
                         go.Scatter(
                             x=df["x"][::framerate],
                             y=df["y"][::framerate],
-                            line=dict(color=color_choice),
-                            marker=dict(color=color_choice),
+                            line={"color": color_choice},
+                            marker={"color": color_choice},
                             mode="lines",
                             name=f"ID {uid}",
                         )
@@ -86,7 +86,7 @@ def plot_trajectories(
             x=x_exterior,
             y=y_exterior,
             mode="lines",
-            line=dict(color="red"),
+            line={"color": "red"},
             name="geometry",
         )
     )
@@ -98,8 +98,8 @@ def plot_trajectories(
         title=f" Trajectories: {num_agents}. {count_direction}",
         xaxis_title="X",
         yaxis_title="Y",
-        xaxis=dict(scaleanchor="y"),  # , range=[xmin, xmax]),
-        yaxis=dict(scaleratio=1),  # , range=[ymin, ymax]),
+        xaxis={"scaleanchor": "y"},  # , range=[xmin, xmax]),
+        yaxis={"scaleratio": 1},  # , range=[ymin, ymax]),
         showlegend=False,
     )
     return fig
@@ -121,8 +121,8 @@ def plot_time_series(density: pd.DataFrame, speed: pd.DataFrame, fps: int) -> go
         go.Scatter(
             x=density.index / fps,
             y=density.density,
-            line=dict(color="blue"),
-            marker=dict(color="blue"),
+            line={"color": "blue"},
+            marker={"color": "blue"},
             mode="lines",
         ),
         row=1,
@@ -133,8 +133,8 @@ def plot_time_series(density: pd.DataFrame, speed: pd.DataFrame, fps: int) -> go
         go.Scatter(
             x=speed.index / fps,
             y=speed,
-            line=dict(color="blue"),
-            marker=dict(color="blue"),
+            line={"color": "blue"},
+            marker={"color": "blue"},
             mode="lines",
         ),
         row=1,
@@ -151,22 +151,22 @@ def plot_time_series(density: pd.DataFrame, speed: pd.DataFrame, fps: int) -> go
     fig.update_yaxes(
         range=[rmin, rmax],
         title_text=r"$\rho\; /\; 1/m^2$",
-        title_font=dict(size=20),
+        title_font={"size": 20},
         row=1,
         col=1,
     )
     fig.update_yaxes(
         range=[vmin, vmax],
         title_text=r"$v\; /\; m/s$",
-        title_font=dict(size=20),
+        title_font={"size": 20},
         # scaleanchor="x",
         scaleratio=1,
         row=1,
         col=2,
     )
 
-    fig.update_xaxes(title_text=r"$t\; / s$", title_font=dict(size=20), row=1, col=2)
-    fig.update_xaxes(title_text=r"$t\; / s$", title_font=dict(size=20), row=1, col=1)
+    fig.update_xaxes(title_text=r"$t\; / s$", title_font={"size": 20}, row=1, col=2)
+    fig.update_xaxes(title_text=r"$t\; / s$", title_font={"size": 20}, row=1, col=1)
 
     return fig
 
@@ -213,11 +213,11 @@ def plot_fundamental_diagram_all(density_dict, speed_dict) -> go.Figure:
             go.Scatter(
                 x=density.density,
                 y=speed.speed,
-                marker=dict(
-                    color=colors[i % len(color)],
-                    opacity=0.5,
-                    symbol=marker_shapes[i % len(marker_shapes)],
-                ),
+                marker={
+                    "color": colors[i % len(color)],
+                    "opacity": 0.5,
+                    "symbol": marker_shapes[i % len(marker_shapes)],
+                },
                 mode="markers",
                 name=f"{filenames[i%len(filenames)]}",
                 showlegend=True,
@@ -235,13 +235,13 @@ def plot_fundamental_diagram_all(density_dict, speed_dict) -> go.Figure:
     fig.update_yaxes(
         # range=[vmin, vmax],
         title_text=r"$v\; / \frac{m}{s}$",
-        title_font=dict(size=20),
+        title_font={"size": 20},
         scaleanchor="x",
         scaleratio=1,
     )
     fig.update_xaxes(
         title_text=r"$\rho / m^{-2}$",
-        title_font=dict(size=20),
+        title_font={"size": 20},
     )
 
     return fig
@@ -264,7 +264,7 @@ def plot_x_y(x, y, title, xlabel, ylabel, color, threshold=0):
         mode="lines",
         showlegend=True,
         name=title,
-        line=dict(width=3, color=color),
+        line={"width": 3, "color": color},
         fill="none",
     )
 
@@ -307,12 +307,11 @@ def assign_direction_number(agent_data):
         direction_numbers.append((agent_id, direction_number))
 
     # Create a DataFrame from the direction numbers
-    direction_df = pd.DataFrame(direction_numbers, columns=["id", "direction_number"])
+    return pd.DataFrame(direction_numbers, columns=["id", "direction_number"])
 
     # Merge the direction DataFrame with the original agent_data DataFrame
     # result_df = pd.merge(agent_data, direction_df, on='id')
 
-    return direction_df
 
 
 def show_fig(

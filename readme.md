@@ -1,4 +1,5 @@
 # MADRAS Project Streamlit App
+![build-badge](https://github.com/PedestrianDynamics/madras-data-app/actions/workflows/streamlit-actions.yml/badge.svg)
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://madras-data-app.streamlit.app/)
 
 This application presents an interactive visualization of field observations conducted by 
