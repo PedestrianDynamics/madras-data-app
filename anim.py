@@ -285,7 +285,7 @@ def animate(
     frames = data_df0["frame"].unique()
     fr0 = frames.min()
     fr1 = frames.max()
-    col1, col2, col3, col4, col5, _ = st.columns((0.1, 0.1, 0.1, 0.1, 0.1, 0.4))
+    col1, col2, col3, col4, col5 = st.columns((5))
     page_size = col5.number_input(
         "Number of frames",
         value=500,
