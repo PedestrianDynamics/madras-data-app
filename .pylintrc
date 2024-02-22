@@ -1,0 +1,4 @@
+[MASTER]
+disable=W0511,E0401,W0621, C0301
+[MESSAGES CONTROL]
+disable=no-member
