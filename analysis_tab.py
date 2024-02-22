@@ -283,7 +283,7 @@ def run_tab3(selected_file):
                     )
                     # todo save to files
                     trajectory_data = datafactory.load_file(filename)
-                    walkable_area = setup_walkable_area(trajectory_data)
+                    walkable_area = utilities.setup_walkable_area(trajectory_data)
 
                     voronoi_density[basename], intersecting[basename] = (
                         calculate_or_load_voronoi_density(

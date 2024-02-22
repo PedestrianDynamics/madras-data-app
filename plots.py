@@ -90,10 +90,6 @@ def plot_trajectories(
             name="geometry",
         )
     )
-    xmin = np.min(x_exterior) - 0.1
-    xmax = np.max(x_exterior) + 0.1
-    ymin = np.min(y_exterior) - 0.1
-    ymax = np.max(y_exterior) + 0.1
     count_direction = ""
     for direction in [1, 2, 3, 4]:
         count = directions[directions["direction_number"] == direction].shape[0]
@@ -349,7 +345,7 @@ def download_file(figname, col=None):
     with open(figname, "rb") as pdf_file:
         if col is None:
             st.download_button(
-                label=f"Download",
+                label="Download",
                 data=pdf_file,
                 file_name=figname,
                 mime="application/octet-stream",
@@ -357,7 +353,7 @@ def download_file(figname, col=None):
             )
         else:
             col.download_button(
-                label=f"Download",
+                label="Download",
                 data=pdf_file,
                 file_name=figname,
                 mime="application/octet-stream",
