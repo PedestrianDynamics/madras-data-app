@@ -1,12 +1,18 @@
 """Plot functionalities for the app."""
 
-from typing import Dict, TypeAlias, Tuple, Optional
+import collections
+import io
+from typing import Dict, Optional, Tuple, TypeAlias
 
+import lovely_logger as logging
+import matplotlib
+import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pedpy
 import plotly.graph_objects as go
 import streamlit as st
+from PIL import Image
 from plotly.graph_objs import Figure, Scatter
 from plotly.subplots import make_subplots
 
@@ -16,11 +22,14 @@ st_column: TypeAlias = st.delta_generator.DeltaGenerator
 def plot_trajectories(
     trajectory_data: pedpy.TrajectoryData,
     framerate: int,
-    uid: Optional[float],
-    show_direction: Optional[float],
     walkable_area: pedpy.WalkableArea,
+    uid: Optional[float] = None,
+    show_direction: Optional[float] = None,
 ) -> go.Figure:
-    """Plot trajectories and geometry."""
+    """Plot trajectories and geometry.
+
+    framerate: sampling rate of the trajectories.
+    """
     fig = go.Figure()
     c1, c2, c3 = st.columns((1, 1, 1))
     data = trajectory_data.data
@@ -54,9 +63,7 @@ def plot_trajectories(
         )
     else:
         for uid, df in data.groupby("id"):
-            direction = directions.loc[
-                directions["id"] == uid, "direction_number"
-            ].iloc[0]
+            direction = directions.loc[directions["id"] == uid, "direction_number"].iloc[0]
 
             if show_direction is None:
                 color_choice = colors[direction]
@@ -64,7 +71,7 @@ def plot_trajectories(
                     go.Scatter(
                         x=df["x"][::framerate],
                         y=df["y"][::framerate],
-                        line={"color": color_choice},
+                        line={"color": color_choice, "width": 0.1},
                         marker={"color": color_choice},
                         mode="lines",
                         name=f"ID {uid}",
@@ -77,7 +84,7 @@ def plot_trajectories(
                         go.Scatter(
                             x=df["x"][::framerate],
                             y=df["y"][::framerate],
-                            line={"color": color_choice},
+                            line={"color": color_choice, "width": 0.3},
                             marker={"color": color_choice},
                             mode="lines",
                             name=f"ID {uid}",
@@ -102,8 +109,8 @@ def plot_trajectories(
         title=f" Trajectories: {num_agents}. {count_direction}",
         xaxis_title="X",
         yaxis_title="Y",
-        xaxis={"scaleanchor": "y"},  # , range=[xmin, xmax]),
-        yaxis={"scaleratio": 1},  # , range=[ymin, ymax]),
+        xaxis={"scaleanchor": "y"},  # range=[xmin, xmax]),
+        yaxis={"scaleratio": 1},  # range=[ymin, ymax]),
         showlegend=False,
     )
     return fig
@@ -175,9 +182,35 @@ def plot_time_series(density: pd.DataFrame, speed: pd.DataFrame, fps: int) -> go
     return fig
 
 
-def plot_fundamental_diagram_all(
-    density_dict: Dict[str, pd.DataFrame], speed_dict: Dict[str, pd.DataFrame]
-) -> go.Figure:
+def plt_plot_time_series(density: pd.DataFrame, speed: pd.DataFrame, fps: int) -> Tuple[matplotlib.figure.Figure, matplotlib.figure.Figure]:
+    """Plot density and speed time series side-byside."""
+    # density
+    fig1, ax1 = plt.subplots()
+    fig2, ax2 = plt.subplots()
+    ax1.plot(density.index / fps, density.density, color="blue", lw=1)
+    title1 = rf"$\mu= {np.mean(density.density):.2f}\; \pm {np.std(density.density):.2f}\; 1/m^2$"
+    ax1.set_title(title1)
+    ax1.set_ylabel(r"$\rho\; /\; 1/m^2$")
+    ax1.set_xlabel(r"$t\; /\;s$")
+    rmin = np.min(density.density) - 0.1
+    rmax = np.max(density.density) + 0.1
+    ax1.set_ylim([rmin, rmax])
+    ax1.grid(alpha=0.4)
+    # speed
+    ax2.plot(speed.index / fps, speed, color="gray", lw=1)
+    title2 = rf"$\mu= {np.mean(speed):.2f}\; \pm {np.std(speed):.2f}\; m/s$"
+    ax2.set_title(title2)
+    ax2.set_ylabel(r"$v\; /\; m/s$")
+    ax2.set_xlabel(r"$t\; /\;s$")
+    vmax = np.max(speed) + 0.1
+    vmin = np.min(speed) - 0.1
+    ax2.set_ylim([vmin, vmax])
+    ax2.grid(alpha=0.4)
+
+    return fig1, fig2
+
+
+def plot_fundamental_diagram_all(density_dict: Dict[str, pd.DataFrame], speed_dict: Dict[str, pd.DataFrame]) -> go.Figure:
     """Plot fundamental diagram of all files."""
     fig = go.Figure()
     colors_const = [
@@ -209,13 +242,15 @@ def plot_fundamental_diagram_all(
         colors.append(color)
         filenames.append(filename)
 
-    for i, (density, speed) in enumerate(
-        zip(density_dict.values(), speed_dict.values())
-    ):
+    for i, (density, speed) in enumerate(zip(density_dict.values(), speed_dict.values())):
+        if isinstance(speed, pd.Series):
+            y = speed
+        else:
+            y = speed.speed
         fig.add_trace(
             go.Scatter(
                 x=density.density,
-                y=speed.speed,
+                y=y,
                 marker={
                     "color": colors[i % len(color)],
                     "opacity": 0.5,
@@ -241,9 +276,7 @@ def plot_fundamental_diagram_all(
     return fig
 
 
-def plot_x_y(
-    x: pd.Series, y: pd.Series, title: str, xlabel: str, ylabel: str, color: str
-) -> Tuple[Scatter, Figure]:
+def plot_x_y(x: pd.Series, y: pd.Series, title: str, xlabel: str, ylabel: str, color: str) -> Tuple[Scatter, Figure]:
     """Plot two arrays and return trace and fig."""
     x = np.unique(x)
     fig = make_subplots(
@@ -291,14 +324,10 @@ def assign_direction_number(agent_data: pd.DataFrame) -> pd.DataFrame:
         # Determine primary direction of motion
         if abs(delta_x) > abs(delta_y):
             # Motion is primarily horizontal
-            direction_number = (
-                3 if delta_x > 0 else 4
-            )  # East if delta_x positive, West otherwise
+            direction_number = 3 if delta_x > 0 else 4  # East if delta_x positive, West otherwise
         else:
             # Motion is primarily vertical
-            direction_number = (
-                1 if delta_y > 0 else 2
-            )  # North if delta_y positive, South otherwise
+            direction_number = 1 if delta_y > 0 else 2  # North if delta_y positive, South otherwise
 
         direction_numbers.append((agent_id, direction_number))
 
@@ -307,7 +336,7 @@ def assign_direction_number(agent_data: pd.DataFrame) -> pd.DataFrame:
 
 def show_fig(
     fig: Figure,
-    figname: str,
+    figname: str = "default.pdf",
     html: bool = False,
     write: bool = False,
     height: int = 500,
@@ -327,16 +356,17 @@ def show_fig(
         st.plotly_chart(fig)
     else:
         st.components.v1.html(fig.to_html(include_mathjax="cdn"), height=height)  # type: ignore
+    if write:
+        fig.write_image(figname)
 
-    fig.write_image(figname)
 
-
-def download_file(figname: str, col: Optional[st_column] = None) -> None:
+def download_file(figname: str, col: Optional[st_column] = None, label: str = "") -> None:
     """Make download button for file."""
     with open(figname, "rb") as pdf_file:
         if col is None:
             st.download_button(
-                label="Download",
+                type="primary",
+                label=f"Download {label}",
                 data=pdf_file,
                 file_name=figname,
                 mime="application/octet-stream",
@@ -344,9 +374,181 @@ def download_file(figname: str, col: Optional[st_column] = None) -> None:
             )
         else:
             col.download_button(
-                label="Download",
+                type="primary",
+                label=f"Download {label}",
                 data=pdf_file,
                 file_name=figname,
                 mime="application/octet-stream",
                 help=f"Download {figname}",
             )
+
+
+def get_scaled_dimensions(geominX, geomaxX, geominY, geomaxY):
+    """Return with, height and scale for background image."""
+    scale = np.amin((geomaxX - geominX, geomaxY - geominY))
+    scale_max = 20
+    scale = min(scale_max, scale)
+    scale = (1 - scale / scale_max) * 0.9 + scale / scale_max * 0.1
+    # scale = 0.3
+    w = (geomaxX - geominX) * scale
+    h = (geomaxY - geominY) * scale
+    return w, h, scale
+
+
+def plot_trajectories_mpl(ax, data, scale: int = 1, shift_x: int = 0, shift_y: int = 0):
+    """Plot data and update axis."""
+
+    pid = data["id"].unique()
+    for ped in pid:
+        pedd = data[data["id"] == ped]
+        ax.plot(
+            (pedd["x"] - shift_x) * scale,
+            (pedd["y"] - shift_y) * scale,
+            "-",
+            color="black",
+            lw=0.8,
+        )
+
+
+def bg_img(data, geominX: float, geomaxX: float, geominY: float, geomaxY: float):
+    """Plot trajectories and create a background image."""
+    logging.info("enter bg_img")
+    width, height, scale = get_scaled_dimensions(geominX, geomaxX, geominY, geomaxY)
+    fig, ax = plt.subplots(figsize=(width, height))
+    fig.set_dpi(100)
+    ax.set_xlim((0, width))
+    ax.set_ylim((0, height))
+    plt.subplots_adjust(left=0, right=1, top=1, bottom=0)
+    # inv = ax.transData.inverted()
+    plot_trajectories_mpl(ax, data, scale, geominX, geominY)
+    major_ticks_top_x = np.linspace(0, width, 5)
+    major_ticks_top_y = np.linspace(0, height, 5)
+    minor_ticks_top_x = np.linspace(0, width, 40)
+    minor_ticks_top_y = np.linspace(0, height, 40)
+    major_ticks_bottom_x = np.linspace(0, width, 20)
+    major_ticks_bottom_y = np.linspace(0, height, 20)
+    ax.set_xticks(major_ticks_top_x)
+    ax.set_yticks(major_ticks_top_y)
+    ax.set_xticks(minor_ticks_top_x, minor=True)
+    ax.set_yticks(minor_ticks_top_y, minor=True)
+    ax.grid(which="major", alpha=0.6)
+    ax.grid(which="minor", alpha=0.3)
+    ax.set_xticks(major_ticks_bottom_x)
+    ax.set_yticks(major_ticks_bottom_y)
+    ax.grid()
+    bg_img = fig2img(fig)
+    bbox = fig.get_window_extent().transformed(fig.dpi_scale_trans.inverted())
+    img_width, img_height = bbox.width * fig.dpi, bbox.height * fig.dpi
+    # inv = ax.transData.inverted()
+    return bg_img, img_width, img_height, fig.dpi, scale
+
+
+def fig2img(fig):
+    """Convert a Matplotlib figure to a PIL Image and return it"""
+
+    buf = io.BytesIO()
+    fig.savefig(buf)
+    buf.seek(0)
+    img = Image.open(buf)
+    return img
+
+
+def draw_rects(canvas, img_height, dpi, scale, boundaries):
+    geominX, geomaxX, geominY, geomaxY = boundaries
+    rect_points_xml = collections.defaultdict(dict)
+    if canvas.json_data is not None:
+        objects = pd.json_normalize(canvas.json_data["objects"])
+        for col in objects.select_dtypes(include=["object"]).columns:
+            objects[col] = objects[col].astype("str")
+
+        if not objects.empty:
+            rects = objects[objects["type"].values == "rect"]
+            if not rects.empty:
+                (
+                    rfirst_x,
+                    rfirst_y,
+                    rsecond_x,
+                    rsecond_y,
+                    rthird_x,
+                    rthird_y,
+                    rfirth_x,
+                    rfirth_y,
+                ) = process_rects(rects, img_height)
+                i = 0
+                for x1, x2, x3, x4, y1, y2, y3, y4 in zip(
+                    rfirst_x,
+                    rsecond_x,
+                    rthird_x,
+                    rfirth_x,
+                    rfirst_y,
+                    rsecond_y,
+                    rthird_y,
+                    rfirth_y,
+                ):
+                    rect_points_xml[i]["x"] = [
+                        x1 / scale / dpi + geominX,
+                        x2 / scale / dpi + geominX,
+                        x3 / scale / dpi + geominX,
+                        x4 / scale / dpi + geominX,
+                    ]
+                    rect_points_xml[i]["y"] = [
+                        y1 / scale / dpi + geominY,
+                        y2 / scale / dpi + geominY,
+                        y3 / scale / dpi + geominY,
+                        y4 / scale / dpi + geominY,
+                    ]
+                    i += 1
+
+    return rect_points_xml
+
+
+def process_rects(rects, h_dpi):
+    """Transform rect's points to world coordinates.
+
+    :param rects: the object for rectangle
+    :param h_dpi: height of image in dpi
+    :returns: 4 points a 2 coordinates -> 8 values
+
+    """
+    left = np.array(rects["left"])
+    top = np.array(rects["top"])
+    scale_x = np.array(rects["scaleX"])
+    scale_y = np.array(rects["scaleY"])
+    height = np.array(rects["height"]) * scale_y
+    width = np.array(rects["width"]) * scale_x
+    angle = -np.array(rects["angle"]) * np.pi / 180
+    # angle = -np.radians(rects["angle"])
+    # center_x = left + width / 2
+    # center_y = top - height / 2
+    # first
+    first_x = left
+    first_y = h_dpi - top
+
+    # second
+    x1, y1 = rotate(width, 0, angle)
+    second_x = first_x + x1  # width
+    second_y = first_y + y1
+    # third
+    x1, y1 = rotate(0, -height, angle)
+    third_x = first_x + x1
+    third_y = first_y + y1  # - height
+    # forth
+    x1, y1 = rotate(width, -height, angle)
+    firth_x = first_x + x1  # width
+    firth_y = first_y + y1
+    # rotate
+
+    return (
+        first_x,
+        first_y,
+        second_x,
+        second_y,
+        third_x,
+        third_y,
+        firth_x,
+        firth_y,
+    )
+
+
+def rotate(x, y, angle):
+    return x * np.cos(angle) - y * np.sin(angle), x * np.sin(angle) + y * np.cos(angle)

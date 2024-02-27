@@ -34,13 +34,7 @@ if __name__ == "__main__":
     with tab3:
         activate_tab3 = st.toggle("Activate", key="tab3", value=False)
         if activate_tab3:
-            filename = str(
-                st.selectbox(
-                    "Select a file:", st.session_state.files, key="tab3_filename"
-                )
-            )
-            st.session_state.selected_file = filename
-            analysis_tab.run_tab3(filename)
+            analysis_tab.run_tab3()
     # Info
     with tab4:
         docs.about()

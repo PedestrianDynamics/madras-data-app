@@ -75,3 +75,15 @@ def setup_walkable_area(trajectory_data: pd.DataFrame) -> pedpy.WalkableArea:
     ]
     rectangle_polygon = Polygon(rectangle_coords)
     return pedpy.WalkableArea(rectangle_polygon)
+
+
+def setup_measurement_area(min_x, max_x, min_y, max_y) -> pedpy.MeasurementArea:
+    """Create measurement_area from trajectories."""
+    rectangle_coords = [
+        [min_x, min_y],
+        [min_x, max_y],
+        [max_x, max_y],
+        [max_x, min_y],
+    ]
+    rectangle_polygon = Polygon(rectangle_coords)
+    return pedpy.MeasurementArea(rectangle_polygon)

@@ -52,6 +52,23 @@ def reset_frame_start(start: int) -> None:
 
 def init_session_state() -> None:
     """Init session_state throughout the app."""
+    # -------- Canvas vars
+    if "bg_img" not in st.session_state:
+        st.session_state.bg_img = None
+
+    if "scale" not in st.session_state:
+        st.session_state.scale = 0.5
+
+    if "dpi" not in st.session_state:
+        st.session_state.dpi = 100
+
+    if "img_height" not in st.session_state:
+        st.session_state.img_height = 100
+
+    if "img_width" not in st.session_state:
+        st.session_state.img_width = 100
+
+    # --------
     if "start_frame" not in st.session_state:
         st.session_state.start_frame = 0
 
@@ -86,21 +103,15 @@ def unzip_files(zip_path: Union[str, Path], destination: Union[str, Path]) -> No
             # Extract only if file (ignores directories)
             if not member.is_dir():
                 # Build target filename path
-                target_path = os.path.join(
-                    destination, os.path.basename(member.filename)
-                )
+                target_path = os.path.join(destination, os.path.basename(member.filename))
                 # Ensure target directory exists (e.g., if not extracting directories)
                 os.makedirs(os.path.dirname(target_path), exist_ok=True)
                 # Extract file
-                with zip_ref.open(member, "r") as source, open(
-                    target_path, "wb"
-                ) as target:
+                with zip_ref.open(member, "r") as source, open(target_path, "wb") as target:
                     shutil.copyfileobj(source, target)
 
 
-def download_and_unzip_files(
-    url: str, destination: Union[str, Path], unzip_destination: Union[str, Path]
-) -> None:
+def download_and_unzip_files(url: str, destination: Union[str, Path], unzip_destination: Union[str, Path]) -> None:
     """
     Download a ZIP file from a specified URL.
 
@@ -137,7 +148,7 @@ def load_file(filename: str) -> pedpy.TrajectoryData:
     """Load and processes a file to create a TrajectoryData object.
 
     This function reads a space-separated values file into a pedpy-trajectoryData
-    fps = 16 and unit=meters
+    fps = 30 and unit=meters
 
     Parameters:
     - filename (str): The path to the file to be loaded.
@@ -147,6 +158,6 @@ def load_file(filename: str) -> pedpy.TrajectoryData:
     """
     return pedpy.load_trajectory(
         trajectory_file=Path(filename),
-        default_frame_rate=16,
+        default_frame_rate=30,
         default_unit=pedpy.TrajectoryUnit.METER,
     )
