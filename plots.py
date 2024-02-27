@@ -394,7 +394,7 @@ def get_scaled_dimensions(geominX, geomaxX, geominY, geomaxY):
 
 
 def plot_trajectories_mpl(ax, data, scale: int = 1, shift_x: int = 0, shift_y: int = 0):
-    """Plot data and update axis."""
+    """Plot data and update axis with matplotlib."""
 
     pid = data["id"].unique()
     for ped in pid:
@@ -404,7 +404,7 @@ def plot_trajectories_mpl(ax, data, scale: int = 1, shift_x: int = 0, shift_y: i
             (pedd["y"] - shift_y) * scale,
             "-",
             color="black",
-            lw=0.8,
+            lw=0.1,
         )
 
 

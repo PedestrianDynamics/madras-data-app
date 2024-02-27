@@ -477,7 +477,7 @@ def run_tab3() -> None:
     calculations, dv, c1 = ui_tab3_analysis()
     selected_file = str(
         st.selectbox(
-            ":open_file_folder: **Select a file:**",
+            ":open_file_folder: **Select a file**",
             st.session_state.files,
             key="tab3_filename",
         )
