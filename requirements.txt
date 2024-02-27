@@ -6,5 +6,5 @@ pedpy@git+https://github.com/PedestrianDynamics/PedPy.git
 plotly
 kaleido
 matplotlib
-streamlit_drawable_canvas
+streamlit-drawable-canvas
 PIL
