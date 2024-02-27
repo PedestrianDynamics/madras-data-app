@@ -7,4 +7,4 @@ plotly
 kaleido
 matplotlib
 streamlit-drawable-canvas
-PIL
+lovely-logger
