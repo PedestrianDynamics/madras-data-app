@@ -278,7 +278,6 @@ def plot_fundamental_diagram_all(density_dict: Dict[str, pd.DataFrame], speed_di
 
 def plot_x_y(x: pd.Series, y: pd.Series, title: str, xlabel: str, ylabel: str, color: str) -> Tuple[Scatter, Figure]:
     """Plot two arrays and return trace and fig."""
-    x = np.unique(x)
     fig = make_subplots(
         rows=1,
         cols=1,

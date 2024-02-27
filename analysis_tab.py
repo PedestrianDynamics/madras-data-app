@@ -323,16 +323,16 @@ def calculate_nt(
     selected_measurement_lines = st.multiselect("Measurement line", options=names, default=names)
     fig = Figure()
     figname = "NT=" + selected_file.split("/")[-1].split(".txt")[0]
+    fig1, ax1 = plt.subplots()
     for i, (name, color) in enumerate(zip(selected_measurement_lines, colors)):
         measurement_line = measurement_lines[i]
         nt, _ = pedpy.compute_n_t(
             traj_data=trajectory_data,
             measurement_line=measurement_line,
         )
-
         trace, _ = plots.plot_x_y(
-            nt["cumulative_pedestrians"],
             nt["time"],
+            nt["cumulative_pedestrians"],
             xlabel="time",
             ylabel="#pedestrians",
             color=color,
@@ -340,9 +340,14 @@ def calculate_nt(
         )
         fig.add_trace(trace)
         figname += f"_{name}"
+        pedpy.plot_nt(nt=nt, title="N-t at bottleneck", axes=ax1, color=color, label=f"{name}")
 
+    ax1.legend(loc="best")
+    c1, c2 = st.columns(2)
+    c1.pyplot(fig1)
     figname += ".pdf"
-    plots.show_fig(fig, figname=figname)
+    fig1.savefig(figname)
+    plots.show_fig(fig, figname=figname, write=False)
     plots.download_file(figname)
 
 
@@ -395,12 +400,19 @@ def calculate_profiles(
         profiles=gaussian_density_profile,
         axes=ax0,
         label="$\\rho$ / 1/$m^2$",
-        title="Density",
     )
     figname = "density_profile_" + selected_file.split("/")[-1].split(".txt")[0] + str(chose_method) + ".pdf"
     st.pyplot(fig)
     fig.savefig(figname)
     plots.download_file(figname)
+    # speed
+    # arithmetic_speed_profile = pedpy.compute_speed_profile(
+    #     data=resorted_profile_data,
+    #     walkable_area=walkable_area,
+    #     grid_intersections_area=grid_cell_intersection_area,
+    #     grid_size=grid_size,
+    #     speed_method=SpeedMethod.ARITHMETIC,
+    # )
 
 
 def ui_tab3_analysis() -> Tuple[Optional[str], int, st_column]:
