@@ -2,7 +2,6 @@
 
 from typing import List, Any
 
-import lovely_logger as logging
 import pedpy
 import streamlit as st
 from streamlit_drawable_canvas import st_canvas
@@ -27,7 +26,7 @@ def drawing_canvas(trajectory_data: pedpy.TrajectoryData, walkable_area: pedpy.W
 
     stroke_width = st.sidebar.slider("**Stroke width:**", 1, 25, 3)
     if True or st.session_state.bg_img is None:
-        logging.info("START new canvas")
+        print("START new canvas")
         data = trajectory_data.data
         min_x = trajectory_data.data["x"].min()
         max_x = trajectory_data.data["x"].max()

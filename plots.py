@@ -4,7 +4,6 @@ import collections
 import io
 from typing import Dict, Optional, Tuple, TypeAlias
 
-import lovely_logger as logging
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -411,7 +410,7 @@ def plot_trajectories_mpl(ax, data, scale: int = 1, shift_x: int = 0, shift_y: i
 
 def bg_img(data, geominX: float, geomaxX: float, geominY: float, geomaxY: float):
     """Plot trajectories and create a background image."""
-    logging.info("enter bg_img")
+    print("enter bg_img")
     width, height, scale = get_scaled_dimensions(geominX, geomaxX, geominY, geomaxY)
     fig, ax = plt.subplots(figsize=(width, height))
     fig.set_dpi(100)
