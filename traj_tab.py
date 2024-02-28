@@ -100,10 +100,10 @@ def run_tab2(selected_file: str, msg: DeltaGenerator) -> None:
         # matplotlib figs
         c1, c2 = st.columns(2)
         fig2 = plots.plot_trajectories_figure_mpl(trajectory_data, walkable_area, with_colors=True)
-        print(f"fig2 {type(fig2)}")
+        st.warning(f"fig2 {type(fig2)}")
         # c1.pyplot(fig2)
         figname = "trajectories_" + selected_file.split("/")[-1].split(".txt")[0] + "_colors.pdf"
-        print(figname)
+        st.warning(figname)
         # fig2.savefig(figname)
         # plots.download_file(figname, c1, label="color")
         # fig3 = plots.plot_trajectories_figure_mpl(trajectory_data, walkable_area, with_colors=False)
