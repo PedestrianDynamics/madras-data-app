@@ -15,7 +15,7 @@ from PIL import Image
 from plotly.graph_objs import Figure, Scatter
 from plotly.subplots import make_subplots
 
-plt.rcParams["text.usetex"] = True
+
 st_column: TypeAlias = st.delta_generator.DeltaGenerator
 
 
