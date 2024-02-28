@@ -386,9 +386,9 @@ def calculate_density_profile(
         placeholder="Type the grid size",
         format="%.2f",
     )
-    width = 1
+    width = 1.0
     if chose_method == "Gaussian":
-        width = int(
+        width = float(
             c2.number_input(
                 "Gaussian width",
                 value=0.5,
@@ -414,11 +414,21 @@ def calculate_density_profile(
         axes=ax,
         label="$\\rho$ / 1/$m^2$",
     )
+    colorbar_ax = fig.axes[-1]
+    colorbar_ax.set_ylabel("$\\rho$ / 1/$m^2$", size=18)
+    colorbar_ax.tick_params(labelsize=18)
+    # Remove tick marks but keep labels for x-axis
+    ax.tick_params(axis="x", length=0)
+    # Remove tick marks but keep labels for y-axis
+    ax.tick_params(axis="y", length=0)
     ax.set_xlabel("")
     ax.set_ylabel("")
+    ax.set_xticklabels([])
+    ax.set_yticklabels([])
     figname = "density_profile_" + selected_file.split("/")[-1].split(".txt")[0] + str(chose_method) + ".pdf"
     st.pyplot(fig)
-    fig.savefig(figname)
+    plt.tight_layout()
+    fig.savefig(figname, bbox_inches="tight", pad_inches=0.1)
     plots.download_file(figname)
 
 
@@ -455,12 +465,24 @@ def calculate_speed_profile(
         axes=ax,
         label="$v$ / $m/s$",
     )
+    colorbar_ax = fig.axes[-1]
+    colorbar_ax.set_ylabel("$\\rho$ / 1/$m^2$", size=18)
+    colorbar_ax.tick_params(labelsize=18)
+    # Remove tick marks but keep labels for x-axis
+    ax.tick_params(axis="x", length=0)
+    # Remove tick marks but keep labels for x-axis
+    ax.tick_params(axis="x", length=0)
+    # Remove tick marks but keep labels for y-axis
+    ax.tick_params(axis="y", length=0)
     ax.set_xlabel("")
     ax.set_ylabel("")
+    ax.set_xticklabels([])
+    ax.set_yticklabels([])
+    fig.tight_layout()
 
     figname = "speed_profile_" + selected_file.split("/")[-1].split(".txt")[0] + ".pdf"
     st.pyplot(fig)
-    fig.savefig(figname)
+    fig.savefig(figname, bbox_inches="tight", pad_inches=0.1)
     plots.download_file(figname)
 
 
@@ -564,33 +586,3 @@ def run_tab3() -> None:
         calculate_fd_voronoi_local(c1, dv)
     if calculations == "FD_voronoi":
         download_fd_voronoi()
-    if calculations == "speed":
-        start = time.time()
-        end = time.time()
-        individual_speed = pedpy.compute_individual_speed(
-            traj_data=trajectory_data,
-            frame_step=5,
-            speed_calculation=pedpy.SpeedCalculation.BORDER_SINGLE_SIDED,
-        )
-        combined_data = individual_speed.merge(
-            trajectory_data.data,
-            on=[pedpy.column_identifier.ID_COL, pedpy.column_identifier.FRAME_COL],
-        )
-        speed_profiles = compute_speed_profile(combined_data, walkable_area, 0.5)
-        speed = np.array(speed_profiles[0])
-        speed1 = np.array(speed_profiles[1])
-        fig, (ax0, ax1) = plt.subplots(nrows=1, ncols=2, figsize=(10, 6))
-        pedpy.plot_profiles(
-            walkable_area=walkable_area,
-            profiles=speed,
-            axes=ax0,
-            label="$\\rho$ / 1/$m^2$",
-        )
-        pedpy.plot_profiles(
-            walkable_area=walkable_area,
-            profiles=speed1,
-            axes=ax1,
-            label="$\\rho$ / 1/$m^2$",
-        )
-        st.pyplot(fig)
-        print(f"{end-start}")
