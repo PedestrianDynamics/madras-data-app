@@ -1,6 +1,6 @@
 """Collection of drawing functionalities."""
 
-from typing import List, Any
+from typing import Any, List, Tuple
 
 import pedpy
 import streamlit as st
@@ -10,7 +10,7 @@ import plots
 import utilities
 
 
-def drawing_canvas(trajectory_data: pedpy.TrajectoryData, walkable_area: pedpy.WalkableArea):
+def drawing_canvas(trajectory_data: pedpy.TrajectoryData, walkable_area: pedpy.WalkableArea) -> Tuple[Any, float, float, float]:
     """Draw trajectories as img and prepare canvas."""
     drawing_mode = st.sidebar.radio(
         "**Measurement:**",
@@ -25,7 +25,7 @@ def drawing_canvas(trajectory_data: pedpy.TrajectoryData, walkable_area: pedpy.W
         drawing_mode = "transform"
 
     stroke_width = st.sidebar.slider("**Stroke width:**", 1, 25, 3)
-    if True or st.session_state.bg_img is None:
+    if st.session_state.bg_img is None:
         print("START new canvas")
         data = trajectory_data.data
         min_x = trajectory_data.data["x"].min()
@@ -46,8 +46,6 @@ def drawing_canvas(trajectory_data: pedpy.TrajectoryData, walkable_area: pedpy.W
         img_height = st.session_state.img_height
         img_width = st.session_state.img_width
 
-    if "canvas" in globals():
-        del canvas
     canvas = st_canvas(
         fill_color="rgba(255, 165, 0, 0.3)",
         stroke_width=stroke_width,
@@ -66,9 +64,9 @@ def drawing_canvas(trajectory_data: pedpy.TrajectoryData, walkable_area: pedpy.W
 def get_measurement_area(
     trajectory_data: pedpy.TrajectoryData,
     canvas: Any,
-    dpi: int,
-    scale: int,
-    img_height: int,
+    dpi: float,
+    scale: float,
+    img_height: float,
 ) -> List[pedpy.MeasurementArea]:
     """Return a list of drawn measurement areas."""
     min_x = trajectory_data.data["x"].min()

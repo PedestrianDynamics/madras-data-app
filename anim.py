@@ -9,7 +9,7 @@ code here. Use it at your own peril.
 """
 
 
-from typing import List, Tuple, Dict, Any
+from typing import Any, Dict, List, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np

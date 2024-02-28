@@ -2,7 +2,7 @@
 
 import os
 from pathlib import Path
-from typing import Union, List
+from typing import List, Union
 
 import pandas as pd
 import pedpy
@@ -77,7 +77,7 @@ def setup_walkable_area(trajectory_data: pd.DataFrame) -> pedpy.WalkableArea:
     return pedpy.WalkableArea(rectangle_polygon)
 
 
-def setup_measurement_area(min_x, max_x, min_y, max_y) -> pedpy.MeasurementArea:
+def setup_measurement_area(min_x: float, max_x: float, min_y: float, max_y: float) -> pedpy.MeasurementArea:
     """Create measurement_area from trajectories."""
     rectangle_coords = [
         [min_x, min_y],

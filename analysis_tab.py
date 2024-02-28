@@ -7,7 +7,6 @@ import time
 from pathlib import Path
 from typing import List, Optional, Tuple, TypeAlias
 
-
 import matplotlib.pyplot as plt
 import pandas as pd
 import pedpy
@@ -16,9 +15,9 @@ from plotly.graph_objs import Figure
 
 import datafactory
 import docs
+import drawing
 import plots
 import utilities
-import drawing
 
 st_column: TypeAlias = st.delta_generator.DeltaGenerator
 
@@ -115,7 +114,7 @@ def calculate_or_load_voronoi_density(
     return voronoi_density, intersecting
 
 
-def calculate_or_load_individual_speed(precalculated_speed: str, filename: str, dv: int) -> pd.DataFrame:
+def calculate_or_load_individual_speed(precalculated_speed: str, filename: str, dv: Optional[int]) -> pd.DataFrame:
     """Calculate speed or load precalculated values if exist."""
     if not Path(precalculated_speed).exists():
         trajectory_data = datafactory.load_file(filename)
@@ -134,21 +133,20 @@ def calculate_or_load_individual_speed(precalculated_speed: str, filename: str, 
     return individual_speed
 
 
-def calculate_or_load_mean_speed(precalculated_speed: str, filename: str, dv: int) -> pd.DataFrame:
+def calculate_or_load_mean_speed(precalculated_speed: str, filename: str, dv: Optional[int]) -> pd.DataFrame:
     speed = calculate_or_load_individual_speed(precalculated_speed, filename, dv)
     trajectory_data = datafactory.load_file(filename)
     walkable_area = utilities.setup_walkable_area(trajectory_data)
-    mean_speed = pedpy.compute_mean_speed_per_frame(
+    return pedpy.compute_mean_speed_per_frame(
         traj_data=trajectory_data,
         measurement_area=walkable_area,
         individual_speed=speed,
     )
-    return mean_speed
 
 
 def calculate_time_series(
     trajectory_data: pd.DataFrame,
-    dv: int,
+    dv: Optional[int],
     walkable_area: pedpy.WalkableArea,
     selected_file: str,
 ) -> None:
@@ -189,7 +187,7 @@ def calculate_time_series(
         plots.download_file(figname2, c2, "speed")
 
 
-def calculate_fd_classical(dv: int) -> None:
+def calculate_fd_classical(dv: Optional[int]) -> None:
     """Calculate FD classical and write result in pdf file."""
     densities = {}
     speeds = {}
@@ -217,7 +215,7 @@ def calculate_fd_classical(dv: int) -> None:
     # plots.show_fig(fig, figname=figname, html=True, write=True)
 
 
-def calculate_fd_voronoi_local(c1: st_column, dv: int) -> None:
+def calculate_fd_voronoi_local(c1: st_column, dv: Optional[int]) -> None:
     """Calculate FD voronoi (locally)."""
     voronoi_polygons = {}
     voronoi_density = {}
@@ -424,7 +422,7 @@ def calculate_profiles(
     # )
 
 
-def ui_tab3_analysis() -> Tuple[Optional[str], int, st_column]:
+def ui_tab3_analysis() -> Tuple[Optional[str], Optional[int], st_column]:
     """Prepare ui elements."""
     c0, c1, c2 = st.columns((1, 1, 1))
     if st.sidebar.button(
@@ -457,13 +455,15 @@ def ui_tab3_analysis() -> Tuple[Optional[str], int, st_column]:
         dv = None
     else:
         st.sidebar.write("**Speed parameter**")
-        dv = st.sidebar.slider(
-            r"$\Delta t$",
-            1,
-            100,
-            10,
-            5,
-            help="To calculate the displacement over a specified number of frames.",
+        dv = int(
+            st.sidebar.slider(
+                r"$\Delta t$",
+                1,
+                100,
+                10,
+                5,
+                help="To calculate the displacement over a specified number of frames.",
+            )
         )
 
     return calculations, dv, c1

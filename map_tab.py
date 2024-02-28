@@ -2,11 +2,11 @@
 
 import json
 from dataclasses import dataclass
+from typing import Dict, List, Tuple, cast
 
 import folium
 import streamlit as st
 from streamlit_folium import st_folium
-from typing import Dict, Tuple, List, cast
 
 
 @dataclass

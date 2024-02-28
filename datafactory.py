@@ -50,9 +50,8 @@ def reset_frame_start(start: int) -> None:
     st.session_state.start_frame = start
 
 
-def init_session_state() -> None:
-    """Init session_state throughout the app."""
-    # -------- Canvas vars
+def init_state_bg_image() -> None:
+    """Init state of background image."""
     if "bg_img" not in st.session_state:
         st.session_state.bg_img = None
 
@@ -68,7 +67,11 @@ def init_session_state() -> None:
     if "img_width" not in st.session_state:
         st.session_state.img_width = 100
 
-    # --------
+
+def init_session_state() -> None:
+    """Init session_state throughout the app."""
+    init_state_bg_image()
+
     if "start_frame" not in st.session_state:
         st.session_state.start_frame = 0
 

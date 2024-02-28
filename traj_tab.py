@@ -1,14 +1,13 @@
 """ Show general results, including ploting, animation, ..."""
 
 import time
+
 import pedpy
 import streamlit as st
-from streamlit.delta_generator import DeltaGenerator
 from shapely import Polygon
+from streamlit.delta_generator import DeltaGenerator
 
 import datafactory
-import matplotlib.pyplot as plt
-
 # import docs
 import plots
 from anim import animate

@@ -1,14 +1,13 @@
 """Main entry point to the data visualisator for MADRAS project."""
 
 import streamlit as st
-import ui
 
-
-import map_tab
-import datafactory
-import traj_tab
 import analysis_tab
+import datafactory
 import docs
+import map_tab
+import traj_tab
+import ui
 
 if __name__ == "__main__":
     ui.setup_app()
