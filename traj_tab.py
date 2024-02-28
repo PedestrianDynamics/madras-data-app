@@ -48,7 +48,7 @@ def run_tab2(selected_file: str, msg: DeltaGenerator) -> None:
     st.write("---------")
     columns_to_display = ["id", "frame", "x", "y"]
     display = rc0.checkbox("Data", value=False, help="Display data table")
-    do_plot_trajectories = rc1.checkbox("Plot", value=True, help="Plot trajectories")
+    do_plot_trajectories = rc1.checkbox("Plot", value=False, help="Plot trajectories")
     do_animate = rc2.checkbox(
         "Animation",
         value=False,

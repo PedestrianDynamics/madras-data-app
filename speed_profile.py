@@ -1,9 +1,17 @@
-from pedpy.column_identifier import FRAME_COL, SPEED_COL, ID_COL
-from pedpy import get_grid_cells
+"""Pedpy does not have this speed density calculation yet."""
+
+from typing import Any, List, Tuple
+
 import numpy as np
+import numpy.typing as npt
+import pandas as pd
+import pedpy
+from pedpy import get_grid_cells
+from pedpy.column_identifier import FRAME_COL
 
 
-def compute_classic_speed_profile(frame_data, walkable_area, grid_size):
+def compute_classic_speed_profile(frame_data: pd.DataFrame, walkable_area: pedpy.WalkableArea, grid_size: float) -> Tuple[npt.NDArray[Any], npt.NDArray[Any]]:
+    """Calculate hist2d. Data are expected to have speed columns as well."""
     min_x, min_y, max_x, max_y = walkable_area.bounds
 
     x_coords = np.arange(min_x, max_x + grid_size, grid_size)
@@ -38,7 +46,8 @@ def compute_classic_speed_profile(frame_data, walkable_area, grid_size):
     return speed_zero, speed_nan
 
 
-def compute_speed_profile(data, walkable_area, grid_size):
+def compute_speed_profile(data: pd.DataFrame, walkable_area: pedpy.WalkableArea, grid_size: float) -> Tuple[List[Any], List[Any]]:
+    """Compute speed profile using individual speeds."""
     grid_cells, rows, cols = get_grid_cells(walkable_area=walkable_area, grid_size=grid_size)
 
     data_grouped_by_frame = data.groupby(FRAME_COL)
@@ -57,6 +66,3 @@ def compute_speed_profile(data, walkable_area, grid_size):
         speed_nan_profiles.append(speed_nan.reshape(rows, cols))
 
     return speed_zero_profiles, speed_nan_profiles
-
-
-# speed_profiles = compute_speed_profile(combined, walkable_area, 0.5)

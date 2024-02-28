@@ -6,9 +6,9 @@ import pickle
 import time
 from pathlib import Path
 from typing import List, Optional, Tuple, TypeAlias
-from scipy import stats  # type: ignore
-import numpy as np
+
 import matplotlib.pyplot as plt
+import numpy as np
 import pandas as pd
 import pedpy
 import streamlit as st
@@ -20,10 +20,6 @@ import drawing
 import plots
 import utilities
 from speed_profile import compute_speed_profile
-
-import plotly.graph_objs as go
-from plotly.subplots import make_subplots
-
 
 st_column: TypeAlias = st.delta_generator.DeltaGenerator
 
@@ -392,14 +388,16 @@ def calculate_density_profile(
     )
     width = 1
     if chose_method == "Gaussian":
-        width = c2.number_input(
-            "Gaussian width",
-            value=0.5,
-            min_value=0.2,
-            max_value=1.0,
-            step=0.1,
-            placeholder="full width at half maximum for Gaussian.",
-            format="%.2f",
+        width = int(
+            c2.number_input(
+                "Gaussian width",
+                value=0.5,
+                min_value=0.2,
+                max_value=1.0,
+                step=0.1,
+                placeholder="full width at half maximum for Gaussian.",
+                format="%.2f",
+            )
         )
 
     density_profile = pedpy.compute_density_profile(
@@ -450,7 +448,6 @@ def calculate_speed_profile(
     )
     speed_profiles = compute_speed_profile(combined_data, walkable_area, grid_size)
     speed = np.array(speed_profiles[0])
-    speed1 = np.array(speed_profiles[1])
     fig, ax = plt.subplots()
     pedpy.plot_profiles(
         walkable_area=walkable_area,
