@@ -174,7 +174,7 @@ def plot_trajectories_figure_mpl(
             color_choice = colors[direction]
         else:
             color_choice = "gray"
-        plt.plot(
+        ax.plot(
             df["x"],
             df["y"],
             color=color_choice,
@@ -182,7 +182,7 @@ def plot_trajectories_figure_mpl(
             alpha=0.6,
         )
     # geometry
-    plt.plot(
+    ax.plot(
         x_exterior,
         y_exterior,
         color="black",
