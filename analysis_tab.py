@@ -340,18 +340,17 @@ def calculate_nt(
             traj_data=trajectory_data,
             measurement_line=measurement_line,
         )
-        trace, _ = plots.plot_x_y(
-            nt["time"],
-            nt["cumulative_pedestrians"],
-            xlabel="time",
-            ylabel="#pedestrians",
-            color=color,
-            title=f"{name}",
-        )
-        fig.add_trace(trace)
         figname += f"_{name}"
-        pedpy.plot_nt(nt=nt, title="N-t at bottleneck", axes=ax1, color=color, label=f"{name}")
-
+        pedpy.plot_nt(
+            nt=nt,
+            axes=ax1,
+            color=color,
+            title="",
+            y_label=r"\# pedestrians",
+            label=f"{name}",
+        )
+    ax1.set_xlabel(r"t / s", fontsize=18)
+    ax1.set_ylabel(r"\# pedestrians", fontsize=18)
     ax1.legend(loc="best")
     c1, c2 = st.columns(2)
     c1.pyplot(fig1)

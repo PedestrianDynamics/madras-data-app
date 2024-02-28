@@ -24,11 +24,9 @@ if __name__ == "__main__":
     # Trajectories
     with tab2:
         msg = st.empty()
-        activate_tab2 = st.toggle("Activate", key="tab2", value=False)
-        if activate_tab2:
-            filename = str(st.selectbox(":open_file_folder: **Select a file**", st.session_state.files))
-            st.session_state.selected_file = filename
-            traj_tab.run_tab2(filename, msg)
+        filename = str(st.selectbox(":open_file_folder: **Select a file**", st.session_state.files))
+        st.session_state.selected_file = filename
+        traj_tab.run_tab2(filename, msg)
 
     # Analysis
     with tab3:
