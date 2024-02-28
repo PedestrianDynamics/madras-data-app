@@ -37,10 +37,10 @@ def plot_trajectories(
     data = trajectory_data.data
     num_agents = len(np.unique(data["id"]))
     colors = {
-        1: "green",
-        2: "purple",
-        3: "red",
-        4: "blue",
+        1: "blue",
+        2: "red",
+        3: "green",
+        4: "gray",
     }
     dnames = {1: "North", 2: "South", 3: "East", 4: "West"}
     x_exterior, y_exterior = walkable_area.polygon.exterior.xy
@@ -150,6 +150,8 @@ def plot_trajectories_figure_mpl(
     trajectory_data: pedpy.TrajectoryData,
     walkable_area: pedpy.WalkableArea,
     with_colors: bool,
+    alpha=0.4,
+    lw=0.09,
 ) -> matplotlib.figure.Figure:
     """Plot trajectories and geometry mpl version.
 
@@ -159,10 +161,10 @@ def plot_trajectories_figure_mpl(
     data = trajectory_data.data
     num_agents = len(np.unique(data["id"]))
     colors = {
-        1: "green",
-        2: "purple",
-        3: "red",
-        4: "blue",
+        1: "blue",
+        2: "red",
+        3: "green",
+        4: "gray",
     }
     dnames = {1: "North", 2: "South", 3: "East", 4: "West"}
     x_exterior, y_exterior = walkable_area.polygon.exterior.xy
@@ -180,8 +182,8 @@ def plot_trajectories_figure_mpl(
             df["x"],
             df["y"],
             color=color_choice,
-            lw=0.1,
-            alpha=0.6,
+            lw=lw,
+            alpha=alpha,
         )
     # geometry
     ax.plot(
@@ -195,9 +197,8 @@ def plot_trajectories_figure_mpl(
         title_text += f" {dnames[direction]} {count}."
 
     ax.set_title(title_text)
-    ax.set_xlabel(r"$x\; /\;m$")
-    ax.set_ylabel(r"$y\; /\;m$")
-
+    ax.set_xlabel(r"$x\; /\;m$", fontsize=18)
+    ax.set_ylabel(r"$y\; /\;m$", fontsize=18)
     ax.set_aspect("equal", "box")
     return fig
 
