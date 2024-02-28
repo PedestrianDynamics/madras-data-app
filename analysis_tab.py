@@ -209,8 +209,12 @@ def calculate_fd_classical(dv: int) -> None:
             progress_status.text(f"> {progress}%")
 
     figname = "fundamental_diagram_classical.pdf"
-    fig = plots.plot_fundamental_diagram_all(densities, speeds)
-    plots.show_fig(fig, figname=figname, html=True, write=True)
+    fig = plots.plot_fundamental_diagram_all_mpl(densities, speeds)
+    st.pyplot(fig)
+    fig.savefig(figname)
+    plots.download_file(figname)
+
+    # plots.show_fig(fig, figname=figname, html=True, write=True)
 
 
 def calculate_fd_voronoi_local(c1: st_column, dv: int) -> None:
@@ -299,8 +303,14 @@ def download_fd_voronoi() -> None:
         with open(voronoi_results, "rb") as f:
             voronoi_density, voronoi_speed = pickle.load(f)
 
-        fig = plots.plot_fundamental_diagram_all(voronoi_density, voronoi_speed)
-        plots.show_fig(fig, figname=figname, html=True, write=True)
+        fig = plots.plot_fundamental_diagram_all_mpl(voronoi_density, voronoi_speed)
+
+        st.pyplot(fig)
+        fig.savefig(figname)
+        # plots.download_file(figname)
+
+        # fig = plots.plot_fundamental_diagram_all(voronoi_density, voronoi_speed)
+        # plots.show_fig(fig, figname=figname, html=True, write=True)
 
     if Path(figname).exists():
         plots.download_file(figname)
@@ -447,6 +457,7 @@ def ui_tab3_analysis() -> Tuple[Optional[str], int, st_column]:
     if calculations == "N-T" or calculations == "Profiles":
         dv = None
     else:
+        st.sidebar.write("**Speed parameter**")
         dv = st.sidebar.slider(
             r"$\Delta t$",
             1,
