@@ -182,10 +182,10 @@ def calculate_time_series(
         st.info(f"Measurement area coordinates: {formatted_bounds}, Area: {ma.area:.2} $m^2$.")
         # download figures
         figname1 = "density_" + selected_file.split("/")[-1].split(".txt")[0] + "_ma_" + str(mai) + ".pdf"
-        pfig1.savefig(figname1)
+        pfig1.savefig(figname1, bbox_inches="tight", pad_inches=0.1))
         plots.download_file(figname1, c1, "density")
         figname2 = "speed_" + selected_file.split("/")[-1].split(".txt")[0] + "_ma_" + str(mai) + ".pdf"
-        pfig2.savefig(figname2)
+        pfig2.savefig(figname2, bbox_inches="tight", pad_inches=0.1))
         plots.download_file(figname2, c2, "speed")
 
 
@@ -211,7 +211,7 @@ def calculate_fd_classical(dv: Optional[int]) -> None:
     figname = "fundamental_diagram_classical.pdf"
     fig = plots.plot_fundamental_diagram_all_mpl(densities, speeds)
     st.pyplot(fig)
-    fig.savefig(figname)
+    fig.savefig(figname, bbox_inches="tight", pad_inches=0.1))
     plots.download_file(figname)
 
     # plots.show_fig(fig, figname=figname, html=True, write=True)
@@ -306,7 +306,7 @@ def download_fd_voronoi() -> None:
         fig = plots.plot_fundamental_diagram_all_mpl(voronoi_density, voronoi_speed)
 
         st.pyplot(fig)
-        fig.savefig(figname)
+        fig.savefig(figname, bbox_inches="tight", pad_inches=0.1))
         # plots.download_file(figname)
 
         # fig = plots.plot_fundamental_diagram_all(voronoi_density, voronoi_speed)
@@ -355,7 +355,7 @@ def calculate_nt(
     c1, c2 = st.columns(2)
     c1.pyplot(fig1)
     figname += ".pdf"
-    fig1.savefig(figname)
+    fig1.savefig(figname, bbox_inches="tight", pad_inches=0.1))
     plots.show_fig(fig, figname=figname, write=False)
     plots.download_file(figname)
 
