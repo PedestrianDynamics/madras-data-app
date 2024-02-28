@@ -193,8 +193,8 @@ def plot_trajectories_figure_mpl(
         title_text += f" {dnames[direction]} {count}."
 
     ax.set_title(title_text)
-    ax.set_xlabel("x / m")
-    ax.set_ylabel("y / m")
+    ax.set_xlabel(r"$x\; /\;m$")
+    ax.set_ylabel(r"$y\; /\;m$")
 
     ax.set_aspect("equal", "box")
     return fig
