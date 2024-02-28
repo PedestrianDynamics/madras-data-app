@@ -15,6 +15,7 @@ from PIL import Image
 from plotly.graph_objs import Figure, Scatter
 from plotly.subplots import make_subplots
 
+plt.rcParams["text.usetex"] = True
 st_column: TypeAlias = st.delta_generator.DeltaGenerator
 
 
@@ -34,11 +35,12 @@ def plot_trajectories(
     data = trajectory_data.data
     num_agents = len(np.unique(data["id"]))
     colors = {
-        1: "magenta",  # Assuming 1 is for female
-        2: "green",  # Assuming 2 is for male
-        3: "black",  # non binary
+        1: "green",
+        2: "purple",
+        3: "red",
         4: "blue",
     }
+    dnames = {1: "North", 2: "South", 3: "East", 4: "West"}
     x_exterior, y_exterior = walkable_area.polygon.exterior.xy
     x_exterior = list(x_exterior)
     y_exterior = list(y_exterior)
@@ -48,7 +50,6 @@ def plot_trajectories(
     if uid is not None:
         df = data[data["id"] == uid]
         direction = directions.loc[directions["id"] == uid, "direction_number"].iloc[0]
-
         color_choice = colors[direction]
         fig.add_trace(
             go.Scatter(
@@ -60,6 +61,29 @@ def plot_trajectories(
                 name=f"ID {uid}",
             )
         )
+        fig.add_trace(
+            go.Scatter(
+                x=[df["x"].iloc[0]],
+                y=[df["y"].iloc[0]],
+                marker={"color": "red", "symbol": "circle"},
+                mode="markers",
+                name=f"Start ID {uid}",
+            )
+        )
+
+        for other, df in data.groupby("id"):
+            if other != uid:
+                fig.add_trace(
+                    go.Scatter(
+                        x=df["x"][::framerate],
+                        y=df["y"][::framerate],
+                        line={"color": "gray", "width": 0.1},
+                        marker={"color": "gray"},
+                        mode="lines",
+                        name=f"ID {uid}",
+                    )
+                )
+
     else:
         for uid, df in data.groupby("id"):
             direction = directions.loc[directions["id"] == uid, "direction_number"].iloc[0]
@@ -96,22 +120,83 @@ def plot_trajectories(
             x=x_exterior,
             y=y_exterior,
             mode="lines",
-            line={"color": "red"},
+            line={"color": "black"},
             name="geometry",
         )
     )
     count_direction = ""
+    ymin = -6
+    ymax = 4
     for direction in [1, 2, 3, 4]:
         count = directions[directions["direction_number"] == direction].shape[0]
-        count_direction += "Direction: " + str(direction) + ": " + str(count) + ". "
+        # count_direction += f"<span style='color:{colors[direction]};'>Direction</span> " + str(direction) + ": " + str(count) + ". "
+        count_direction += f"<span style='color:{colors[direction]};'> {dnames[direction]} {count}</span>."
+
     fig.update_layout(
         title=f" Trajectories: {num_agents}. {count_direction}",
         xaxis_title="X",
         yaxis_title="Y",
-        xaxis={"scaleanchor": "y"},  # range=[xmin, xmax]),
-        yaxis={"scaleratio": 1},  # range=[ymin, ymax]),
+        xaxis={"scaleanchor": "y"},
+        yaxis={"scaleratio": 1},
         showlegend=False,
     )
+    return fig
+
+
+# mpl
+def plot_trajectories_figure_mpl(
+    trajectory_data: pedpy.TrajectoryData,
+    walkable_area: pedpy.WalkableArea,
+    with_colors: bool,
+):
+    """Plot trajectories and geometry mpl version.
+
+    framerate: sampling rate of the trajectories.
+    """
+    fig, ax = plt.subplots()
+    data = trajectory_data.data
+    num_agents = len(np.unique(data["id"]))
+    colors = {
+        1: "green",
+        2: "purple",
+        3: "red",
+        4: "blue",
+    }
+    dnames = {1: "North", 2: "South", 3: "East", 4: "West"}
+    x_exterior, y_exterior = walkable_area.polygon.exterior.xy
+    x_exterior = list(x_exterior)
+    y_exterior = list(y_exterior)
+
+    directions = assign_direction_number(data)
+    for uid, df in data.groupby("id"):
+        direction = directions.loc[directions["id"] == uid, "direction_number"].iloc[0]
+        if with_colors:
+            color_choice = colors[direction]
+        else:
+            color_choice = "gray"
+        plt.plot(
+            df["x"],
+            df["y"],
+            color=color_choice,
+            lw=0.1,
+            alpha=0.6,
+        )
+    # geometry
+    plt.plot(
+        x_exterior,
+        y_exterior,
+        color="black",
+    )
+    title_text = f"Trajectories: {num_agents}."
+    for direction in [1, 2, 3, 4]:
+        count = directions[directions["direction_number"] == direction].shape[0]
+        title_text += f" {dnames[direction]} {count}."
+
+    ax.set_title(title_text)
+    ax.set_xlabel(r"$x$\; /\;m")
+    ax.set_ylabel(r"$y$\; /\;m")
+
+    ax.set_aspect("equal", "box")
     return fig
 
 
@@ -158,7 +243,7 @@ def plot_time_series(density: pd.DataFrame, speed: pd.DataFrame, fps: int) -> go
     fig.update_layout(
         showlegend=False,
     )
-    fig.update_yaxes(
+    fig.update_xaxes(
         range=[rmin, rmax],
         title_text=r"$\rho\; /\; 1/m^2$",
         title_font={"size": 20},
@@ -228,7 +313,7 @@ def plot_fundamental_diagram_all(density_dict: Dict[str, pd.DataFrame], speed_di
         "square",
         "diamond",
         "cross",
-        "x-thin",
+        "triangle-down",
         "triangle-up",
         "hexagon",
         "star",
@@ -297,6 +382,56 @@ def plot_x_y(x: pd.Series, y: pd.Series, title: str, xlabel: str, ylabel: str, c
 
     fig.append_trace(trace, row=1, col=1)
     return trace, fig
+
+
+def plot_fundamental_diagram_all_mpl(density_dict: dict, speed_dict: dict):
+    """Plot fundamental diagram of all files using Matplotlib."""
+    # Define colors and marker styles
+    colors_const = [
+        "blue",
+        "red",
+        "green",
+        "magenta",
+        "black",
+        "cyan",
+        "yellow",
+        "orange",
+        "purple",
+    ]
+    marker_shapes = [
+        "o",
+        "s",
+        "D",
+        "x",
+        "^",
+        "v",
+        "h",
+        "*",
+        "p",
+    ]  # Matplotlib marker styles
+
+    fig, ax = plt.subplots()
+    for i, ((filename, density), (_, speed)) in enumerate(zip(density_dict.items(), speed_dict.items())):
+        if isinstance(speed, pd.Series):
+            y = speed
+        else:
+            y = speed["speed"]  # Adjust this if 'speed' DataFrame structure is different
+
+        ax.plot(
+            density["density"],
+            y,
+            color=colors_const[i % len(colors_const)],
+            alpha=0.5,
+            linestyle="",
+            marker=marker_shapes[i % len(marker_shapes)],
+            label=filename,
+        )
+
+    ax.set_xlabel(r"$\rho / m^{-2}$", fontsize=20)
+    ax.set_ylabel(r"$v\; / \frac{m}{s}$", fontsize=20)
+    ax.legend(loc="best")
+
+    return fig
 
 
 def assign_direction_number(agent_data: pd.DataFrame) -> pd.DataFrame:

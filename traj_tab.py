@@ -62,30 +62,32 @@ def run_tab2(selected_file: str, msg: DeltaGenerator) -> None:
         st.dataframe(trajectory_data.data.loc[:, columns_to_display])
 
     if do_plot_trajectories:
-        c1, c2 = st.columns((0.8, 0.25))
-        sample_frame = c2.slider(
+        st.sidebar.write("**Plot configuration**")
+        sample_frame = st.sidebar.slider(
             "Every nth frame",
             1,
             1000,
             1,
             10,
-            help="plot every_nth_frame",
+            help="plot every_nth_frame.",
         )
-        uid = c2.number_input(
+        uid = st.sidebar.number_input(
             "Insert id of pedestrian",
             value=None,
             min_value=int(min(ids)),
             max_value=int(max(ids)),
             placeholder=f"Type a number in [{int(min(ids))}, {int(max(ids))}]",
             format="%d",
+            help="Visualize a single pedestrian.",
         )
-        show_direction = c2.number_input(
+        show_direction = st.sidebar.number_input(
             "Choose direction to show",
             value=None,
             min_value=1,
             max_value=4,
             placeholder="Type a number in [1, 4]",
             format="%d",
+            help="Visualize pedestrians moving in a direction. **1: North. 2: South. 3: East. 4: West.**",
         )
         fig = plots.plot_trajectories(
             trajectory_data,
@@ -94,7 +96,19 @@ def run_tab2(selected_file: str, msg: DeltaGenerator) -> None:
             uid,
             show_direction,
         )
-        c1.plotly_chart(fig)
+        st.plotly_chart(fig)
+        # matplotlib figs
+        c1, c2 = st.columns(2)
+        fig2 = plots.plot_trajectories_figure_mpl(trajectory_data, walkable_area, with_colors=True)
+        c1.pyplot(fig2)
+        figname = "trajectories_" + selected_file.split("/")[-1].split(".txt")[0] + "_colors.pdf"
+        fig2.savefig(figname)
+        plots.download_file(figname, c1, label="color")
+        fig3 = plots.plot_trajectories_figure_mpl(trajectory_data, walkable_area, with_colors=False)
+        c2.pyplot(fig3)
+        figname = "trajectories_" + selected_file.split("/")[-1].split(".txt")[0] + "_gray.pdf"
+        fig3.savefig(figname)
+        plots.download_file(figname, c2, label="gray")
 
         end_time = time.time()
         elapsed_time = end_time - start_time
