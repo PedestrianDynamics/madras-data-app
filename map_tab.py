@@ -51,12 +51,8 @@ def load_cameras_from_json(file_path: str) -> Dict[str, Camera]:
         try:
             # Ensure the data structure is as expected
             location = tuple(info["location"])
-            assert (
-                isinstance(location, tuple) and len(location) == 2
-            ), "Location must be a tuple of two floats."
-            assert all(
-                isinstance(x, float) for x in location
-            ), "Location elements must be floats."
+            assert isinstance(location, tuple) and len(location) == 2, "Location must be a tuple of two floats."
+            assert all(isinstance(x, float) for x in location), "Location elements must be floats."
             location = cast(Tuple[float, float], location)
             url = info["url"]
             name = info["name"]
