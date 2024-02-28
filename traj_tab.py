@@ -7,6 +7,7 @@ from streamlit.delta_generator import DeltaGenerator
 from shapely import Polygon
 
 import datafactory
+import matplotlib.pyplot as plt
 
 # import docs
 import plots
@@ -19,7 +20,6 @@ from anim import animate
 
 def run_tab2(selected_file: str, msg: DeltaGenerator) -> None:
     """First tab. Plot original data, animatoin, neighborhood."""
-
     c1, c2 = st.columns((1, 1))
     # todo
     msg.write("")
@@ -100,12 +100,14 @@ def run_tab2(selected_file: str, msg: DeltaGenerator) -> None:
         # matplotlib figs
         c1, c2 = st.columns(2)
         fig2 = plots.plot_trajectories_figure_mpl(trajectory_data, walkable_area, with_colors=True)
+        pfig, ax = plt.subplots()
+        pedpy.plot_trajectories(traj=trajectory_data, walkable_area=walkable_area, axes=ax)
         st.warning(f"fig2 {type(fig2)}")
-        # c1.pyplot(fig2)
+        c1.pyplot(pfig)
         figname = "trajectories_" + selected_file.split("/")[-1].split(".txt")[0] + "_colors.pdf"
         st.warning(figname)
-        # fig2.savefig(figname)
-        # plots.download_file(figname, c1, label="color")
+        pfig.savefig(figname)
+        plots.download_file(figname, c1, label="color")
         # fig3 = plots.plot_trajectories_figure_mpl(trajectory_data, walkable_area, with_colors=False)
         # c2.pyplot(fig3)
         # figname = "trajectories_" + selected_file.split("/")[-1].split(".txt")[0] + "_gray.pdf"
