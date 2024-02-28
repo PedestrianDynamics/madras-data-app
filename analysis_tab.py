@@ -6,7 +6,8 @@ import pickle
 import time
 from pathlib import Path
 from typing import List, Optional, Tuple, TypeAlias
-
+from scipy import stats  # type: ignore
+import numpy as np
 import matplotlib.pyplot as plt
 import pandas as pd
 import pedpy
@@ -18,6 +19,11 @@ import docs
 import drawing
 import plots
 import utilities
+from speed_profile import compute_speed_profile
+
+import plotly.graph_objs as go
+from plotly.subplots import make_subplots
+
 
 st_column: TypeAlias = st.delta_generator.DeltaGenerator
 
@@ -358,7 +364,7 @@ def calculate_nt(
     plots.download_file(figname)
 
 
-def calculate_profiles(
+def calculate_density_profile(
     trajectory_data: pedpy.TrajectoryData,
     walkable_area: pedpy.WalkableArea,
     selected_file: str,
@@ -384,42 +390,81 @@ def calculate_profiles(
         placeholder="Type the grid size",
         format="%.2f",
     )
-    width = c2.number_input(
-        "Gaussian width",
-        value=0.5,
-        min_value=0.2,
-        max_value=1.0,
-        step=0.1,
-        placeholder="full width at half maximum for Gaussian.",
-        format="%.2f",
-    )
+    width = 1
+    if chose_method == "Gaussian":
+        width = c2.number_input(
+            "Gaussian width",
+            value=0.5,
+            min_value=0.2,
+            max_value=1.0,
+            step=0.1,
+            placeholder="full width at half maximum for Gaussian.",
+            format="%.2f",
+        )
 
-    gaussian_density_profile = pedpy.compute_density_profile(
+    density_profile = pedpy.compute_density_profile(
         data=trajectory_data.data,
         walkable_area=walkable_area,
         grid_size=grid_size,
         density_method=method[chose_method],
         gaussian_width=width,
     )
-    fig, ax0 = plt.subplots(nrows=1, ncols=1, figsize=(10, 6))
+    fig, ax = plt.subplots()
     pedpy.plot_profiles(
         walkable_area=walkable_area,
-        profiles=gaussian_density_profile,
-        axes=ax0,
+        profiles=density_profile,
+        axes=ax,
         label="$\\rho$ / 1/$m^2$",
     )
+    ax.set_xlabel("")
+    ax.set_ylabel("")
     figname = "density_profile_" + selected_file.split("/")[-1].split(".txt")[0] + str(chose_method) + ".pdf"
     st.pyplot(fig)
     fig.savefig(figname)
     plots.download_file(figname)
-    # speed
-    # arithmetic_speed_profile = pedpy.compute_speed_profile(
-    #     data=resorted_profile_data,
-    #     walkable_area=walkable_area,
-    #     grid_intersections_area=grid_cell_intersection_area,
-    #     grid_size=grid_size,
-    #     speed_method=SpeedMethod.ARITHMETIC,
-    # )
+
+
+def calculate_speed_profile(
+    trajectory_data: pedpy.TrajectoryData,
+    walkable_area: pedpy.WalkableArea,
+    selected_file: str,
+) -> None:
+    """Calculate speed profile."""
+    grid_size = st.number_input(
+        "Grid size",
+        value=0.4,
+        min_value=0.05,
+        max_value=1.0,
+        step=0.05,
+        placeholder="Type the grid size",
+        format="%.2f",
+    )
+    individual_speed = pedpy.compute_individual_speed(
+        traj_data=trajectory_data,
+        frame_step=10,
+        speed_calculation=pedpy.SpeedCalculation.BORDER_ADAPTIVE,
+    )
+    combined_data = individual_speed.merge(
+        trajectory_data.data,
+        on=[pedpy.column_identifier.ID_COL, pedpy.column_identifier.FRAME_COL],
+    )
+    speed_profiles = compute_speed_profile(combined_data, walkable_area, grid_size)
+    speed = np.array(speed_profiles[0])
+    speed1 = np.array(speed_profiles[1])
+    fig, ax = plt.subplots()
+    pedpy.plot_profiles(
+        walkable_area=walkable_area,
+        profiles=speed,
+        axes=ax,
+        label="$v$ / $m/s$",
+    )
+    ax.set_xlabel("")
+    ax.set_ylabel("")
+
+    figname = "speed_profile_" + selected_file.split("/")[-1].split(".txt")[0] + ".pdf"
+    st.pyplot(fig)
+    fig.savefig(figname)
+    plots.download_file(figname)
 
 
 def ui_tab3_analysis() -> Tuple[Optional[str], Optional[int], st_column]:
@@ -447,11 +492,12 @@ def ui_tab3_analysis() -> Tuple[Optional[str], Optional[int], st_column]:
             "FD_voronoi",
             "FD_voronoi (local)",
             "N-T",
-            "Profiles",
+            "Density profile",
+            "Speed profile",
         ],
         horizontal=True,
     )
-    if calculations == "N-T" or calculations == "Profiles":
+    if calculations == "N-T" or calculations == "Density profile" or calculations == "Speed profile":
         dv = None
     else:
         st.sidebar.write("**Speed parameter**")
@@ -500,8 +546,14 @@ def run_tab3() -> None:
             trajectory_data,
             selected_file,
         )
-    if calculations == "Profiles":
-        calculate_profiles(
+    if calculations == "Density profile":
+        calculate_density_profile(
+            trajectory_data,
+            walkable_area,
+            selected_file,
+        )
+    if calculations == "Speed profile":
+        calculate_speed_profile(
             trajectory_data,
             walkable_area,
             selected_file,
@@ -515,3 +567,33 @@ def run_tab3() -> None:
         calculate_fd_voronoi_local(c1, dv)
     if calculations == "FD_voronoi":
         download_fd_voronoi()
+    if calculations == "speed":
+        start = time.time()
+        end = time.time()
+        individual_speed = pedpy.compute_individual_speed(
+            traj_data=trajectory_data,
+            frame_step=5,
+            speed_calculation=pedpy.SpeedCalculation.BORDER_SINGLE_SIDED,
+        )
+        combined_data = individual_speed.merge(
+            trajectory_data.data,
+            on=[pedpy.column_identifier.ID_COL, pedpy.column_identifier.FRAME_COL],
+        )
+        speed_profiles = compute_speed_profile(combined_data, walkable_area, 0.5)
+        speed = np.array(speed_profiles[0])
+        speed1 = np.array(speed_profiles[1])
+        fig, (ax0, ax1) = plt.subplots(nrows=1, ncols=2, figsize=(10, 6))
+        pedpy.plot_profiles(
+            walkable_area=walkable_area,
+            profiles=speed,
+            axes=ax0,
+            label="$\\rho$ / 1/$m^2$",
+        )
+        pedpy.plot_profiles(
+            walkable_area=walkable_area,
+            profiles=speed1,
+            axes=ax1,
+            label="$\\rho$ / 1/$m^2$",
+        )
+        st.pyplot(fig)
+        print(f"{end-start}")
