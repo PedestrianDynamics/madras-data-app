@@ -8,7 +8,6 @@ from shapely import Polygon
 from streamlit.delta_generator import DeltaGenerator
 
 import datafactory
-
 # import docs
 import plots
 from anim import animate

@@ -23,9 +23,6 @@ from speed_profile import compute_speed_profile
 
 st_column: TypeAlias = st.delta_generator.DeltaGenerator
 
-voronoi_results = "voronoi_density_speed.pkl"
-url = "https://go.fzj.de/voronoi-data"
-
 
 def calculate_or_load_classical_density(
     precalculated_density: str,
@@ -200,9 +197,7 @@ def calculate_fd_classical(dv: Optional[int]) -> None:
             basename = filename.split("/")[-1].split(".txt")[0]
             precalculated_density = f"AppData/density_{basename}.pkl"
             precalculated_speed = f"AppData/speed_{basename}_{dv}.pkl"
-
             speeds[basename] = calculate_or_load_mean_speed(precalculated_speed, filename, dv)
-
             densities[basename] = calculate_or_load_classical_density(precalculated_density, filename)
             progress = int(100 * (i + 1) / len(st.session_state.files))
             progress_bar.progress(progress)
@@ -217,16 +212,18 @@ def calculate_fd_classical(dv: Optional[int]) -> None:
     # plots.show_fig(fig, figname=figname, html=True, write=True)
 
 
-def calculate_fd_voronoi_local(c1: st_column, dv: Optional[int]) -> None:
+def calculate_fd_voronoi_local(dv: Optional[int]) -> None:
     """Calculate FD voronoi (locally)."""
     voronoi_polygons = {}
     voronoi_density = {}
     voronoi_speed = {}
     individual_speed = {}
     intersecting = {}
+    voronoi_results = "voronoi_density_speed.pkl"  # todo should go to datafactory
     figname = "fundamental_diagram_voronoi.pdf"
-    msg = c1.empty()
-    calculate = c1.button("Calculate", type="primary", help="Calculate fundamental diagram Voronoi")
+    st.sidebar.divider()
+    msg = st.sidebar.empty()
+    calculate = msg.button("Calculate", type="primary", help="Calculate fundamental diagram Voronoi")
     if not utilities.is_running_locally():
         st.warning(
             """
@@ -282,14 +279,16 @@ def calculate_fd_voronoi_local(c1: st_column, dv: Optional[int]) -> None:
         end = time.time()
         st.info(f"Computation time: {end-start:.2f} seconds.")
 
-    if Path(figname).exists():
+    if calculate and Path(figname).exists():
         plots.download_file(figname, msg)
-    else:
+    if not Path(figname).exists():
         st.warning(f"File {figname} does not exist yet! You should calculate it first")
 
 
 def download_fd_voronoi() -> None:
     """Download preexisting voronoi calculation."""
+    voronoi_results = "voronoi_density_speed.pkl"
+    url = "https://go.fzj.de/voronoi-data"
     voronoi_density = {}
     voronoi_speed = {}
     figname = "fundamental_diagram_voronoi.pdf"
@@ -323,34 +322,50 @@ def calculate_nt(
     selected_file: str,
 ) -> None:
     """Calculate N-T Diagram."""
-    measurement_lines = utilities.get_measurement_lines(trajectory_data)
+    c1, c2 = st.columns(2)
+    distance_to_bounding = c2.number_input(
+        "Distance to border",
+        value=2.0,
+        min_value=0.1,
+        max_value=20.0,
+        step=1.0,
+        placeholder="Type the ditance to boder.",
+        help="Distance of the meansurement lines to the edges of the geometry.",
+        format="%.2f",
+    )
+    directions = utilities.get_measurement_lines(trajectory_data, distance_to_bounding)
     docs_expander = st.expander(":orange_book: Documentation (click to expand)", expanded=False)
     with docs_expander:
-        docs.flow(measurement_lines)
+        docs.flow(directions)
 
-    names = ["left", "top", "right", "buttom"]
-    colors = ["red", "blue", "magenta", "green"]
-    selected_measurement_lines = st.multiselect("Measurement line", options=names, default=names)
-    fig = Figure()
+    names = [direction.info.name for direction in directions]
+    colors = [direction.info.color for direction in directions]
+    selected_names = c1.multiselect("Measurement line", options=names, default=names)
     figname = "NT=" + selected_file.split("/")[-1].split(".txt")[0]
     fig1, ax1 = plt.subplots()
-    for i, (name, color) in enumerate(zip(selected_measurement_lines, colors)):
-        measurement_line = measurement_lines[i]
-        nt, _ = pedpy.compute_n_t(
-            traj_data=trajectory_data,
-            measurement_line=measurement_line,
-        )
+    fig = Figure()
+    for i, (name, color) in enumerate(zip(selected_names, colors)):
+        direction = directions[i]
+        nt, _ = pedpy.compute_n_t(traj_data=trajectory_data, measurement_line=direction.line)
         figname += f"_{name}"
         pedpy.plot_nt(
             nt=nt,
             axes=ax1,
             color=color,
             title="",
-            y_label=r"\# pedestrians",
             label=f"{name}",
         )
+        trace, _ = plots.plot_x_y(
+            nt["time"],
+            nt["cumulative_pedestrians"],
+            xlabel="time",
+            ylabel="#pedestrians",
+            color=color,
+            title=f"{name}",
+        )
+        fig.add_trace(trace)
     ax1.set_xlabel(r"t / s", fontsize=18)
-    ax1.set_ylabel(r"\# pedestrians", fontsize=18)
+    ax1.set_ylabel(r"# pedestrians", fontsize=18)
     ax1.legend(loc="best")
     c1, c2 = st.columns(2)
     c1.pyplot(fig1)
@@ -506,11 +521,11 @@ def ui_tab3_analysis() -> Tuple[Optional[str], Optional[int], st_column]:
     calculations = st.radio(
         "**Choose calculation**",
         [
+            "N-T",
             "Time series",
             "FD_classical",
             "FD_voronoi",
             "FD_voronoi (local)",
-            "N-T",
             "Density profile",
             "Speed profile",
         ],
@@ -583,6 +598,6 @@ def run_tab3() -> None:
     if calculations == "FD_classical":
         calculate_fd_classical(dv)
     if calculations == "FD_voronoi (local)":
-        calculate_fd_voronoi_local(c1, dv)
+        calculate_fd_voronoi_local(dv)
     if calculations == "FD_voronoi":
         download_fd_voronoi()

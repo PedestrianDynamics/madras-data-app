@@ -10,19 +10,18 @@ import requests  # type: ignore
 import streamlit as st
 from shapely import Polygon
 
+from datafactory import Direction, DirectionInfo
+
 
 def is_running_locally() -> bool:
     """Check if the Streamlit app is running locally."""
-
     streamlit_server = "/mount/src/madras-data-app"
     current_working_directory = os.getcwd()
     return current_working_directory != streamlit_server
 
 
 def download(url: str, destination: Union[str, Path]) -> None:
-    """
-    Downloads a file from a specified URL and saves it to a given destination.
-    """
+    """Download a file from a specified URL and saves it to a given destination."""
     # Send a GET request
     response = requests.get(url, stream=True)
 
@@ -46,18 +45,30 @@ def download(url: str, destination: Union[str, Path]) -> None:
     progress_bar.empty()  # clear  the progress bar after completion
 
 
-def get_measurement_lines(trajectory_data: pd.DataFrame) -> List[pedpy.MeasurementLine]:
-    """Create 4 measurement lines inside the walkable_area"""
-    eps = 1.0
-    min_x = trajectory_data.data["x"].min() + eps
-    max_x = trajectory_data.data["x"].max() - eps
-    min_y = trajectory_data.data["y"].min() + eps
-    max_y = trajectory_data.data["y"].max() - eps
+def get_measurement_lines(trajectory_data: pd.DataFrame, distance_to_bounding: float) -> List[Direction]:
+    """Create 4 measurement lines inside the walkable_area."""
+    min_x = trajectory_data.data["x"].min() + distance_to_bounding
+    max_x = trajectory_data.data["x"].max() - distance_to_bounding
+    min_y = trajectory_data.data["y"].min() + distance_to_bounding
+    max_y = trajectory_data.data["y"].max() - distance_to_bounding
+
     return [
-        pedpy.MeasurementLine([[min_x, min_y], [min_x, max_y]]),  # left
-        pedpy.MeasurementLine([[min_x, max_y], [max_x, max_y]]),  # top
-        pedpy.MeasurementLine([[max_x, max_y], [max_x, min_y]]),  # right
-        pedpy.MeasurementLine([[max_x, min_y], [min_x, min_y]]),  # buttom
+        Direction(
+            info=DirectionInfo(id=3, name="East", color="green"),
+            line=pedpy.MeasurementLine([[min_x, min_y], [min_x, max_y]]),
+        ),
+        Direction(
+            info=DirectionInfo(id=4, name="West", color="gray"),
+            line=pedpy.MeasurementLine([[max_x, min_y], [max_x, max_y]]),
+        ),
+        Direction(
+            info=DirectionInfo(id=1, name="North", color="blue"),
+            line=pedpy.MeasurementLine([[min_x, max_y], [max_x, max_y]]),
+        ),
+        Direction(
+            info=DirectionInfo(id=2, name="South", color="red"),
+            line=pedpy.MeasurementLine([[max_x, min_y], [min_x, min_y]]),
+        ),
     ]
 
 

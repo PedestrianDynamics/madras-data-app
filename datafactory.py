@@ -1,3 +1,5 @@
+"""Unsorted datastructure for the app."""
+
 import glob
 import os
 import shutil
@@ -9,6 +11,21 @@ from typing import List, Union
 import pedpy
 import requests  # type:ignore
 import streamlit as st
+
+
+@dataclass
+class DirectionInfo:
+    """Measurement line metadata."""
+
+    id: int
+    name: str
+    color: str
+
+
+@dataclass
+class Direction:
+    info: DirectionInfo
+    line: pedpy.MeasurementLine
 
 
 @dataclass
@@ -71,6 +88,7 @@ def init_state_bg_image() -> None:
 def init_session_state() -> None:
     """Init session_state throughout the app."""
     init_state_bg_image()
+    # Initialize a list of DirectionInfo objects using the provided dictionaries
 
     if "start_frame" not in st.session_state:
         st.session_state.start_frame = 0

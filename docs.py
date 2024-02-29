@@ -2,23 +2,32 @@
 
 from typing import List
 
-import pedpy
 import streamlit as st
 
+from datafactory import Direction
 
-def flow(measurement_lines: List[pedpy.MeasurementLine]) -> None:
+
+def flow(directions: List[Direction]) -> None:
     """Write documentation text for NT-diagram."""
     st.write(
-        rf"""
+        r"""
         The N-t diagram shows how many pedestrian have crossed the measurement line at a specific time.
 
-        Measurementlines are:
-        - Left: {measurement_lines[0].line}
-        - Top:  {measurement_lines[1].line}
-        - Right:  {measurement_lines[2].line}
-        - Buttom:  {measurement_lines[3].line}
+        **Measurement lines:**
         """
     )
+
+    table_data = {"Line": [], "Point": [], "Coordinates": []}  # type: ignore
+    for direction in directions:
+        line = direction.line.line
+        for point_number, coordinate in enumerate(line.coords, start=1):
+            table_data["Line"].append(f"{direction.info.name}")
+            table_data["Point"].append(f"Point {point_number}")
+            formatted_coordinate = f"({coordinate[0]:.2f}, {coordinate[1]:.2f})"
+            table_data["Coordinates"].append(f"{formatted_coordinate}")
+
+    # Display as a table
+    st.table(data=table_data)
 
 
 def density_speed() -> None:

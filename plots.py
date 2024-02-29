@@ -36,6 +36,7 @@ def plot_trajectories(
     c1, c2, c3 = st.columns((1, 1, 1))
     data = trajectory_data.data
     num_agents = len(np.unique(data["id"]))
+    # todo datafactory
     colors = {
         1: "blue",
         2: "red",
@@ -150,8 +151,8 @@ def plot_trajectories_figure_mpl(
     trajectory_data: pedpy.TrajectoryData,
     walkable_area: pedpy.WalkableArea,
     with_colors: bool,
-    alpha=0.4,
-    lw=0.09,
+    alpha: float = 0.4,
+    lw: float = 0.09,
 ) -> matplotlib.figure.Figure:
     """Plot trajectories and geometry mpl version.
 
