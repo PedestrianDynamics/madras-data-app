@@ -23,6 +23,47 @@ from utilities import get_color_by_name
 st_column: TypeAlias = st.delta_generator.DeltaGenerator
 
 
+def add_trace_for_direction(
+    fig: Figure,
+    df: pd.DataFrame,
+    uid: int,
+    color: str,
+    line_width: float,
+    framerate: int,
+    plot_start: bool,
+) -> None:
+    """
+    Adds a trace to the figure for the given DataFrame and user ID.
+
+    Parameters:
+    - fig: The figure object to add the trace to.
+    - df: DataFrame containing the data points for the user.
+    - uid: The user ID.
+    - color: Color of the line.
+    - line_width: Width of the line.
+    - framerate: Interval for data point selection.
+    """
+    fig.add_trace(
+        go.Scatter(
+            x=df["x"][::framerate],
+            y=df["y"][::framerate],
+            line={"color": color, "width": line_width},
+            mode="lines",
+            name=f"ID {uid}",
+        )
+    )
+    if plot_start:
+        fig.add_trace(
+            go.Scatter(
+                x=[df["x"].iloc[0]],
+                y=[df["y"].iloc[0]],
+                marker={"color": color, "symbol": "circle"},
+                mode="markers",
+                name=f"Start ID {uid}",
+            )
+        )
+
+
 def plot_trajectories(
     trajectory_data: pedpy.TrajectoryData,
     framerate: int,
@@ -43,75 +84,33 @@ def plot_trajectories(
     y_exterior = list(y_exterior)
 
     directions = assign_direction_number(data)
-    # For each unique id, plot a trajectory
-    if uid is not None:
-        df = data[data["id"] == uid]
-        dir_name = directions.loc[directions["id"] == uid, "direction_name"].iloc[0]
-        color_choice = get_color_by_name(dir_name)
-        fig.add_trace(
-            go.Scatter(
-                x=df["x"][::framerate],
-                y=df["y"][::framerate],
-                line={"color": color_choice},
-                marker={"color": color_choice},
-                mode="lines",
-                name=f"ID {uid}",
-            )
-        )
-        fig.add_trace(
-            go.Scatter(
-                x=[df["x"].iloc[0]],
-                y=[df["y"].iloc[0]],
-                marker={"color": "red", "symbol": "circle"},
-                mode="markers",
-                name=f"Start ID {uid}",
-            )
-        )
-        for other, df in data.groupby("id"):
-            if other != uid:
-                dir_name = directions.loc[
-                    directions["id"] == other, "direction_name"
-                ].iloc[0]
-                color_choice = get_color_by_name(dir_name)
-                fig.add_trace(
-                    go.Scatter(
-                        x=df["x"][::framerate],
-                        y=df["y"][::framerate],
-                        line={"color": color_choice, "width": 0.1},
-                        mode="lines",
-                        name=f"ID {other}",
-                    )
-                )
+    # Precompute direction names to avoid repeated DataFrame lookups
+    direction_names = directions.set_index("id")["direction_name"]
+    if show_direction == "All":
+        # If showing all directions, iterate over all unique IDs
+        ids_to_plot = data["id"].unique()
     else:
-        for uid, df in data.groupby("id"):
-            dir_name = directions.loc[directions["id"] == uid, "direction_name"].iloc[0]
-            if show_direction == "All":
-                color_choice = get_color_by_name(dir_name)
-                fig.add_trace(
-                    go.Scatter(
-                        x=df["x"][::framerate],
-                        y=df["y"][::framerate],
-                        line={"color": color_choice, "width": 0.1},
-                        mode="lines",
-                        name=f"ID {uid}",
-                    )
-                )
-            else:
-                if (
-                    directions.loc[directions["id"] == uid, "direction_name"].iloc[0]
-                    != show_direction
-                ):
-                    continue
-                color_choice = get_color_by_name(show_direction)
-                fig.add_trace(
-                    go.Scatter(
-                        x=df["x"][::framerate],
-                        y=df["y"][::framerate],
-                        line={"color": color_choice, "width": 0.3},
-                        mode="lines",
-                        name=f"ID {uid}",
-                    )
-                )
+        # If a specific direction is chosen, filter IDs by that direction
+        ids_to_plot = direction_names[direction_names == show_direction].index
+
+    for id_ in ids_to_plot:
+        df = data[data["id"] == id_]
+        dir_name = direction_names[id_]
+        plot_start = False
+        if show_direction == "All":
+            color_choice = get_color_by_name(dir_name)
+            line_width = 0.1
+        else:
+            color_choice = get_color_by_name(show_direction)
+            line_width = 0.3
+        if id_ == uid:
+            color_choice = get_color_by_name(dir_name)
+            line_width = 1.5
+            plot_start = True
+
+        add_trace_for_direction(
+            fig, df, id_, color_choice, line_width, framerate, plot_start
+        )
 
     # geometry
     fig.add_trace(
@@ -132,8 +131,6 @@ def plot_trajectories(
 
     fig.update_layout(
         title=f" Trajectories: {num_agents}. {count_direction}",
-        xaxis_title="X",
-        yaxis_title="Y",
         xaxis={"scaleanchor": "y"},
         yaxis={"scaleratio": 1},
         showlegend=False,
