@@ -40,9 +40,9 @@ def init_app_looks() -> None:
 def init_sidebar():
     """Init sidebar and 4 tabs."""
     selected = option_menu(
-        "Multi-agent modelling of dense crowd dynamics: Predict & Understand (MADRAS)",
+        "Multi-agent modelling of dense crowd dynamics: Predict & Understand",
         ["About", "Map", "Trajectories", "Analysis"],
-        icons=["house", "cloud-upload", "list-task", "gear"],
+        icons=["info-square", "pin-map", "people", "bar-chart-line"],
         menu_icon="cast",
         default_index=0,
         orientation="horizontal",
