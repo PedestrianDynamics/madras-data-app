@@ -207,6 +207,7 @@ def plot_time_series(density: pd.DataFrame, speed: pd.DataFrame, fps: int) -> go
             line={"color": "blue"},
             marker={"color": "blue"},
             mode="lines",
+            name="density",
         ),
         row=1,
         col=1,
@@ -219,27 +220,28 @@ def plot_time_series(density: pd.DataFrame, speed: pd.DataFrame, fps: int) -> go
             line={"color": "blue"},
             marker={"color": "blue"},
             mode="lines",
+            name="speed",
         ),
         row=1,
         col=2,
     )
 
-    rmin = np.min(density.density) - 0.1
-    rmax = np.max(density.density) + 0.1
-    vmax = np.max(speed) + 0.1
-    vmin = np.min(speed) - 0.1
+    # rmin = np.min(density.density) - 0.1
+    # rmax = np.max(density.density) + 0.1
+    # vmax = np.max(speed) + 0.1
+    # vmin = np.min(speed) - 0.1
     fig.update_layout(
         showlegend=False,
     )
-    fig.update_xaxes(
-        range=[rmin, rmax],
+    fig.update_yaxes(
+        # range=[rmin, rmax],
         title_text=r"$\rho\; /\; 1/m^2$",
         title_font={"size": 20},
         row=1,
         col=1,
     )
     fig.update_yaxes(
-        range=[vmin, vmax],
+        # range=[vmin, vmax],
         title_text=r"$v\; /\; m/s$",
         title_font={"size": 20},
         # scaleanchor="x",
@@ -258,24 +260,28 @@ def plt_plot_time_series(
     density: pd.DataFrame, speed: pd.DataFrame, fps: int
 ) -> Tuple[matplotlib.figure.Figure, matplotlib.figure.Figure]:
     """Plot density and speed time series side-byside."""
+    fs = 18
     # density
     fig1, ax1 = plt.subplots()
     fig2, ax2 = plt.subplots()
-    ax1.plot(density.index / fps, density.density, color="blue", lw=1)
-    title1 = rf"$\mu= {np.mean(density.density):.2f}\; \pm {np.std(density.density):.2f}\; 1/m^2$"
-    ax1.set_title(title1)
-    ax1.set_ylabel(r"$\rho\; /\; 1/m^2$")
-    ax1.set_xlabel(r"$t\; /\;s$")
+    ax1.plot(density.index / fps, density.density, color="gray", lw=1.5)
+    title1 = rf"$\mu= {np.mean(density.density):.2f}\; \pm {np.std(density.density):.2f}\;/\; 1/m^2$"
+    ax1.set_title(title1, fontsize=fs)
+    ax1.set_ylabel(r"$\rho\; /\; 1/m^2$", fontsize=fs)
+    ax1.set_xlabel(r"$t\; /\;s$", fontsize=fs)
+    ax1.tick_params(axis="both", which="major", labelsize=14)  # For major ticks
+
     rmin = np.min(density.density) - 0.1
     rmax = np.max(density.density) + 0.1
     ax1.set_ylim([rmin, rmax])
     ax1.grid(alpha=0.4)
     # speed
-    ax2.plot(speed.index / fps, speed, color="gray", lw=1)
-    title2 = rf"$\mu= {np.mean(speed):.2f}\; \pm {np.std(speed):.2f}\; m/s$"
-    ax2.set_title(title2)
-    ax2.set_ylabel(r"$v\; /\; m/s$")
-    ax2.set_xlabel(r"$t\; /\;s$")
+    ax2.plot(speed.index / fps, speed, color="gray", lw=1.5)
+    title2 = rf"$\mu= {np.mean(speed):.2f}\; \pm {np.std(speed):.2f}\;/\; m/s$"
+    ax2.set_title(title2, fontsize=fs)
+    ax2.set_ylabel(r"$v\; /\; m/s$", fontsize=fs)
+    ax2.set_xlabel(r"$t\; /\;s$", fontsize=fs)
+    ax2.tick_params(axis="both", which="major", labelsize=14)  # For major ticks
     vmax = np.max(speed) + 0.1
     vmin = np.min(speed) - 0.1
     ax2.set_ylim([vmin, vmax])

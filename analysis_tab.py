@@ -325,7 +325,7 @@ def calculate_nt(
     c1, c2 = st.columns(2)
     distance_to_bounding = c2.number_input(
         "Distance to border",
-        value=2.0,
+        value=0.5,
         min_value=0.1,
         max_value=20.0,
         step=1.0,
