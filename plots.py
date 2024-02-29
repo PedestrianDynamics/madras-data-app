@@ -18,6 +18,8 @@ from PIL import Image
 from plotly.graph_objs import Figure, Scatter
 from plotly.subplots import make_subplots
 
+from utilities import get_color_by_name
+
 st_column: TypeAlias = st.delta_generator.DeltaGenerator
 
 
@@ -26,7 +28,7 @@ def plot_trajectories(
     framerate: int,
     walkable_area: pedpy.WalkableArea,
     uid: Optional[float] = None,
-    show_direction: Optional[float] = None,
+    show_direction: Optional[str] = None,
 ) -> go.Figure:
     """Plot trajectories and geometry.
 
@@ -36,14 +38,6 @@ def plot_trajectories(
     c1, c2, c3 = st.columns((1, 1, 1))
     data = trajectory_data.data
     num_agents = len(np.unique(data["id"]))
-    # todo datafactory
-    colors = {
-        1: "blue",
-        2: "red",
-        3: "green",
-        4: "gray",
-    }
-    dnames = {1: "North", 2: "South", 3: "East", 4: "West"}
     x_exterior, y_exterior = walkable_area.polygon.exterior.xy
     x_exterior = list(x_exterior)
     y_exterior = list(y_exterior)
@@ -52,8 +46,8 @@ def plot_trajectories(
     # For each unique id, plot a trajectory
     if uid is not None:
         df = data[data["id"] == uid]
-        direction = directions.loc[directions["id"] == uid, "direction_number"].iloc[0]
-        color_choice = colors[direction]
+        dir_name = directions.loc[directions["id"] == uid, "direction_name"].iloc[0]
+        color_choice = get_color_by_name(dir_name)
         fig.add_trace(
             go.Scatter(
                 x=df["x"][::framerate],
@@ -73,51 +67,51 @@ def plot_trajectories(
                 name=f"Start ID {uid}",
             )
         )
-
         for other, df in data.groupby("id"):
             if other != uid:
-                fig.add_trace(
-                    go.Scatter(
-                        x=df["x"][::framerate],
-                        y=df["y"][::framerate],
-                        line={"color": "gray", "width": 0.1},
-                        marker={"color": "gray"},
-                        mode="lines",
-                        name=f"ID {uid}",
-                    )
-                )
-
-    else:
-        for uid, df in data.groupby("id"):
-            direction = directions.loc[
-                directions["id"] == uid, "direction_number"
-            ].iloc[0]
-
-            if show_direction is None:
-                color_choice = colors[direction]
+                dir_name = directions.loc[
+                    directions["id"] == other, "direction_name"
+                ].iloc[0]
+                color_choice = get_color_by_name(dir_name)
                 fig.add_trace(
                     go.Scatter(
                         x=df["x"][::framerate],
                         y=df["y"][::framerate],
                         line={"color": color_choice, "width": 0.1},
-                        marker={"color": color_choice},
+                        mode="lines",
+                        name=f"ID {other}",
+                    )
+                )
+    else:
+        for uid, df in data.groupby("id"):
+            dir_name = directions.loc[directions["id"] == uid, "direction_name"].iloc[0]
+            if show_direction == "All":
+                color_choice = get_color_by_name(dir_name)
+                fig.add_trace(
+                    go.Scatter(
+                        x=df["x"][::framerate],
+                        y=df["y"][::framerate],
+                        line={"color": color_choice, "width": 0.1},
                         mode="lines",
                         name=f"ID {uid}",
                     )
                 )
             else:
-                if direction == show_direction:
-                    color_choice = colors[direction]
-                    fig.add_trace(
-                        go.Scatter(
-                            x=df["x"][::framerate],
-                            y=df["y"][::framerate],
-                            line={"color": color_choice, "width": 0.3},
-                            marker={"color": color_choice},
-                            mode="lines",
-                            name=f"ID {uid}",
-                        )
+                if (
+                    directions.loc[directions["id"] == uid, "direction_name"].iloc[0]
+                    != show_direction
+                ):
+                    continue
+                color_choice = get_color_by_name(show_direction)
+                fig.add_trace(
+                    go.Scatter(
+                        x=df["x"][::framerate],
+                        y=df["y"][::framerate],
+                        line={"color": color_choice, "width": 0.3},
+                        mode="lines",
+                        name=f"ID {uid}",
                     )
+                )
 
     # geometry
     fig.add_trace(
@@ -130,10 +124,11 @@ def plot_trajectories(
         )
     )
     count_direction = ""
-    for direction in [1, 2, 3, 4]:
-        count = directions[directions["direction_number"] == direction].shape[0]
-        # count_direction += f"<span style='color:{colors[direction]};'>Direction</span> " + str(direction) + ": " + str(count) + ". "
-        count_direction += f"<span style='color:{colors[direction]};'> {dnames[direction]} {count}</span>."
+    for name in ["North", "South", "East", "West"]:
+        count = directions[directions["direction_name"] == name].shape[0]
+        count_direction += (
+            f"<span style='color:{get_color_by_name(name)};'> {name} {count}</span>."
+        )
 
     fig.update_layout(
         title=f" Trajectories: {num_agents}. {count_direction}",
@@ -161,22 +156,14 @@ def plot_trajectories_figure_mpl(
     fig, ax = plt.subplots()
     data = trajectory_data.data
     num_agents = len(np.unique(data["id"]))
-    colors = {
-        1: "blue",
-        2: "red",
-        3: "green",
-        4: "gray",
-    }
-    dnames = {1: "North", 2: "South", 3: "East", 4: "West"}
     x_exterior, y_exterior = walkable_area.polygon.exterior.xy
     x_exterior = list(x_exterior)
     y_exterior = list(y_exterior)
-
     directions = assign_direction_number(data)
     for uid, df in data.groupby("id"):
-        direction = directions.loc[directions["id"] == uid, "direction_number"].iloc[0]
+        dir_name = directions.loc[directions["id"] == uid, "direction_name"].iloc[0]
         if with_colors:
-            color_choice = colors[direction]
+            color_choice = get_color_by_name(dir_name)
         else:
             color_choice = "gray"
         ax.plot(
@@ -193,9 +180,9 @@ def plot_trajectories_figure_mpl(
         color="black",
     )
     title_text = f"Trajectories: {num_agents}."
-    for direction in [1, 2, 3, 4]:
-        count = directions[directions["direction_number"] == direction].shape[0]
-        title_text += f" {dnames[direction]} {count}."
+    for name in ["North", "South", "East", "West"]:
+        count = directions[directions["direction_name"] == name].shape[0]
+        title_text += f" {name} {count}."
 
     ax.set_title(title_text)
     ax.set_xlabel(r"$x\; /\;m$", fontsize=18)
@@ -478,15 +465,18 @@ def assign_direction_number(agent_data: pd.DataFrame) -> pd.DataFrame:
             direction_number = (
                 3 if delta_x > 0 else 4
             )  # East if delta_x positive, West otherwise
+            direction_name = "East" if delta_x > 0 else "West"
         else:
             # Motion is primarily vertical
             direction_number = (
                 1 if delta_y > 0 else 2
             )  # North if delta_y positive, South otherwise
+            direction_name = "North" if delta_x > 0 else "South"
+        direction_numbers.append((agent_id, direction_number, direction_name))
 
-        direction_numbers.append((agent_id, direction_number))
-
-    return pd.DataFrame(direction_numbers, columns=["id", "direction_number"])
+    return pd.DataFrame(
+        direction_numbers, columns=["id", "direction_number", "direction_name"]
+    )
 
 
 def show_fig(

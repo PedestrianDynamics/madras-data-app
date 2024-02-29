@@ -88,7 +88,15 @@ def init_state_bg_image() -> None:
 def init_session_state() -> None:
     """Init session_state throughout the app."""
     init_state_bg_image()
+
     # Initialize a list of DirectionInfo objects using the provided dictionaries
+    if "direction_infos" not in st.session_state:
+        st.session_state.direction_infos = [
+            DirectionInfo(id=1, name="North", color="blue"),
+            DirectionInfo(id=2, name="South", color="red"),
+            DirectionInfo(id=3, name="East", color="green"),
+            DirectionInfo(id=4, name="West", color="gray"),
+        ]
 
     if "start_frame" not in st.session_state:
         st.session_state.start_frame = 0

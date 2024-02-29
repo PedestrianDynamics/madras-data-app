@@ -65,7 +65,7 @@ def run_tab2(selected_file: str, msg: DeltaGenerator) -> None:
         sample_frame = st.sidebar.slider(
             "Every nth frame",
             1,
-            1000,
+            60,
             1,
             10,
             help="plot every_nth_frame.",
@@ -79,14 +79,10 @@ def run_tab2(selected_file: str, msg: DeltaGenerator) -> None:
             format="%d",
             help="Visualize a single pedestrian.",
         )
-        show_direction = st.sidebar.number_input(
+        show_direction = st.sidebar.selectbox(
             "Choose direction to show",
-            value=None,
-            min_value=1,
-            max_value=4,
-            placeholder="Type a number in [1, 4]",
-            format="%d",
-            help="Visualize pedestrians moving in a direction. **1: North. 2: South. 3: East. 4: West.**",
+            ("All", "North", "South", "East", "West"),
+            help="Visualize pedestrians moving in a direction.",
         )
         fig = plots.plot_trajectories(
             trajectory_data,

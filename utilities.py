@@ -45,6 +45,22 @@ def download(url: str, destination: Union[str, Path]) -> None:
     progress_bar.empty()  # clear  the progress bar after completion
 
 
+def get_color_by_name(direction_name: str) -> str:
+    """Get color from directions_infos."""
+    for direction_info in st.session_state.direction_infos:
+        if direction_info.name == direction_name:
+            return str(direction_info.color)
+    return "Color not found!"
+
+
+def get_id_by_name(direction_name: str) -> int:
+    """Get id from directions_infos."""
+    for direction_info in st.session_state.direction_infos:
+        if direction_info.name == direction_name:
+            return int(direction_info.id)
+    return -1
+
+
 def get_measurement_lines(trajectory_data: pd.DataFrame, distance_to_bounding: float) -> List[Direction]:
     """Create 4 measurement lines inside the walkable_area."""
     min_x = trajectory_data.data["x"].min() + distance_to_bounding
@@ -54,19 +70,27 @@ def get_measurement_lines(trajectory_data: pd.DataFrame, distance_to_bounding: f
 
     return [
         Direction(
-            info=DirectionInfo(id=3, name="East", color="green"),
+            info=DirectionInfo(id=get_id_by_name("East"), name="East", color=get_color_by_name("East")),
             line=pedpy.MeasurementLine([[min_x, min_y], [min_x, max_y]]),
         ),
         Direction(
-            info=DirectionInfo(id=4, name="West", color="gray"),
+            info=DirectionInfo(id=get_id_by_name("West"), name="West", color=get_color_by_name("West")),
             line=pedpy.MeasurementLine([[max_x, min_y], [max_x, max_y]]),
         ),
         Direction(
-            info=DirectionInfo(id=1, name="North", color="blue"),
+            info=DirectionInfo(
+                id=get_id_by_name("North"),
+                name="North",
+                color=get_color_by_name("North"),
+            ),
             line=pedpy.MeasurementLine([[min_x, max_y], [max_x, max_y]]),
         ),
         Direction(
-            info=DirectionInfo(id=2, name="South", color="red"),
+            info=DirectionInfo(
+                id=get_id_by_name("South"),
+                name="South",
+                color=get_color_by_name("South"),
+            ),
             line=pedpy.MeasurementLine([[max_x, min_y], [min_x, min_y]]),
         ),
     ]
