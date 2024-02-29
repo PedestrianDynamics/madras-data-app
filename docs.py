@@ -62,7 +62,7 @@ def density_speed() -> None:
 def about() -> None:
     """Write About text."""
     text = """
-   
+
 
     ## Overview
     The [MADRAS-project](https://www.madras-crowds.eu/) is a collaborative cooperation funded by [ANR](https://anr.fr) :flag-fr: and [DFG](htpps://dfg.de) :flag-de:, aims to develop innovative agent-based models to predict and understand dense crowd dynamics and to apply these models in a large-scale case study.

@@ -1,10 +1,8 @@
 """Init ui and download AppData if not existing."""
 
 from pathlib import Path
-from typing import List
 
 import streamlit as st
-from streamlit.delta_generator import DeltaGenerator
 from streamlit_option_menu import option_menu
 
 
@@ -39,7 +37,7 @@ def init_app_looks() -> None:
 
 def init_sidebar():
     """Init sidebar and 4 tabs."""
-    selected = option_menu(
+    return option_menu(
         "Multi-agent modelling of dense crowd dynamics: Predict & Understand",
         ["About", "Map", "Trajectories", "Analysis"],
         icons=["info-square", "pin-map", "people", "bar-chart-line"],
@@ -57,4 +55,3 @@ def init_sidebar():
             },
         },
     )
-    return selected
