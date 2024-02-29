@@ -11,27 +11,21 @@ import ui
 
 if __name__ == "__main__":
     ui.setup_app()
+    selected = ui.init_sidebar()
     ui.init_app_looks()
     datafactory.init_session_state()
 
-    tab4, tab1, tab2, tab3 = ui.init_sidebar()
+    if selected == "About":
+        docs.about()
 
-    # Map
-    with tab1:
+    if selected == "Map":
         map_tab.call_main()
 
-    # Trajectories
-    with tab2:
+    if selected == "Trajectories":
         msg = st.empty()
         filename = str(st.selectbox(":open_file_folder: **Select a file**", st.session_state.files))
         st.session_state.selected_file = filename
         traj_tab.run_tab2(filename, msg)
 
-    # Analysis
-    with tab3:
-        activate_tab3 = st.toggle("Activate", key="tab3", value=False)
-        if activate_tab3:
-            analysis_tab.run_tab3()
-    # Info
-    with tab4:
-        docs.about()
+    if selected == "Analysis":
+        analysis_tab.run_tab3()

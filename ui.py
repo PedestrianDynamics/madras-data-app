@@ -1,8 +1,11 @@
+"""Init ui and download AppData if not existing."""
+
 from pathlib import Path
 from typing import List
 
 import streamlit as st
 from streamlit.delta_generator import DeltaGenerator
+from streamlit_option_menu import option_menu
 
 
 def setup_app() -> None:
@@ -30,22 +33,28 @@ def init_app_looks() -> None:
     repo_name = f"[![Repo]({gh})]({repo})"
     c1, c2 = st.sidebar.columns((1.2, 0.5))
     c2.markdown(repo_name, unsafe_allow_html=True)
-    c1.write(
-        "[![DOI](https://zenodo.org/badge/760394097.svg)](https://zenodo.org/doi/10.5281/zenodo.10694866)"
-    )
+    c1.write("[![DOI](https://zenodo.org/badge/760394097.svg)](https://zenodo.org/doi/10.5281/zenodo.10694866)")
     st.sidebar.image(f"{ROOT_DIR}/logo.png", use_column_width=True)
 
 
-def init_sidebar() -> List[DeltaGenerator]:
-    """Init sidebar and 3 tabs."""
-    c1, c2 = st.sidebar.columns((1.8, 0.2))
-    tab0, tab1, tab2, tab3 = st.tabs(
-        [
-            "ℹ️ About",
-            "🗺️ Map",
-            "👫🏻 View trajectories",
-            "📉 Analysis",
-        ]
+def init_sidebar():
+    """Init sidebar and 4 tabs."""
+    selected = option_menu(
+        "Multi-agent modelling of dense crowd dynamics: Predict & Understand (MADRAS)",
+        ["About", "Map", "Trajectories", "Analysis"],
+        icons=["house", "cloud-upload", "list-task", "gear"],
+        menu_icon="cast",
+        default_index=0,
+        orientation="horizontal",
+        styles={
+            "container": {"padding": "0!important", "background-color": "#fafafa"},
+            "icon": {"color": "gray", "font-size": "15px"},
+            "nav-link": {
+                "font-size": "15px",
+                "text-align": "left",
+                "margin": "0px",
+                "--hover-color": "#eee",
+            },
+        },
     )
-
-    return [tab0, tab1, tab2, tab3]
+    return selected
