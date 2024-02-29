@@ -19,7 +19,6 @@ import docs
 import drawing
 import plots
 import utilities
-from speed_profile import compute_speed_profile
 
 st_column: TypeAlias = st.delta_generator.DeltaGenerator
 
@@ -440,7 +439,12 @@ def calculate_density_profile(
     ax.set_ylabel("")
     ax.set_xticklabels([])
     ax.set_yticklabels([])
-    figname = "density_profile_" + selected_file.split("/")[-1].split(".txt")[0] + str(chose_method) + ".pdf"
+    base_filename = os.path.splitext(os.path.basename(selected_file))[0]
+    if chose_method == "Gaussian":
+        figname = f"density_profile_method_{chose_method}_width_{width}_grid_{grid_size}_{base_filename}.pdf"
+    else:
+        figname = f"density_profile_method_{chose_method}_grid_{grid_size}_{base_filename}.pdf"
+
     st.pyplot(fig)
     plt.tight_layout()
     fig.savefig(figname, bbox_inches="tight", pad_inches=0.1)
@@ -453,7 +457,8 @@ def calculate_speed_profile(
     selected_file: str,
 ) -> None:
     """Calculate speed profile."""
-    grid_size = st.number_input(
+    c1, c2 = st.columns(2)
+    grid_size = c1.number_input(
         "Grid size",
         value=0.4,
         min_value=0.05,
@@ -462,6 +467,16 @@ def calculate_speed_profile(
         placeholder="Type the grid size",
         format="%.2f",
     )
+    fil_empty = str(
+        c2.selectbox(
+            "How to fil empty cells?",
+            ["Nan", "0"],
+        )
+    )
+    if fil_empty == "0":
+        fil_empty = 0
+    else:
+        fil_empty = np.nan
     individual_speed = pedpy.compute_individual_speed(
         traj_data=trajectory_data,
         frame_step=10,
@@ -471,17 +486,21 @@ def calculate_speed_profile(
         trajectory_data.data,
         on=[pedpy.column_identifier.ID_COL, pedpy.column_identifier.FRAME_COL],
     )
-    speed_profiles = compute_speed_profile(combined_data, walkable_area, grid_size)
-    speed = np.array(speed_profiles[0])
+    speed_profiles = pedpy.compute_speed_profile(
+        data=combined_data,
+        walkable_area=walkable_area,
+        grid_size=grid_size,
+        speed_method=pedpy.SpeedMethod.MEAN,
+        fill_value=fil_empty,
+    )
     fig, ax = plt.subplots()
     pedpy.plot_profiles(
         walkable_area=walkable_area,
-        profiles=speed,
+        profiles=speed_profiles,
         axes=ax,
-        label="$v$ / $m/s$",
     )
     colorbar_ax = fig.axes[-1]
-    colorbar_ax.set_ylabel("$\\rho$ / 1/$m^2$", size=18)
+    colorbar_ax.set_ylabel(r"$v\,/\,m/s$", size=18)
     colorbar_ax.tick_params(labelsize=18)
     # Remove tick marks but keep labels for x-axis
     ax.tick_params(axis="x", length=0)
@@ -495,7 +514,8 @@ def calculate_speed_profile(
     ax.set_yticklabels([])
     fig.tight_layout()
 
-    figname = "speed_profile_" + selected_file.split("/")[-1].split(".txt")[0] + ".pdf"
+    base_filename = os.path.splitext(os.path.basename(selected_file))[0]
+    figname = f"speed_profile_fil_{fil_empty}_grid_{grid_size}_{base_filename}.pdf"
     st.pyplot(fig)
     fig.savefig(figname, bbox_inches="tight", pad_inches=0.1)
     plots.download_file(figname)
