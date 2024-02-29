@@ -467,16 +467,16 @@ def calculate_speed_profile(
         placeholder="Type the grid size",
         format="%.2f",
     )
-    fil_empty = str(
+    fil = str(
         c2.selectbox(
             "How to fil empty cells?",
             ["Nan", "0"],
         )
     )
-    if fil_empty == "0":
-        fil_empty = 0
-    else:
+    if fil == "Nan":
         fil_empty = np.nan
+    else:
+        fil_empty = 0.0
     individual_speed = pedpy.compute_individual_speed(
         traj_data=trajectory_data,
         frame_step=10,

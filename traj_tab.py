@@ -79,17 +79,19 @@ def run_tab2(selected_file: str, msg: DeltaGenerator) -> None:
             format="%d",
             help="Visualize a single pedestrian.",
         )
-        show_direction = st.sidebar.selectbox(
-            "Choose direction to show",
-            ("All", "North", "South", "East", "West"),
-            help="Visualize pedestrians moving in a direction.",
+        show_direction = str(
+            st.sidebar.selectbox(
+                "Choose direction to show",
+                ("All", "North", "South", "East", "West"),
+                help="Visualize pedestrians moving in a direction.",
+            )
         )
         fig = plots.plot_trajectories(
             trajectory_data,
             sample_frame,
             walkable_area,
-            uid,
             show_direction,
+            uid,
         )
         st.plotly_chart(fig)
         # matplotlib figs

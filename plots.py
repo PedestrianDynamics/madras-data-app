@@ -68,8 +68,8 @@ def plot_trajectories(
     trajectory_data: pedpy.TrajectoryData,
     framerate: int,
     walkable_area: pedpy.WalkableArea,
+    show_direction: str,
     uid: Optional[float] = None,
-    show_direction: Optional[str] = None,
 ) -> go.Figure:
     """Plot trajectories and geometry.
 
