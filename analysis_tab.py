@@ -218,7 +218,7 @@ def calculate_fd_voronoi_local(dv: Optional[int]) -> None:
     individual_speed = {}
     intersecting = {}
     voronoi_results = "voronoi_density_speed.pkl"  # todo should go to datafactory
-    figname = "fundamental_diagram_voronoi.pdf"
+    figname = "AppData/fundamental_diagram_voronoi.pdf"
     st.sidebar.divider()
     msg = st.sidebar.empty()
     calculate = msg.button("Calculate", type="primary", help="Calculate fundamental diagram Voronoi")
@@ -285,7 +285,7 @@ def calculate_fd_voronoi_local(dv: Optional[int]) -> None:
 
 def download_fd_voronoi() -> None:
     """Download preexisting voronoi calculation."""
-    voronoi_results = "voronoi_density_speed.pkl"
+    voronoi_results = "AppData/voronoi_density_speed.pkl"
     url = "https://go.fzj.de/voronoi-data"
     voronoi_density = {}
     voronoi_speed = {}
@@ -535,19 +535,33 @@ def ui_tab3_analysis() -> Tuple[Optional[str], Optional[int], st_column]:
                 st.error(f"Error deleting {file_path}: {e}")
 
     st.sidebar.divider()
-    calculations = st.radio(
-        "**Choose calculation**",
-        [
-            "N-T",
-            "Time series",
-            "FD_classical",
-            "FD_voronoi",
-            "FD_voronoi (local)",
-            "Density profile",
-            "Speed profile",
-        ],
-        horizontal=True,
-    )
+    if utilities.is_running_locally:
+        calculations = st.radio(
+            "**Choose calculation**",
+            [
+                "N-T",
+                "Time series",
+                "FD_classical",
+                "FD_voronoi (load)",
+                "FD_voronoi (calculate)",
+                "Density profile",
+                "Speed profile",
+            ],
+            horizontal=True,
+        )
+    else:
+        calculations = st.radio(
+            "**Choose calculation**",
+            [
+                "N-T",
+                "Time series",
+                "FD_classical",
+                "FD_voronoi (load)",
+                "Density profile",
+                "Speed profile",
+            ],
+            horizontal=True,
+        )
     if calculations == "N-T" or calculations == "Density profile" or calculations == "Speed profile":
         dv = None
     else:
@@ -582,15 +596,16 @@ def prepare_data(selected_file: str) -> Tuple[pedpy.TrajectoryData, List[List[fl
 def run_tab3() -> None:
     """Run the main logic in tab analysis."""
     calculations, dv, c1 = ui_tab3_analysis()
-    selected_file = str(
-        st.selectbox(
-            ":open_file_folder: **Select a file**",
-            st.session_state.files,
-            key="tab3_filename",
+    if not calculations.startswith("FD"):
+        selected_file = str(
+            st.selectbox(
+                ":open_file_folder: **Select a file**",
+                st.session_state.files,
+                key="tab3_filename",
+            )
         )
-    )
-    st.session_state.selected_file = selected_file
-    trajectory_data, walkable_area = prepare_data(selected_file)
+        st.session_state.selected_file = selected_file
+        trajectory_data, walkable_area = prepare_data(selected_file)
 
     if calculations == "N-T":
         calculate_nt(
@@ -609,7 +624,6 @@ def run_tab3() -> None:
             walkable_area,
             selected_file,
         )
-
     if calculations == "Time series":
         calculate_time_series(trajectory_data, dv, walkable_area, selected_file)
     if calculations == "FD_classical":
