@@ -468,7 +468,6 @@ def calculate_density_profile(
                 format="%.2f",
             )
         )
-
     density_profile = pedpy.compute_density_profile(
         data=trajectory_data.data,
         walkable_area=walkable_area,
@@ -476,11 +475,23 @@ def calculate_density_profile(
         density_method=method[chose_method],
         gaussian_width=width,
     )
+    rmax = float(
+        st.sidebar.number_input(
+            "Max density",
+            value=3.0,
+            min_value=2.0,
+            max_value=5.0,
+            step=0.1,
+            placeholder="Max density for colorbar",
+            format="%.2f",
+        )
+    )
     fig, ax = plt.subplots()
     pedpy.plot_profiles(
         walkable_area=walkable_area,
         profiles=density_profile,
         axes=ax,
+        vmax=rmax,
         label="$\\rho$ / 1/$m^2$",
     )
     colorbar_ax = fig.axes[-1]
@@ -547,10 +558,23 @@ def calculate_speed_profile(
         speed_method=pedpy.SpeedMethod.MEAN,
         fill_value=fil_empty,
     )
+    vmax = float(
+        st.sidebar.number_input(
+            "Max speed",
+            value=1.5,
+            min_value=0.5,
+            max_value=3.0,
+            step=0.1,
+            placeholder="Max speed for colorbar",
+            format="%.2f",
+        )
+    )
+
     fig, ax = plt.subplots()
     pedpy.plot_profiles(
         walkable_area=walkable_area,
         profiles=speed_profiles,
+        vmax=vmax,
         axes=ax,
     )
     colorbar_ax = fig.axes[-1]
