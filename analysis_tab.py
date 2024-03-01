@@ -244,10 +244,9 @@ def calculate_fd_classical(dv: Optional[int]) -> None:
 
     figname = "fundamental_diagram_classical.pdf"
     fig = plots.plot_fundamental_diagram_all_mpl(densities, speeds)
-    st.pyplot(fig)
     fig.savefig(figname, bbox_inches="tight", pad_inches=0.1)
+    st.pyplot(fig)
     plots.download_file(figname)
-
     # plots.show_fig(fig, figname=figname, html=True, write=True)
 
 

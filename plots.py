@@ -425,12 +425,12 @@ def plot_fundamental_diagram_all_mpl(
                 "speed"
             ]  # Adjust this if 'speed' DataFrame structure is different
 
-        ax.plot(
+        ax.scatter(
             density["density"],
             y,
             color=colors_const[i % len(colors_const)],
             alpha=0.5,
-            linestyle="",
+            s=10,
             marker=marker_shapes[i % len(marker_shapes)],
             label=filename,
         )
@@ -555,7 +555,6 @@ def plot_trajectories_mpl(
     shift_y: float = 0,
 ) -> None:
     """Plot data and update axis with matplotlib."""
-
     pid = data["id"].unique()
     for ped in pid:
         pedd = data[data["id"] == ped]
