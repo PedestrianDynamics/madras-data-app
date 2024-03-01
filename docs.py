@@ -13,6 +13,8 @@ def flow(directions: List[Direction]) -> None:
         r"""
         The N-t diagram shows how many pedestrian have crossed the measurement line at a specific time.
 
+        PedPy Computes the frame-wise cumulative number of pedestrians passing the line. For more information see [PedPy-documentation](https://pedpy.readthedocs.io/en/latest/api/methods.html#flow_calculator.compute_n_t).
+
         **Measurement lines:**
         """
     )

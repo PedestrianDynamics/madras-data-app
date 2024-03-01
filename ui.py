@@ -1,6 +1,7 @@
 """Init ui and download AppData if not existing."""
 
 from pathlib import Path
+from typing import Any
 
 import streamlit as st
 from streamlit_option_menu import option_menu
@@ -19,7 +20,6 @@ def setup_app() -> None:
             "About": "# Field observation for Madras project.\n This is a tool to analyse and visualise several field data of pedestrian dynamics during the festival of lights in 2022:\n\n :flag-fr: - :flag-de: Germany.",
         },
     )
-    # st.title("Madras project: Festival of light 2022")
 
 
 def init_app_looks() -> None:
@@ -35,7 +35,7 @@ def init_app_looks() -> None:
     st.sidebar.image(f"{ROOT_DIR}/logo.png", use_column_width=True)
 
 
-def init_sidebar():
+def init_sidebar() -> Any:
     """Init sidebar and 4 tabs."""
     return option_menu(
         "Multi-agent modelling of dense crowd dynamics: Predict & Understand",

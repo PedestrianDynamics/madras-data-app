@@ -12,7 +12,6 @@ import numpy as np
 import pandas as pd
 import pedpy
 import streamlit as st
-from plotly.graph_objs import Figure
 
 import datafactory
 import docs
@@ -321,9 +320,9 @@ def calculate_nt(
     selected_file: str,
 ) -> None:
     """Calculate N-T Diagram."""
-    c1, c2 = st.columns(2)
-    distance_to_bounding = c2.number_input(
-        "Distance to border",
+    pl = st.sidebar.empty()
+    distance_to_bounding = st.sidebar.number_input(
+        "Distance to border [m]",
         value=0.5,
         min_value=0.1,
         max_value=20.0,
@@ -339,10 +338,11 @@ def calculate_nt(
 
     names = [direction.info.name for direction in directions]
     colors = [direction.info.color for direction in directions]
-    selected_names = c1.multiselect("Measurement line", options=names, default=names)
-    figname = "NT=" + selected_file.split("/")[-1].split(".txt")[0]
+    selected_names = pl.multiselect("Measurement line", options=names, default=names)
+    filename_without_extension = selected_file.split("/")[-1].replace(".txt", "")
+    figname = f"NT_distance_{distance_to_bounding}_{filename_without_extension}"
     fig1, ax1 = plt.subplots()
-    fig = Figure()
+    nt_stats = {}
     for i, (name, color) in enumerate(zip(selected_names, colors)):
         direction = directions[i]
         nt, _ = pedpy.compute_n_t(traj_data=trajectory_data, measurement_line=direction.line)
@@ -354,23 +354,20 @@ def calculate_nt(
             title="",
             label=f"{name}",
         )
-        trace, _ = plots.plot_x_y(
-            nt["time"],
-            nt["cumulative_pedestrians"],
-            xlabel="time",
-            ylabel="#pedestrians",
-            color=color,
-            title=f"{name}",
-        )
-        fig.add_trace(trace)
+        nt_stats[name] = {
+            "cumulative pedestrians": nt["cumulative_pedestrians"].iloc[-1],
+            # "time / s": nt["time"].iloc[-1],
+        }
+
     ax1.set_xlabel(r"t / s", fontsize=18)
     ax1.set_ylabel(r"# pedestrians", fontsize=18)
     ax1.legend(loc="best")
-    c1, c2 = st.columns(2)
+    c1, c2 = st.columns((0.6, 0.4))
     c1.pyplot(fig1)
+    c2.write("**Total number of pedestrians over the observed period.**")
+    c2.dataframe(pd.DataFrame(nt_stats))
     figname += ".pdf"
     fig1.savefig(figname, bbox_inches="tight", pad_inches=0.1)
-    plots.show_fig(fig, figname=figname, write=False)
     plots.download_file(figname)
 
 
