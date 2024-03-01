@@ -436,8 +436,7 @@ def calculate_density_profile(
     selected_file: str,
 ) -> None:
     """Calculate density profiles based on different methods."""
-    c1, c2, c3 = st.columns((1, 1, 1))
-    chose_method = c3.radio(
+    chose_method = st.sidebar.radio(
         "Method",
         ["Gaussian", "Classic"],
         help="See [PedPy-documentation](https://pedpy.readthedocs.io/en/latest/user_guide.html#density-profiles).",
@@ -447,7 +446,7 @@ def calculate_density_profile(
         "Classic": pedpy.DensityMethod.CLASSIC,
         "Gaussian": pedpy.DensityMethod.GAUSSIAN,
     }
-    grid_size = c1.number_input(
+    grid_size = st.sidebar.number_input(
         "Grid size",
         value=0.4,
         min_value=0.05,
@@ -459,7 +458,7 @@ def calculate_density_profile(
     width = 1.0
     if chose_method == "Gaussian":
         width = float(
-            c2.number_input(
+            st.sidebar.number_input(
                 "Gaussian width",
                 value=0.5,
                 min_value=0.2,
@@ -513,8 +512,7 @@ def calculate_speed_profile(
     selected_file: str,
 ) -> None:
     """Calculate speed profile."""
-    c1, c2 = st.columns(2)
-    grid_size = c1.number_input(
+    grid_size = st.sidebar.number_input(
         "Grid size",
         value=0.4,
         min_value=0.05,
@@ -524,7 +522,7 @@ def calculate_speed_profile(
         format="%.2f",
     )
     fil = str(
-        c2.selectbox(
+        st.sidebar.selectbox(
             "How to fil empty cells?",
             ["Nan", "0"],
         )
