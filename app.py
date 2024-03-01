@@ -10,6 +10,7 @@ import docs
 import map_tab
 import traj_tab
 import ui
+import contacts_tab
 
 # Basic configuration for logging
 logging.basicConfig(
@@ -39,3 +40,6 @@ if __name__ == "__main__":
 
     if selected == "Analysis":
         analysis_tab.run_tab3()
+    
+    if selected == "Contacts":
+        contacts_tab.call_main()
