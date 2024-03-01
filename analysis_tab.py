@@ -562,7 +562,8 @@ def ui_tab3_analysis() -> Tuple[Optional[str], Optional[int], st_column]:
             ],
             horizontal=True,
         )
-    if calculations == "N-T" or calculations == "Density profile" or calculations == "Speed profile":
+    exclude = ["N-T", "Density profile", "Speed profile", "FD_voronoi (load)"]
+    if calculations in exclude:
         dv = None
     else:
         st.sidebar.write("**Speed parameter**")
@@ -628,7 +629,7 @@ def run_tab3() -> None:
         calculate_time_series(trajectory_data, dv, walkable_area, selected_file)
     if calculations == "FD_classical":
         calculate_fd_classical(dv)
-    if calculations == "FD_voronoi (local)":
+    if calculations == "FD_voronoi (calculate)":
         calculate_fd_voronoi_local(dv)
-    if calculations == "FD_voronoi":
+    if calculations == "FD_voronoi (load)":
         download_fd_voronoi()
