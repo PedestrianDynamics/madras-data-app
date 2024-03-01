@@ -1,7 +1,7 @@
 """Analysis data, speed, density, flow, etc."""
 
-import logging
 import glob
+import logging
 import os
 import pickle
 import time
@@ -577,7 +577,7 @@ def calculate_speed_profile(
     plots.download_file(figname)
 
 
-def ui_tab3_analysis() -> Tuple[Optional[str], Optional[int], st_column]:
+def ui_tab3_analysis() -> Tuple[str, Optional[int], st_column]:
     """Prepare ui elements."""
     c0, c1, c2 = st.columns((1, 1, 1))
     if st.sidebar.button(
@@ -595,31 +595,35 @@ def ui_tab3_analysis() -> Tuple[Optional[str], Optional[int], st_column]:
 
     st.sidebar.divider()
     if utilities.is_running_locally():
-        calculations = st.radio(
-            "**Choose calculation**",
-            [
-                "N-T",
-                "Time series",
-                "FD_classical",
-                "FD_voronoi (load)",
-                "FD_voronoi (calculate)",
-                "Density profile",
-                "Speed profile",
-            ],
-            horizontal=True,
+        calculations = str(
+            st.radio(
+                "**Choose calculation**",
+                [
+                    "N-T",
+                    "Time series",
+                    "FD_classical",
+                    "FD_voronoi (load)",
+                    "FD_voronoi (calculate)",
+                    "Density profile",
+                    "Speed profile",
+                ],
+                horizontal=True,
+            )
         )
     else:
-        calculations = st.radio(
-            "**Choose calculation**",
-            [
-                "N-T",
-                "Time series",
-                "FD_classical",
-                "FD_voronoi (load)",
-                "Density profile",
-                "Speed profile",
-            ],
-            horizontal=True,
+        calculations = str(
+            st.radio(
+                "**Choose calculation**",
+                [
+                    "N-T",
+                    "Time series",
+                    "FD_classical",
+                    "FD_voronoi (load)",
+                    "Density profile",
+                    "Speed profile",
+                ],
+                horizontal=True,
+            )
         )
     exclude = ["N-T", "Density profile", "Speed profile", "FD_voronoi (load)"]
     if calculations in exclude:

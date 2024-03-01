@@ -11,7 +11,9 @@ import plots
 import utilities
 
 
-def drawing_canvas(trajectory_data: pedpy.TrajectoryData, walkable_area: pedpy.WalkableArea) -> Tuple[Any, float, float, float]:
+def drawing_canvas(
+    trajectory_data: pedpy.TrajectoryData, walkable_area: pedpy.WalkableArea
+) -> Tuple[Any, float, float, float]:
     """Draw trajectories as img and prepare canvas."""
     drawing_mode = st.sidebar.radio(
         "**Measurement:**",
@@ -27,14 +29,16 @@ def drawing_canvas(trajectory_data: pedpy.TrajectoryData, walkable_area: pedpy.W
 
     stroke_width = st.sidebar.slider("**Stroke width:**", 1, 25, 3)
     if st.session_state.bg_img is None:
-        logging("START new canvas")
+        logging.info("START new canvas")
         data = trajectory_data.data
         min_x = trajectory_data.data["x"].min()
         max_x = trajectory_data.data["x"].max()
         min_y = trajectory_data.data["y"].min()
         max_y = trajectory_data.data["y"].max()
 
-        bg_img, img_width, img_height, dpi, scale = plots.bg_img(data, min_x, max_x, min_y, max_y)
+        bg_img, img_width, img_height, dpi, scale = plots.bg_img(
+            data, min_x, max_x, min_y, max_y
+        )
         st.session_state.scale = scale
         st.session_state.dpi = dpi
         st.session_state.img_width = img_width
@@ -84,7 +88,9 @@ def get_measurement_area(
         boundaries,
     )
     if not rects:
-        measurement_areas.append(utilities.setup_measurement_area(min_x, max_x, min_y, max_y))
+        measurement_areas.append(
+            utilities.setup_measurement_area(min_x, max_x, min_y, max_y)
+        )
         return measurement_areas
 
     for ir, _ in enumerate(rects):
@@ -92,6 +98,8 @@ def get_measurement_area(
         to_x = rects[ir]["x"][1]
         from_y = rects[ir]["y"][3]
         to_y = rects[ir]["y"][0]
-        measurement_areas.append(utilities.setup_measurement_area(from_x, to_x, from_y, to_y))
+        measurement_areas.append(
+            utilities.setup_measurement_area(from_x, to_x, from_y, to_y)
+        )
 
     return measurement_areas

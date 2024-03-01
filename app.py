@@ -1,5 +1,7 @@
 """Main entry point to the data visualisator for MADRAS project."""
 
+import logging
+
 import streamlit as st
 
 import analysis_tab
@@ -8,8 +10,6 @@ import docs
 import map_tab
 import traj_tab
 import ui
-from utilities import is_running_locally
-import logging
 
 # Basic configuration for logging
 logging.basicConfig(

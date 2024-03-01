@@ -1,7 +1,8 @@
 """Show general results, including ploting, animation, ..."""
 
-import time
 import logging
+import time
+
 import pedpy
 import streamlit as st
 from shapely import Polygon
@@ -41,7 +42,9 @@ def run_tab2(selected_file: str, msg: DeltaGenerator) -> None:
         frame_step=5,
         speed_calculation=pedpy.SpeedCalculation.BORDER_SINGLE_SIDED,
     )
-    data_with_speed = data_with_speed.merge(trajectory_data.data, on=["id", "frame"], how="left")
+    data_with_speed = data_with_speed.merge(
+        trajectory_data.data, on=["id", "frame"], how="left"
+    )
 
     ids = trajectory_data.data["id"].unique()
     start_time = time.time()
@@ -111,11 +114,17 @@ def run_tab2(selected_file: str, msg: DeltaGenerator) -> None:
             max_value=5.0,
         )
 
-        fig2 = plots.plot_trajectories_figure_mpl(trajectory_data, walkable_area, with_colors=True, alpha=alpha, lw=lw)
+        fig2 = plots.plot_trajectories_figure_mpl(
+            trajectory_data, walkable_area, with_colors=True, alpha=alpha, lw=lw
+        )
         # pfig, ax = plt.subplots()
         # pedpy.plot_trajectories(traj=trajectory_data, walkable_area=walkable_area, axes=ax)
         c1.pyplot(fig2)
-        figname = "trajectories_" + selected_file.split("/")[-1].split(".txt")[0] + "_colors.pdf"
+        figname = (
+            "trajectories_"
+            + selected_file.split("/")[-1].split(".txt")[0]
+            + "_colors.pdf"
+        )
         fig2.savefig(figname, bbox_inches="tight", pad_inches=0.1)
         plots.download_file(figname, c1, label="color")
         # fig3z = plots.plot_trajectories_figure_mpl(trajectory_data, walkable_area, with_colors=False)
@@ -126,7 +135,7 @@ def run_tab2(selected_file: str, msg: DeltaGenerator) -> None:
 
         end_time = time.time()
         elapsed_time = end_time - start_time
-        logging(f"Time taken to plot trajectories: {elapsed_time:.2f} seconds")
+        logging.info(f"Time taken to plot trajectories: {elapsed_time:.2f} seconds")
 
     if do_animate:
         #        pr = cProfile.Profile()
