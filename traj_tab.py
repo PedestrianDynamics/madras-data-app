@@ -1,13 +1,14 @@
-""" Show general results, including ploting, animation, ..."""
+"""Show general results, including ploting, animation, ..."""
 
 import time
-
+import logging
 import pedpy
 import streamlit as st
 from shapely import Polygon
 from streamlit.delta_generator import DeltaGenerator
 
 import datafactory
+
 # import docs
 import plots
 from anim import animate
@@ -125,7 +126,7 @@ def run_tab2(selected_file: str, msg: DeltaGenerator) -> None:
 
         end_time = time.time()
         elapsed_time = end_time - start_time
-        print(f"Time taken to plot trajectories: {elapsed_time:.2f} seconds")
+        logging(f"Time taken to plot trajectories: {elapsed_time:.2f} seconds")
 
     if do_animate:
         #        pr = cProfile.Profile()

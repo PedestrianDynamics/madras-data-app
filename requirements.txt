@@ -7,5 +7,4 @@ plotly
 kaleido
 matplotlib
 streamlit_drawable_canvas==0.8.0
-lovely-logger
 streamlit-option-menu

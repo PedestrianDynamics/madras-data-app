@@ -8,7 +8,15 @@ import docs
 import map_tab
 import traj_tab
 import ui
+from utilities import is_running_locally
+import logging
 
+# Basic configuration for logging
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s - %(levelname)s - %(message)s",
+    datefmt="%Y-%m-%d %H:%M:%S",
+)
 if __name__ == "__main__":
     ui.setup_app()
     selected = ui.init_sidebar()
@@ -23,7 +31,9 @@ if __name__ == "__main__":
 
     if selected == "Trajectories":
         msg = st.empty()
-        filename = str(st.selectbox(":open_file_folder: **Select a file**", st.session_state.files))
+        filename = str(
+            st.selectbox(":open_file_folder: **Select a file**", st.session_state.files)
+        )
         st.session_state.selected_file = filename
         traj_tab.run_tab2(filename, msg)
 

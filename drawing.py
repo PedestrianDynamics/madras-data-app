@@ -1,5 +1,6 @@
 """Collection of drawing functionalities."""
 
+import logging
 from typing import Any, List, Tuple
 
 import pedpy
@@ -26,7 +27,7 @@ def drawing_canvas(trajectory_data: pedpy.TrajectoryData, walkable_area: pedpy.W
 
     stroke_width = st.sidebar.slider("**Stroke width:**", 1, 25, 3)
     if st.session_state.bg_img is None:
-        print("START new canvas")
+        logging("START new canvas")
         data = trajectory_data.data
         min_x = trajectory_data.data["x"].min()
         max_x = trajectory_data.data["x"].max()
