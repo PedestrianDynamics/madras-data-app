@@ -13,6 +13,7 @@ from matplotlib import colormaps
 from plotly.graph_objects import Figure
 from streamlit_folium import st_folium
 
+from plots import download_file
 
 def load_data(
     gps_path: str, contacts_path: str
@@ -109,7 +110,7 @@ def add_contact_markers(
         ).add_to(map_object)
 
 
-def plot_histogram(df: pd.DataFrame) -> Figure:
+def plot_histogram(df: pd.DataFrame, bins: int) -> Figure:
     """
     Creates an interactive bar chart using Plotly to visualize the total number of collisions.
 
@@ -119,15 +120,18 @@ def plot_histogram(df: pd.DataFrame) -> Figure:
     Returns:
         Figure: The Plotly figure object for the histogram.
     """
-    # Slider for selecting the number of bins
-    bins = st.slider(
-        "Select number of bins:", min_value=5, max_value=11, value=10, step=3
-    )
     fig = px.histogram(
-        df["Total-number-of-collisions"], x="Total-number-of-collisions", nbins=bins
+        df,
+        x="Total-number-of-collisions",
+        nbins=bins,
+        marginal="rug",
+        hover_data=df.columns,
+        labels={"waiting": "Waiting time"},
+        text_auto=True,
+        title="<b>Histogram of the total number of collisions</b>",
     )
-    print(df["Total-number-of-collisions"])
     fig.update_layout(
+        bargap=0.2,
         xaxis_title="Number of contacts along the path", yaxis_title="Number of people"
     )  # Set the range for the log scale
 
@@ -184,10 +188,16 @@ def main() -> None:
 
     # Display the map in the Streamlit app
     st_folium(my_map, width=825, height=700)
-
-    st.title("Histogram of the total number of collisions")
-    fig = plot_histogram(contacts_data)
-    st.plotly_chart(fig, use_container_width=True)
+    # Slider for selecting the number of bins
+    plt = st.empty()
+    bins = int(st.slider(
+        "Select number of bins:", min_value=5, max_value=11, value=10, step=3
+    ))
+    fig = plot_histogram(contacts_data, bins)
+    plt.plotly_chart(fig, use_container_width=True)
+    figname = f"histogram_{bins}.pdf"
+    fig.write_image(figname)
+    download_file(figname)
 
 
 def call_main() -> None:
