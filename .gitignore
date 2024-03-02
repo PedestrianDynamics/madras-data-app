@@ -2,10 +2,9 @@
 *~undo-tree~
 # Byte-compiled / optimized / DLL files
 __pycache__/
-*.py[cod]
-*$py.class
 .venv
 AppData
 *.pdf
 *.pkl
 *.sh
+*.zip

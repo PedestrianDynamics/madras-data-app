@@ -1,7 +1,7 @@
 """Main entry point to the data visualisator for MADRAS project."""
 
 import logging
-
+from log_config import setup_logging
 import streamlit as st
 
 import analysis_tab
@@ -12,12 +12,7 @@ import map_tab
 import traj_tab
 import ui
 
-# Basic configuration for logging
-logging.basicConfig(
-    level=logging.INFO,
-    format="%(asctime)s - %(levelname)s - %(message)s",
-    datefmt="%Y-%m-%d %H:%M:%S",
-)
+setup_logging()
 if __name__ == "__main__":
     ui.setup_app()
     selected = ui.init_sidebar()
