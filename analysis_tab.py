@@ -419,6 +419,7 @@ def calculate_nt(
 
     ax1.set_xlabel(r"t / s", fontsize=18)
     ax1.set_ylabel(r"# pedestrians", fontsize=18)
+    ax1.tick_params(axis="both", which="major", labelsize=14)  # For major ticks
     ax1.legend(loc="best")
     c1, c2 = st.columns((0.6, 0.4))
     c1.pyplot(fig1)
