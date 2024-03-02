@@ -5,12 +5,12 @@ This module calls other modules to calculate density, speed and flow profiles as
 
 import glob
 
-from profile_config_data import Config
 from pedpy import WalkableArea
 
 import calculate_profiles
 import create_profile_data
 import ploting_profiles
+from profile_config_data import Config
 
 
 def run_all() -> None:
@@ -24,9 +24,9 @@ def run_all() -> None:
         walkable_area=WalkableArea(area),
         profile_data_file="AppData/profile_data.pkl",
         result_file="AppData/density_speed_profiles.pkl",
-        rmax=3,
+        rmax=3.0,
         vmax=1.2,
-        jmax=2,
+        jmax=2.0,
     )
 
     # Run the modules in sequence

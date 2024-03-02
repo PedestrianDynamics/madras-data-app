@@ -10,15 +10,11 @@ import numpy as np
 import numpy.typing as npt
 import pandas as pd
 import pedpy as pp
-from tqdm import tqdm
 from joblib import Parallel, delayed
-from pedpy import (
-    DensityMethod,
-    SpeedMethod,
-    compute_grid_cell_polygon_intersection_area,
-    compute_speed_profile,
-    get_grid_cells,
-)
+from pedpy import (DensityMethod, SpeedMethod,
+                   compute_grid_cell_polygon_intersection_area,
+                   compute_speed_profile, get_grid_cells)
+from tqdm import tqdm
 
 from log_config import setup_logging
 from profile_config_data import Config
@@ -90,7 +86,7 @@ def calculate(
     logging.info(f"Results in {result_file}")
 
 
-def main(config: Config):
+def main(config: Config) -> None:
     """Contains main logic for calculation of profiles."""
     setup_logging()
     grid_size = config.grid_size

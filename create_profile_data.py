@@ -7,9 +7,9 @@ from typing import Tuple
 
 import pandas as pd
 import pedpy as pp
-from tqdm import tqdm
 from joblib import Parallel, delayed
 from pedpy.column_identifier import FRAME_COL, ID_COL
+from tqdm import tqdm
 
 from log_config import setup_logging
 from profile_config_data import Config

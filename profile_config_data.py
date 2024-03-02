@@ -15,6 +15,6 @@ class Config:
     fps: int
     walkable_area: pedpy.WalkableArea
     grid_size: float
-    rmax: int
-    vmax: int
-    jmax: int
+    rmax: float
+    vmax: float
+    jmax: float
