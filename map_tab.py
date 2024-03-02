@@ -7,7 +7,7 @@ from typing import Dict, List, Tuple, cast
 import folium
 import streamlit as st
 from streamlit_folium import st_folium
-
+from folium.features import CustomIcon
 
 @dataclass
 class Camera:
@@ -17,6 +17,7 @@ class Camera:
     url: str
     name: str
     field: List[List[float]]
+    logo: str
 
 
 tile_layers = {
@@ -61,7 +62,8 @@ def load_cameras_from_json(file_path: str) -> Dict[str, Camera]:
             url = info["url"]
             name = info["name"]
             field = info["field"]
-            cameras[key] = Camera(location=location, url=url, name=name, field=field)
+            logo = info["logo"]
+            cameras[key] = Camera(location=location, url=url, name=name, field=field, logo=logo)
 
         except KeyError as e:
             # Handle missing keys in the data
@@ -151,9 +153,10 @@ def create_map(
         polygon.add_to(layer)
 
     for (key, camera), layer in zip(cameras.items(), camera_layers):
+        icon = CustomIcon(camera.logo, icon_size=(110, 110) )
         coords = camera.location
         tooltip = f"{key}: {camera.name}"
-        folium.Marker(location=coords, tooltip=tooltip).add_to(layer)
+        folium.Marker(location=coords, tooltip=tooltip,icon=icon).add_to(layer)
         vision_fields[key].add_to(layer)
 
     # folium.FitOverlays().add_to(m)
