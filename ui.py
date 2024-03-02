@@ -42,7 +42,13 @@ def init_sidebar() -> Any:
     return option_menu(
         "Multi-agent modelling of dense crowd dynamics: Predict & Understand",
         ["About", "Map", "Trajectories", "Analysis", "Contacts"],
-        icons=["info-square", "pin-map", "people", "bar-chart-line", "exclamation-triangle"],
+        icons=[
+            "info-square",
+            "pin-map",
+            "people",
+            "bar-chart-line",
+            "exclamation-triangle",
+        ],
         menu_icon="cast",
         default_index=0,
         orientation="horizontal",

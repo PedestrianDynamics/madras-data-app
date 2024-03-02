@@ -9,7 +9,7 @@ from pathlib import Path
 from typing import List, Union
 
 import pedpy
-import requests  # type:ignore
+import requests  # type: ignore
 import streamlit as st
 
 
@@ -24,6 +24,8 @@ class DirectionInfo:
 
 @dataclass
 class Direction:
+    """Data for measurement line."""
+
     info: DirectionInfo
     line: pedpy.MeasurementLine
 
