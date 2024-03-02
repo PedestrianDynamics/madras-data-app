@@ -1,6 +1,5 @@
 """Plot profiles loaded ffrom precalcalculated file."""
 
-import glob
 import logging
 import pickle
 import sys
