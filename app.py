@@ -1,7 +1,5 @@
 """Main entry point to the data visualisator for MADRAS project."""
 
-import logging
-from log_config import setup_logging
 import streamlit as st
 
 import analysis_tab
@@ -11,6 +9,7 @@ import docs
 import map_tab
 import traj_tab
 import ui
+from log_config import setup_logging
 
 setup_logging()
 if __name__ == "__main__":
