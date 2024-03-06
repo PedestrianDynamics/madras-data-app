@@ -194,10 +194,10 @@ def main(cameras: Dict[str, Camera], selected_layer: str) -> None:
         placeholder.error("No camera selected.")
 
 
-def call_main() -> None:
+def run_tab_map() -> None:
     path = Path(__file__).parent.parent.parent.absolute()
     json_path = path / "data" / "assets" / "cameras.json"
-    cameras = load_cameras_from_json(json_path)
+    cameras = load_cameras_from_json(str(json_path))
     selected_layer = st.selectbox("Choose a Map Style:", list(tile_layers.keys()))
     selected_layer = str(selected_layer)
     st.markdown(

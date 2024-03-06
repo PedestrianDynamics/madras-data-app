@@ -69,7 +69,6 @@ def about() -> None:
     img_path_1 = ROOT_DIR / "data" / "images" / "fcaym-FdL22.png"
     img_path_2 = ROOT_DIR / "data" / "images" / "fbppj-FestivalOfLights2-min.png"
     text = """
-    
 
     ## Overview
     The [MADRAS-project](https://www.madras-crowds.eu/) is a collaborative cooperation funded by [ANR](https://anr.fr) :flag-fr: and [DFG](htpps://dfg.de) :flag-de:, aims to develop innovative agent-based models to predict and understand dense crowd dynamics and to apply these models in a large-scale case study.

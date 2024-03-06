@@ -182,6 +182,5 @@ def main() -> None:
     download_file(figname)
 
 
-def call_main() -> None:
-    st.info("test")
+def run_tab_contact() -> None:
     main()

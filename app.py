@@ -6,8 +6,8 @@ from src.classes.datafactory import init_session_state
 from src.docs import docs
 from src.helpers.log_config import setup_logging
 from src.tabs.analysis_tab import run_tab3
-from src.tabs.contacts_tab import call_main
-from src.tabs.map_tab import call_main
+from src.tabs.contacts_tab import run_tab_contact
+from src.tabs.map_tab import run_tab_map
 from src.tabs.traj_tab import run_tab2
 from src.ui.ui import init_app_looks, init_sidebar, setup_app
 
@@ -22,7 +22,7 @@ if __name__ == "__main__":
         docs.about()
 
     if selected_tab == "Map":
-        call_main()
+        run_tab_map()
 
     if selected_tab == "Trajectories":
         msg = st.empty()
@@ -35,4 +35,4 @@ if __name__ == "__main__":
         run_tab3()
 
     if selected_tab == "Contacts":
-        call_main()
+        run_tab_contact()
