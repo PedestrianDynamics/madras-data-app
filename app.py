@@ -2,38 +2,37 @@
 
 import streamlit as st
 
-import analysis_tab
-import contacts_tab
-import datafactory
-import docs
-import map_tab
-import traj_tab
-import ui
-from log_config import setup_logging
+from src.classes.datafactory import init_session_state
+from src.docs import docs
+from src.helpers.log_config import setup_logging
+from src.tabs.analysis_tab import run_tab3
+from src.tabs.contacts_tab import run_tab_contact
+from src.tabs.map_tab import run_tab_map
+from src.tabs.traj_tab import run_tab2
+from src.ui.ui import init_app_looks, init_sidebar, setup_app
 
 setup_logging()
 if __name__ == "__main__":
-    ui.setup_app()
-    selected = ui.init_sidebar()
-    ui.init_app_looks()
-    datafactory.init_session_state()
+    setup_app()
+    selected_tab = init_sidebar()
+    init_app_looks()
+    init_session_state()
 
-    if selected == "About":
+    if selected_tab == "About":
         docs.about()
 
-    if selected == "Map":
-        map_tab.call_main()
+    if selected_tab == "Map":
+        run_tab_map()
 
-    if selected == "Trajectories":
+    if selected_tab == "Trajectories":
         msg = st.empty()
-        filename = str(
-            st.selectbox(":open_file_folder: **Select a file**", st.session_state.files)
-        )
-        st.session_state.selected_file = filename
-        traj_tab.run_tab2(filename, msg)
+        file_name_to_path = {path.split('/')[-1]: path for path in st.session_state.files}
+        filename = str(st.selectbox(":open_file_folder: **Select a file**", file_name_to_path))
+        st.session_state.selected_file = file_name_to_path[filename]
+        run_tab2(file_name_to_path[filename], msg)
 
-    if selected == "Analysis":
-        analysis_tab.run_tab3()
+    if selected_tab == "Analysis":
+        run_tab3()
 
-    if selected == "Contacts":
-        contacts_tab.call_main()
+    if selected_tab == "Contacts":
+        run_tab_contact()
