@@ -8,11 +8,10 @@ import streamlit as st
 from shapely import Polygon
 from streamlit.delta_generator import DeltaGenerator
 
-import datafactory
-# import docs
-import plots
-from anim import animate
-
+from ..classes.datafactory import load_file
+from ..plotting.anim import animate
+from ..plotting.plots import plot_trajectories, plot_trajectories_figure_mpl
+from ..plotting.plots import download_file
 # import cProfile
 # import pstats
 # import io
@@ -24,7 +23,7 @@ def run_tab2(selected_file: str, msg: DeltaGenerator) -> None:
     # todo
     msg.write("")
     if selected_file != st.session_state.file_changed:
-        trajectory_data = datafactory.load_file(selected_file)
+        trajectory_data = load_file(selected_file)
         st.session_state.trajectory_data = trajectory_data
         st.session_state.file_changed = selected_file
 
@@ -41,9 +40,7 @@ def run_tab2(selected_file: str, msg: DeltaGenerator) -> None:
         frame_step=5,
         speed_calculation=pedpy.SpeedCalculation.BORDER_SINGLE_SIDED,
     )
-    data_with_speed = data_with_speed.merge(
-        trajectory_data.data, on=["id", "frame"], how="left"
-    )
+    data_with_speed = data_with_speed.merge(trajectory_data.data, on=["id", "frame"], how="left")
 
     ids = trajectory_data.data["id"].unique()
     start_time = time.time()
@@ -89,7 +86,7 @@ def run_tab2(selected_file: str, msg: DeltaGenerator) -> None:
                 help="Visualize pedestrians moving in a direction.",
             )
         )
-        fig = plots.plot_trajectories(
+        fig = plot_trajectories(
             trajectory_data,
             sample_frame,
             walkable_area,
@@ -112,20 +109,14 @@ def run_tab2(selected_file: str, msg: DeltaGenerator) -> None:
             min_value=0.01,
             max_value=5.0,
         )
-
-        fig2 = plots.plot_trajectories_figure_mpl(
-            trajectory_data, walkable_area, with_colors=True, alpha=alpha, lw=lw
-        )
+        # TODO: remove
+        fig2 = plot_trajectories_figure_mpl(trajectory_data, walkable_area, with_colors=True, alpha=alpha, lw=lw)
         # pfig, ax = plt.subplots()
         # pedpy.plot_trajectories(traj=trajectory_data, walkable_area=walkable_area, axes=ax)
         c1.pyplot(fig2)
-        figname = (
-            "trajectories_"
-            + selected_file.split("/")[-1].split(".txt")[0]
-            + "_colors.pdf"
-        )
+        figname = "trajectories_" + selected_file.split("/")[-1].split(".txt")[0] + "_colors.pdf"
         fig2.savefig(figname, bbox_inches="tight", pad_inches=0.1)
-        plots.download_file(figname, c1, label="color")
+        download_file(figname, c1, label="color")
         # fig3z = plots.plot_trajectories_figure_mpl(trajectory_data, walkable_area, with_colors=False)
         # c2.pyplot(fig3)
         # figname = "trajectories_" + selected_file.split("/")[-1].split(".txt")[0] + "_gray.pdf"

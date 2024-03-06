@@ -10,7 +10,7 @@ import requests  # type: ignore
 import streamlit as st
 from shapely import Polygon
 
-from datafactory import Direction, DirectionInfo
+from ..classes.datafactory import Direction, DirectionInfo
 
 
 def is_running_locally() -> bool:
@@ -61,9 +61,7 @@ def get_id_by_name(direction_name: str) -> int:
     return -1
 
 
-def get_measurement_lines(
-    trajectory_data: pd.DataFrame, distance_to_bounding: float
-) -> List[Direction]:
+def get_measurement_lines(trajectory_data: pd.DataFrame, distance_to_bounding: float) -> List[Direction]:
     """Create 4 measurement lines inside the walkable_area."""
     min_x = trajectory_data.data["x"].min() + distance_to_bounding
     max_x = trajectory_data.data["x"].max() - distance_to_bounding
@@ -72,15 +70,11 @@ def get_measurement_lines(
 
     return [
         Direction(
-            info=DirectionInfo(
-                id=get_id_by_name("East"), name="East", color=get_color_by_name("East")
-            ),
+            info=DirectionInfo(id=get_id_by_name("East"), name="East", color=get_color_by_name("East")),
             line=pedpy.MeasurementLine([[min_x, min_y], [min_x, max_y]]),
         ),
         Direction(
-            info=DirectionInfo(
-                id=get_id_by_name("West"), name="West", color=get_color_by_name("West")
-            ),
+            info=DirectionInfo(id=get_id_by_name("West"), name="West", color=get_color_by_name("West")),
             line=pedpy.MeasurementLine([[max_x, min_y], [max_x, max_y]]),
         ),
         Direction(
@@ -118,9 +112,7 @@ def setup_walkable_area(trajectory_data: pd.DataFrame) -> pedpy.WalkableArea:
     return pedpy.WalkableArea(rectangle_polygon)
 
 
-def setup_measurement_area(
-    min_x: float, max_x: float, min_y: float, max_y: float
-) -> pedpy.MeasurementArea:
+def setup_measurement_area(min_x: float, max_x: float, min_y: float, max_y: float) -> pedpy.MeasurementArea:
     """Create measurement_area from trajectories."""
     rectangle_coords = [
         [min_x, min_y],

@@ -1,4 +1,4 @@
-"""Init ui and download AppData if not existing."""
+"""Init ui."""
 
 from pathlib import Path
 from typing import Any

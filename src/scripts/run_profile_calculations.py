@@ -4,7 +4,7 @@ This module calls other modules to calculate density, speed and flow profiles as
 """
 
 import glob
-
+from pathlib import Path
 from pedpy import WalkableArea
 
 import calculate_profiles
@@ -15,15 +15,18 @@ from profile_config_data import Config
 
 def run_all() -> None:
     """Initialize the configuration."""
+    path = Path(__file__)
+    data_directory = path.parent.parent.parent.absolute() / "data" / "processed"
+    trajectories_directory = path.parent.parent.parent.absolute() / "data" / "trajectories"
     area = [[-6, 0], [5, 0], [5, 7], [-6, 7]]
     config = Config(
-        files=sorted(glob.glob("AppData/*.txt")),
+        files=sorted(glob.glob(f"{str(trajectories_directory)}/*.txt")),
         grid_size=0.4,
         speed_frame_rate=10,
         fps=30,
         walkable_area=WalkableArea(area),
-        profile_data_file="AppData/profile_data.pkl",
-        result_file="AppData/density_speed_profiles.pkl",
+        profile_data_file=f"{str(data_directory)}/profile_data.pkl",
+        result_file=f"{str(data_directory)}/density_speed_profiles.pkl",
         rmax=3.0,
         vmax=1.2,
         jmax=2.0,
