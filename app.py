@@ -7,10 +7,9 @@ from src.classes.datafactory import init_session_state
 from src.helpers.log_config import setup_logging 
 from src.ui.ui import setup_app, init_sidebar, setup_app, init_app_looks
 
-#from src.tabs import contacts_tab, map_tab, analysis_tab, traj_tab
 from src.tabs.traj_tab import run_tab2
 from src.tabs.map_tab import call_main
-
+from src.tabs.analysis_tab import run_tab3
 setup_logging()
 if __name__ == "__main__":
     setup_app()
@@ -31,8 +30,8 @@ if __name__ == "__main__":
         st.session_state.selected_file = file_name_to_path[filename]
         run_tab2(file_name_to_path[filename], msg)
 
-    # if selected_tab == "Analysis":
-    #     analysis_tab.run_tab3()
+    if selected_tab == "Analysis":
+        run_tab3()
 
     # if selected_tab == "Contacts":
     #     contacts_tab.call_main()

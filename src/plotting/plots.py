@@ -539,7 +539,7 @@ def plot_trajectories_mpl(
         )
 
 
-def bg_img(data: pd.DataFrame, geominX: float, geomaxX: float, geominY: float, geomaxY: float) -> Tuple[Image, float, float, float, float]:
+def draw_bg_img(data: pd.DataFrame, geominX: float, geomaxX: float, geominY: float, geomaxY: float) -> Tuple[Image, float, float, float, float]:
     """Plot trajectories and create a background image."""
     logging.info("enter bg_img")
     width, height, scale = get_scaled_dimensions(geominX, geomaxX, geominY, geomaxY)
