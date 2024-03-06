@@ -10,6 +10,7 @@ from src.ui.ui import setup_app, init_sidebar, setup_app, init_app_looks
 from src.tabs.traj_tab import run_tab2
 from src.tabs.map_tab import call_main
 from src.tabs.analysis_tab import run_tab3
+from src.tabs.contacts_tab import call_main
 setup_logging()
 if __name__ == "__main__":
     setup_app()
@@ -33,5 +34,5 @@ if __name__ == "__main__":
     if selected_tab == "Analysis":
         run_tab3()
 
-    # if selected_tab == "Contacts":
-    #     contacts_tab.call_main()
+    if selected_tab == "Contacts":
+        call_main()
