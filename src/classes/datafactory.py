@@ -1,7 +1,6 @@
 """Unsorted datastructure for the app."""
 
 import glob
-import logging
 import os
 import shutil
 import zipfile
@@ -35,24 +34,31 @@ class Direction:
 class DataConfig:
     """Datastructure for the app."""
 
-    directory: Path
+    directory_trajectories: Path
+    directory_processed: Path
     files: List[str] = field(default_factory=list)
     # data: Dict[str, List] = field(default_factory=lambda: defaultdict(list))
     url: str = "https://go.fzj.de/madras-data"
 
     def __post_init__(self) -> None:
         """Initialize the DataConfig instance by retrieving files for each country."""
-        self.directory.parent.mkdir(parents=True, exist_ok=True)
+        self.directory_trajectories.parent.mkdir(parents=True, exist_ok=True)
+        self.directory_processed.mkdir(parents=True, exist_ok=True)
         self.retrieve_files()
 
     def retrieve_files(self) -> None:
         """Retrieve the files for each country specified in the countries list."""
-        if not self.directory.exists():
-            st.warning(f"{self.directory} does not exist yet!")
+        if not self.directory_trajectories.exists():
+            st.warning(f"{self.directory_trajectories} does not exist yet!")
+            zip_file = "data.zip"
             with st.status("Downloading ...", expanded=True):
-                download_and_unzip_files(self.url, "data.zip", self.directory)
+                download_and_unzip_files(self.url, zip_file, self.directory_trajectories)
 
-        self.files = glob.glob(f"{self.directory}/*.txt")
+            # Check if the file exists and then remove it
+            if Path(zip_file).exists():
+                Path(zip_file).unlink()
+
+        self.files = glob.glob(f"{self.directory_trajectories}/*.txt")
 
 
 def increment_frame_start(page_size: int) -> None:
@@ -91,8 +97,8 @@ def init_state_bg_image() -> None:
 def init_session_state() -> None:
     """Init session_state throughout the app."""
     path = Path(__file__)
-    trajectories_directory = path.parent.parent.parent.absolute() / "data" / "trajectories"
-    logging.info(f"{trajectories_directory = }")
+    directory_trajectories = path.parent.parent.parent.absolute() / "data" / "trajectories"
+    directory_processed = path.parent.parent.parent.absolute() / "data" / "processed"
     init_state_bg_image()
     # Initialize a list of DirectionInfo objects using the provided dictionaries
     if "direction_infos" not in st.session_state:
@@ -103,6 +109,8 @@ def init_session_state() -> None:
             DirectionInfo(id=4, name="West", color="gray"),
         ]
 
+    if "directory_processed" not in st.session_state:
+        st.session_state.directory_processed = directory_processed
     if "start_frame" not in st.session_state:
         st.session_state.start_frame = 0
 
@@ -118,7 +126,7 @@ def init_session_state() -> None:
     if not hasattr(st.session_state, "trajectory_data"):
         st.session_state.trajectoryData = pedpy.TrajectoryData
 
-    dataconfig = DataConfig(trajectories_directory)
+    dataconfig = DataConfig(directory_trajectories, directory_processed)
     st.session_state.files = dataconfig.files
 
 

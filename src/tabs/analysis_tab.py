@@ -197,8 +197,8 @@ def calculate_fd_classical(dv: Optional[int]) -> None:
         progress_status = st.empty()
         for i, filename in enumerate(st.session_state.files):
             basename = filename.split("/")[-1].split(".txt")[0]
-            precalculated_density = f"AppData/density_{basename}.pkl"
-            precalculated_speed = f"AppData/speed_{basename}_{dv}.pkl"
+            precalculated_density = st.session_state.directory_processed / f"density_{basename}.pkl"
+            precalculated_speed = st.session_state.directory_processed / f"speed_{basename}_{dv}.pkl"
             speeds[basename] = calculate_or_load_mean_speed(precalculated_speed, filename, dv)
             densities[basename] = calculate_or_load_classical_density(precalculated_density, filename)
             progress = int(100 * (i + 1) / len(st.session_state.files))
@@ -221,7 +221,7 @@ def calculate_fd_voronoi_local(dv: Optional[int]) -> None:
     individual_speed = {}
     intersecting = {}
     voronoi_results = "voronoi_density_speed.pkl"  # todo should go to datafactory
-    figname = "AppData/fundamental_diagram_voronoi.pdf"
+    figname = st.session_state.directory_processed / "fundamental_diagram_voronoi.pdf"
     st.sidebar.divider()
     msg = st.sidebar.empty()
     calculate = msg.button("Calculate", type="primary", help="Calculate fundamental diagram Voronoi")
@@ -243,10 +243,10 @@ def calculate_fd_voronoi_local(dv: Optional[int]) -> None:
             for i, filename in enumerate(st.session_state.files):
                 basename = filename.split("/")[-1].split(".txt")[0]
                 # saved files ============
-                precalculated_voronoi_polygons = f"AppData/voronoi_polygons_{basename}.pkl"
-                precalculated_speed = f"AppData/speed_{basename}_{dv}.pkl"
-                precalculated_voronoi_speed = f"AppData/voronoi_speed_{basename}.pkl"
-                precalculated_voronoi_density = f"AppData/voronoi_density_{basename}.pkl"
+                precalculated_voronoi_polygons = st.session_state.directory_processed / f"voronoi_polygons_{basename}.pkl"
+                precalculated_speed = st.session_state.directory_processed / f"speed_{basename}_{dv}.pkl"
+                precalculated_voronoi_speed = st.session_state.directory_processed / f"voronoi_speed_{basename}.pkl"
+                precalculated_voronoi_density = st.session_state.directory_processed / f"voronoi_density_{basename}.pkl"
                 # saved files ============
                 voronoi_polygons[basename] = calculate_or_load_voronoi_diagrams(precalculated_voronoi_polygons, filename)
 
@@ -288,7 +288,7 @@ def calculate_fd_voronoi_local(dv: Optional[int]) -> None:
 
 def download_fd_voronoi() -> None:
     """Download preexisting voronoi calculation."""
-    voronoi_results = "AppData/voronoi_density_speed.pkl"
+    voronoi_results = st.session_state.directory_processed / "voronoi_density_speed.pkl"
     url = "https://go.fzj.de/voronoi-data"
     voronoi_density = {}
     voronoi_speed = {}
@@ -551,7 +551,7 @@ def ui_tab3_analysis() -> Tuple[str, Optional[int], st_column]:
         ":red_circle: Delete",
         help="Remove pre-loaded files",
     ):
-        precalculated_files_pattern = "AppData/*.pkl"
+        precalculated_files_pattern = str(st.session_state.directory_processed / "*.pkl")
         files_to_delete = glob.glob(precalculated_files_pattern)
         for file_path in files_to_delete:
             try:
