@@ -9,7 +9,6 @@ from typing import Any, List, Tuple
 import matplotlib.pyplot as plt
 import numpy as np
 import pedpy as pp
-
 from log_config import setup_logging
 from profile_config_data import Config
 

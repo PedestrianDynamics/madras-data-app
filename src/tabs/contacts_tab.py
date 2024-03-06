@@ -1,7 +1,8 @@
 """Map of the gps trajectories coupled with the contacts locations."""
 
-from typing import Tuple
 from pathlib import Path
+from typing import Tuple
+
 import folium
 import matplotlib.colors as mcolors
 import numpy as np

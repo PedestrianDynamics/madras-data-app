@@ -20,7 +20,8 @@ from plotly.graph_objs import Figure, Scatter
 from plotly.graph_objs.layout import Shape
 from shapely import Polygon
 
-from ..classes.datafactory import increment_frame_start, decrement_frame_start, reset_frame_start
+from ..classes.datafactory import (decrement_frame_start,
+                                   increment_frame_start, reset_frame_start)
 
 DUMMY_SPEED = -1000
 

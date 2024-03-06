@@ -7,8 +7,8 @@ import pedpy
 import streamlit as st
 from streamlit_drawable_canvas import st_canvas
 
-from .plots import draw_rects, draw_bg_img
 from ..helpers.utilities import setup_measurement_area
+from .plots import draw_bg_img, draw_rects
 
 
 def drawing_canvas(trajectory_data: pedpy.TrajectoryData, walkable_area: pedpy.WalkableArea) -> Tuple[Any, float, float, float]:

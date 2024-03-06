@@ -16,9 +16,12 @@ import streamlit as st
 
 from ..classes.datafactory import load_file
 from ..docs.docs import density_speed, flow
-from ..helpers.utilities import download, get_measurement_lines, is_running_locally, setup_walkable_area
+from ..helpers.utilities import (download, get_measurement_lines,
+                                 is_running_locally, setup_walkable_area)
 from ..plotting.drawing import drawing_canvas, get_measurement_area
-from ..plotting.plots import download_file, plot_fundamental_diagram_all, plot_fundamental_diagram_all_mpl, plot_time_series, plt_plot_time_series, show_fig
+from ..plotting.plots import (download_file, plot_fundamental_diagram_all,
+                              plot_fundamental_diagram_all_mpl,
+                              plot_time_series, plt_plot_time_series, show_fig)
 
 st_column: TypeAlias = st.delta_generator.DeltaGenerator
 

@@ -2,15 +2,15 @@
 
 import streamlit as st
 
-from src.docs import docs
 from src.classes.datafactory import init_session_state
-from src.helpers.log_config import setup_logging 
-from src.ui.ui import setup_app, init_sidebar, setup_app, init_app_looks
-
-from src.tabs.traj_tab import run_tab2
-from src.tabs.map_tab import call_main
+from src.docs import docs
+from src.helpers.log_config import setup_logging
 from src.tabs.analysis_tab import run_tab3
 from src.tabs.contacts_tab import call_main
+from src.tabs.map_tab import call_main
+from src.tabs.traj_tab import run_tab2
+from src.ui.ui import init_app_looks, init_sidebar, setup_app
+
 setup_logging()
 if __name__ == "__main__":
     setup_app()

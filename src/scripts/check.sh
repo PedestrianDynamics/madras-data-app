@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Define the path to the virtual environment's bin directory
-VENV_BIN=".venv/bin"
+VENV_BIN="../../.venv/bin"
 
 if [ ! -d "$VENV_BIN" ]; then
     echo "Virtual environment not found at $VENV_BIN."
@@ -28,7 +28,5 @@ run_tool ruff "check"
 
 # Sort imports
 run_tool isort "check"
-
-run_tool black "--check"
 
 echo "All checks and formatting done."

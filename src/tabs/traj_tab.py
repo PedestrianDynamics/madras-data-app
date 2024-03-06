@@ -10,8 +10,9 @@ from streamlit.delta_generator import DeltaGenerator
 
 from ..classes.datafactory import load_file
 from ..plotting.anim import animate
-from ..plotting.plots import plot_trajectories, plot_trajectories_figure_mpl
-from ..plotting.plots import download_file
+from ..plotting.plots import (download_file, plot_trajectories,
+                              plot_trajectories_figure_mpl)
+
 # import cProfile
 # import pstats
 # import io

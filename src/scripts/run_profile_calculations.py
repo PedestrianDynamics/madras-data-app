@@ -5,11 +5,11 @@ This module calls other modules to calculate density, speed and flow profiles as
 
 import glob
 from pathlib import Path
-from pedpy import WalkableArea
 
 import calculate_profiles
 import create_profile_data
 import ploting_profiles
+from pedpy import WalkableArea
 from profile_config_data import Config
 
 

@@ -8,11 +8,10 @@ from typing import Tuple
 import pandas as pd
 import pedpy as pp
 from joblib import Parallel, delayed
-from pedpy.column_identifier import FRAME_COL, ID_COL
-from tqdm import tqdm
-
 from log_config import setup_logging
+from pedpy.column_identifier import FRAME_COL, ID_COL
 from profile_config_data import Config
+from tqdm import tqdm
 
 
 def process_trajectory(
