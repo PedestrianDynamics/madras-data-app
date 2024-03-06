@@ -24,17 +24,15 @@ def setup_app() -> None:
 
 def init_app_looks() -> None:
     path = Path(__file__)
-    ROOT_DIR = path.parent.absolute()
-
+    ROOT_DIR = path.parent.parent.parent.absolute()
+    logo_path = ROOT_DIR / "data" / "assets" / "logo.png"
     gh = "https://badgen.net/badge/icon/GitHub?icon=github&label"
     repo = "https://github.com/PedestrianDynamics/madras-data-app"
     repo_name = f"[![Repo]({gh})]({repo})"
     c1, c2 = st.sidebar.columns((1.2, 0.5))
     c2.markdown(repo_name, unsafe_allow_html=True)
-    c1.write(
-        "[![DOI](https://zenodo.org/badge/760394097.svg)](https://zenodo.org/doi/10.5281/zenodo.10694866)"
-    )
-    st.sidebar.image(f"{ROOT_DIR}/logo.png", use_column_width=True)
+    c1.write("[![DOI](https://zenodo.org/badge/760394097.svg)](https://zenodo.org/doi/10.5281/zenodo.10694866)")
+    st.sidebar.image(str(logo_path), use_column_width=True)
 
 
 def init_sidebar() -> Any:

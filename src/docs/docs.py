@@ -1,10 +1,11 @@
 """Documentation texts for the app."""
 
+from pathlib import Path
 from typing import List
 
 import streamlit as st
 
-from datafactory import Direction
+from ..classes.datafactory import Direction
 
 
 def flow(directions: List[Direction]) -> None:
@@ -63,15 +64,19 @@ def density_speed() -> None:
 
 def about() -> None:
     """Write About text."""
+    path = Path(__file__)
+    ROOT_DIR = path.parent.parent.parent.absolute()
+    img_path_1 = ROOT_DIR / "data" / "images" / "fcaym-FdL22.png"
+    img_path_2 = ROOT_DIR / "data" / "images" / "fbppj-FestivalOfLights2-min.png"
     text = """
-
+    
 
     ## Overview
     The [MADRAS-project](https://www.madras-crowds.eu/) is a collaborative cooperation funded by [ANR](https://anr.fr) :flag-fr: and [DFG](htpps://dfg.de) :flag-de:, aims to develop innovative agent-based models to predict and understand dense crowd dynamics and to apply these models in a large-scale case study.
     This app offers a visualisation of data collection of the festival of lights in 2022, a distinguished open-air event that draws nearly two million visitors over four days.
     """
     st.markdown(text)
-    st.image("images/fcaym-FdL22.png", caption="Festival of Lights in Lyon 2022.")
+    st.image(str(img_path_1), caption="Festival of Lights in Lyon 2022.")
 
     text2 = """
     This app is part of the MADRAS project, which focuses on collecting and analyzing videos of crowded scenes during the festival. The primary goal is to extract valuable pedestrian dynamics measurements to enhance our understanding of crowd behaviors during such large-scale events.
@@ -91,6 +96,6 @@ def about() -> None:
     """
     st.markdown(text3)
     st.image(
-        "images/fbppj-FestivalOfLights2-min.png",
+        str(img_path_2),
         caption="Emplacement of cameras for the video recording during the Festival of Lights 2022.",
     )

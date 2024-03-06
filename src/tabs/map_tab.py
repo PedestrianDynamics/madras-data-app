@@ -2,6 +2,7 @@
 
 import json
 from dataclasses import dataclass
+from pathlib import Path
 from typing import Dict, List, Tuple, cast
 
 import folium
@@ -53,20 +54,14 @@ def load_cameras_from_json(file_path: str) -> Dict[str, Camera]:
         try:
             # Ensure the data structure is as expected
             location = tuple(info["location"])
-            assert (
-                isinstance(location, tuple) and len(location) == 2
-            ), "Location must be a tuple of two floats."
-            assert all(
-                isinstance(x, float) for x in location
-            ), "Location elements must be floats."
+            assert isinstance(location, tuple) and len(location) == 2, "Location must be a tuple of two floats."
+            assert all(isinstance(x, float) for x in location), "Location elements must be floats."
             location = cast(Tuple[float, float], location)
             url = info["url"]
             name = info["name"]
             field = info["field"]
             logo = info["logo"]
-            cameras[key] = Camera(
-                location=location, url=url, name=name, field=field, logo=logo
-            )
+            cameras[key] = Camera(location=location, url=url, name=name, field=field, logo=logo)
 
         except KeyError as e:
             # Handle missing keys in the data
@@ -95,6 +90,8 @@ def create_map(
     Returns:
     folium.Map: A folium map object.
     """
+    path = Path(__file__).parent.parent.parent
+    logo_cameras = path / "data" / "assets" / "logo_cameras"
     m = folium.Map(location=center, zoom_start=zoom, tiles=tile_layer, max_zoom=21)
 
     camera_layers = []
@@ -156,7 +153,8 @@ def create_map(
         polygon.add_to(layer)
 
     for (key, camera), layer in zip(cameras.items(), camera_layers):
-        icon = CustomIcon(camera.logo, icon_size=(110, 110))
+        camera_path = logo_cameras / camera.logo
+        icon = CustomIcon(str(camera_path), icon_size=(110, 110))
         coords = camera.location
         tooltip = f"{key}: {camera.name}"
         folium.Marker(location=coords, tooltip=tooltip, icon=icon).add_to(layer)
@@ -197,7 +195,9 @@ def main(cameras: Dict[str, Camera], selected_layer: str) -> None:
 
 
 def call_main() -> None:
-    cameras = load_cameras_from_json("cameras.json")
+    path = Path(__file__).parent.parent.parent.absolute()
+    json_path = path / "data" / "assets" / "cameras.json"
+    cameras = load_cameras_from_json(json_path)
     selected_layer = st.selectbox("Choose a Map Style:", list(tile_layers.keys()))
     selected_layer = str(selected_layer)
     st.markdown(
