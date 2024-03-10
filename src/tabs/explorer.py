@@ -1,12 +1,14 @@
-from pygwalker.api.streamlit import StreamlitRenderer
-import pandas as pd
-import streamlit as st
-import pedpy
-from ..helpers.utilities import setup_walkable_area
-from ..classes.datafactory import load_file
-import pygwalker as pyg
-from pathlib import Path
 import pickle
+from pathlib import Path
+
+import pandas as pd
+import pedpy
+import pygwalker as pyg
+import streamlit as st
+from pygwalker.api.streamlit import StreamlitRenderer
+
+from ..classes.datafactory import load_file
+from ..helpers.utilities import setup_walkable_area
 
 
 def prepare_data(selected_file: str, delta_frame: int) -> pd.DataFrame:
@@ -45,7 +47,8 @@ def prepare_data(selected_file: str, delta_frame: int) -> pd.DataFrame:
 
 
 def run_walker(df: pd.DataFrame) -> None:
-    # You should cache your pygwalker renderer, if you don't want your memory to explode
+    """You should cache your pygwalker renderer, if you don't want your memory to explode."""
+
     @st.cache_resource
     def get_pyg_renderer(df: pd.DataFrame) -> "StreamlitRenderer":
         # If you want to use feature of saving chart config, set `spec_io_mode="rw"`
@@ -55,7 +58,8 @@ def run_walker(df: pd.DataFrame) -> None:
     renderer.render_explore()
 
 
-def run_explorer():
+def run_explorer() -> None:
+    """Call explorer woth dataframe from selected file."""
     file_name_to_path = {path.split("/")[-1]: path for path in st.session_state.files}
     filename = str(
         st.selectbox(
