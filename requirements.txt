@@ -1,11 +1,12 @@
 streamlit
 streamlit_folium
 folium
-pandas
 pedpy@git+https://github.com/PedestrianDynamics/PedPy.git
+pandas
 plotly
 matplotlib
 streamlit_drawable_canvas==0.8.0
 streamlit-option-menu
 gpxpy
 tqdm
+pygwalker

@@ -36,16 +36,21 @@ def init_app_looks() -> None:
 
 
 def init_sidebar() -> Any:
-    """Init sidebar and 4 tabs."""
+    """Init sidebar and 5 tabs.
+
+    To add more tabs, add the name of the tab and add an icon from
+    https://icons.getbootstrap.com/
+    """
     return option_menu(
         "Multi-agent modelling of dense crowd dynamics: Predict & Understand",
-        ["About", "Map", "Trajectories", "Analysis", "Contacts"],
+        ["About", "Map", "Trajectories", "Analysis", "Contacts", "Explorer"],
         icons=[
             "info-square",
             "pin-map",
             "people",
             "bar-chart-line",
             "exclamation-triangle",
+            "graph-up-arrow",
         ],
         menu_icon="cast",
         default_index=0,
