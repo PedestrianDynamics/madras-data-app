@@ -134,10 +134,12 @@ def unzip_files(zip_path: Union[str, Path], destination: Union[str, Path]) -> No
     """
     with zipfile.ZipFile(zip_path, "r") as zip_ref:
         for member in zip_ref.infolist():
+            st.info(f"member: {member}")
             # Extract only if file (ignores directories)
             if not member.is_dir():
                 # Build target filename path
                 target_path = os.path.join(destination, os.path.basename(member.filename))
+                st.info(f"targe_path {target_path}")
                 # Ensure target directory exists (e.g., if not extracting directories)
                 os.makedirs(os.path.dirname(target_path), exist_ok=True)
                 # Extract file
