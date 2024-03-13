@@ -16,12 +16,9 @@ import streamlit as st
 
 from ..classes.datafactory import load_file
 from ..docs.docs import density_speed, flow
-from ..helpers.utilities import (download, get_measurement_lines,
-                                 is_running_locally, setup_walkable_area)
+from ..helpers.utilities import download, get_measurement_lines, is_running_locally, setup_walkable_area
 from ..plotting.drawing import drawing_canvas, get_measurement_area
-from ..plotting.plots import (download_file, plot_fundamental_diagram_all,
-                              plot_fundamental_diagram_all_mpl,
-                              plot_time_series, plt_plot_time_series, show_fig)
+from ..plotting.plots import download_file, plot_fundamental_diagram_all, plot_fundamental_diagram_all_mpl, plot_time_series, plt_plot_time_series, show_fig
 
 st_column: TypeAlias = st.delta_generator.DeltaGenerator
 
@@ -362,10 +359,12 @@ def calculate_nt(
             # "time / s": nt["time"].iloc[-1],
         }
 
-    ax1.set_xlabel(r"t / s", fontsize=18)
-    ax1.set_ylabel(r"# pedestrians", fontsize=18)
+    ax1.set_xlabel(r"$t\; /\; s$", fontsize=18)
+    ax1.set_ylabel(r"$\# pedestrians$", fontsize=18)
     ax1.tick_params(axis="both", which="major", labelsize=14)  # For major ticks
     ax1.legend(loc="best")
+    ax1.grid(alpha=0.4)
+
     c1, c2 = st.columns((0.6, 0.4))
     c1.pyplot(fig1)
     c2.write("**Total number of pedestrians over the observed period.**")

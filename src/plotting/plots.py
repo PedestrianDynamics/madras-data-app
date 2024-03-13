@@ -121,7 +121,7 @@ def plot_trajectories(
         )
     )
     count_direction = ""
-    for name in ["North", "South", "East", "West"]:
+    for name in ["Top", "Bottom", "Right", "Left"]:
         count = directions[directions["direction_name"] == name].shape[0]
         count_direction += f"<span style='color:{get_color_by_name(name)};'> {name} {count}</span>."
 
@@ -167,19 +167,19 @@ def plot_trajectories_figure_mpl(
             alpha=alpha,
         )
     # geometry
-    ax.plot(
-        x_exterior,
-        y_exterior,
-        color="black",
-    )
+    # ax.plot(
+    #     x_exterior,
+    #     y_exterior,
+    #     color="black",
+    # )
     title_text = f"Trajectories: {num_agents}."
-    for name in ["North", "South", "East", "West"]:
+    for name in ["Top", "Bottom", "Right", "Left"]:
         count = directions[directions["direction_name"] == name].shape[0]
         title_text += f" {name} {count}."
 
-    ax.set_title(title_text)
-    ax.set_xlabel(r"$x\; /\;m$", fontsize=18)
-    ax.set_ylabel(r"$y\; /\;m$", fontsize=18)
+    # ax.set_title(title_text)
+    ax.set_xlabel(r"$x\; /\;m$", fontsize=16)
+    ax.set_ylabel(r"$y\; /\;m$", fontsize=16)
     ax.set_aspect("equal", "box")
     return fig
 
@@ -448,11 +448,11 @@ def assign_direction_number(agent_data: pd.DataFrame) -> pd.DataFrame:
         if abs(delta_x) > abs(delta_y):
             # Motion is primarily horizontal
             direction_number = 3 if delta_x > 0 else 4  # East if delta_x positive, West otherwise
-            direction_name = "East" if delta_x > 0 else "West"
+            direction_name = "Right" if delta_x > 0 else "Left"
         else:
             # Motion is primarily vertical
             direction_number = 1 if delta_y > 0 else 2  # North if delta_y positive, South otherwise
-            direction_name = "North" if delta_x > 0 else "South"
+            direction_name = "Top" if delta_x > 0 else "Bottom"
         direction_numbers.append((agent_id, direction_number, direction_name))
 
     return pd.DataFrame(direction_numbers, columns=["id", "direction_number", "direction_name"])

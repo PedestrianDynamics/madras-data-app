@@ -70,26 +70,26 @@ def get_measurement_lines(trajectory_data: pd.DataFrame, distance_to_bounding: f
 
     return [
         Direction(
-            info=DirectionInfo(id=get_id_by_name("East"), name="East", color=get_color_by_name("East")),
+            info=DirectionInfo(id=get_id_by_name("Right"), name="Right", color=get_color_by_name("Right")),
             line=pedpy.MeasurementLine([[min_x, min_y], [min_x, max_y]]),
         ),
         Direction(
-            info=DirectionInfo(id=get_id_by_name("West"), name="West", color=get_color_by_name("West")),
+            info=DirectionInfo(id=get_id_by_name("Left"), name="Left", color=get_color_by_name("Left")),
             line=pedpy.MeasurementLine([[max_x, min_y], [max_x, max_y]]),
         ),
         Direction(
             info=DirectionInfo(
-                id=get_id_by_name("North"),
-                name="North",
-                color=get_color_by_name("North"),
+                id=get_id_by_name("Top"),
+                name="Top",
+                color=get_color_by_name("Top"),
             ),
             line=pedpy.MeasurementLine([[min_x, max_y], [max_x, max_y]]),
         ),
         Direction(
             info=DirectionInfo(
-                id=get_id_by_name("South"),
-                name="South",
-                color=get_color_by_name("South"),
+                id=get_id_by_name("Bottom"),
+                name="Bottom",
+                color=get_color_by_name("Bottom"),
             ),
             line=pedpy.MeasurementLine([[max_x, min_y], [min_x, min_y]]),
         ),

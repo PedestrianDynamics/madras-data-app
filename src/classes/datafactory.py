@@ -97,10 +97,10 @@ def init_session_state() -> None:
     # Initialize a list of DirectionInfo objects using the provided dictionaries
     if "direction_infos" not in st.session_state:
         st.session_state.direction_infos = [
-            DirectionInfo(id=1, name="North", color="blue"),
-            DirectionInfo(id=2, name="South", color="red"),
-            DirectionInfo(id=3, name="East", color="green"),
-            DirectionInfo(id=4, name="West", color="gray"),
+            DirectionInfo(id=1, name="Top", color="blue"),
+            DirectionInfo(id=2, name="Bottom", color="red"),
+            DirectionInfo(id=3, name="Right", color="green"),
+            DirectionInfo(id=4, name="Left", color="gray"),
         ]
 
     if "start_frame" not in st.session_state:
