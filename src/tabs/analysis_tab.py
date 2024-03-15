@@ -13,15 +13,14 @@ import numpy as np
 import pandas as pd
 import pedpy
 import streamlit as st
-
+from pedpy import SpeedMethod
 from ..classes.datafactory import load_file
 from ..docs.docs import density_speed, flow
-from ..helpers.utilities import (download, get_measurement_lines,
-                                 is_running_locally, setup_walkable_area)
+from ..helpers.utilities import download, get_measurement_lines, is_running_locally, setup_walkable_area
+
+# from ..helpers.speed_profile import compute_gaussian_weighted_speed_profile, compute_mean_speed_profile, compute_speed_profile
 from ..plotting.drawing import drawing_canvas, get_measurement_area
-from ..plotting.plots import (download_file, plot_fundamental_diagram_all,
-                              plot_fundamental_diagram_all_mpl,
-                              plot_time_series, plt_plot_time_series, show_fig)
+from ..plotting.plots import download_file, plot_fundamental_diagram_all, plot_fundamental_diagram_all_mpl, plot_time_series, plt_plot_time_series, show_fig
 
 st_column: TypeAlias = st.delta_generator.DeltaGenerator
 
@@ -388,7 +387,9 @@ def calculate_nt(
     figname = figname.with_name(figname.stem + ".pdf")
     path = Path(__file__)
     data_directory = path.parent.parent.parent.absolute() / "data" / "processed"
+    logging.info(f"Check existance {data_directory}: {data_directory.exists()}")
     figname = data_directory / Path(figname)
+    logging.info(f"Try to save {figname}")
     fig1.savefig(figname, bbox_inches="tight", pad_inches=0.1)
     download_file(Path(figname))
 
@@ -503,10 +504,29 @@ def calculate_speed_profile(
             ["Nan", "0"],
         )
     )
+    chose_method = st.sidebar.radio(
+        "Chose method",
+        ["Classic", "Gaussian"],
+        help="See [PedPy-documentation](https://pedpy.readthedocs.io/en/latest/user_guide.html#density-profiles).",
+    )
+    chose_method = str(chose_method)
+    if chose_method == "Gaussian":
+        width = float(
+            st.sidebar.number_input(
+                "fwhm",
+                value=0.5,
+                min_value=0.2,
+                max_value=1.0,
+                step=0.1,
+                help="full width at half maximum",
+                format="%.2f",
+            )
+        )
     if fil == "Nan":
         fil_empty = np.nan
     else:
         fil_empty = 0.0
+
     individual_speed = pedpy.compute_individual_speed(
         traj_data=trajectory_data,
         frame_step=10,
@@ -516,13 +536,29 @@ def calculate_speed_profile(
         trajectory_data.data,
         on=[pedpy.column_identifier.ID_COL, pedpy.column_identifier.FRAME_COL],
     )
-    speed_profiles = pedpy.compute_speed_profile(
-        data=combined_data,
-        walkable_area=walkable_area,
-        grid_size=grid_size,
-        speed_method=pedpy.SpeedMethod.MEAN,
-        fill_value=fil_empty,
-    )
+    if chose_method == "Gaussian":
+        # speed_profiles = compute_gaussian_weighted_speed_profile2(data=combined_data, walkable_area=walkable_area, grid_size=grid_size, width=width, fill_value=fil_empty)
+        # speed_profiles = compute_speed_profile(
+        #     data=combined_data, walkable_area=walkable_area, grid_size=grid_size, fill_value=fil_empty, width=width, speed_method=SpeedMethod.MEAN
+        # )
+        st.info("work in progress")
+        speed_profiles = pedpy.compute_speed_profile(
+            data=combined_data,
+            walkable_area=walkable_area,
+            grid_size=grid_size,
+            speed_method=pedpy.SpeedMethod.MEAN,
+            fill_value=fil_empty,
+        )
+
+    else:
+        speed_profiles = pedpy.compute_speed_profile(
+            data=combined_data,
+            walkable_area=walkable_area,
+            grid_size=grid_size,
+            speed_method=pedpy.SpeedMethod.MEAN,
+            fill_value=fil_empty,
+        )
+
     vmax = float(
         st.sidebar.number_input(
             "Max speed",

@@ -8,7 +8,7 @@ import zipfile
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import List, Union
-
+import logging
 import pedpy
 import requests  # type: ignore
 import streamlit as st
@@ -35,7 +35,10 @@ class Direction:
 class DataConfig:
     """Datastructure for the app."""
 
+    # trajectories
     directory: Path
+    # results
+    processed_directory: Path
     files: List[str] = field(default_factory=list)
     # data: Dict[str, List] = field(default_factory=lambda: defaultdict(list))
     url: str = "https://go.fzj.de/madras-data"
@@ -43,6 +46,8 @@ class DataConfig:
     def __post_init__(self) -> None:
         """Initialize the DataConfig instance by retrieving files for each country."""
         self.directory.parent.mkdir(parents=True, exist_ok=True)
+        logging.info(f"Create {self.processed_directory}")
+        self.processed_directory.mkdir(parents=True, exist_ok=True)
         self.retrieve_files()
 
     def retrieve_files(self) -> None:
@@ -92,6 +97,8 @@ def init_session_state() -> None:
     """Init session_state throughout the app."""
     path = Path(__file__)
     trajectories_directory = path.parent.parent.parent.absolute() / "data" / "trajectories"
+    processed_directory = path.parent.parent.parent.absolute() / "data" / "processed"
+
     logging.info(f"{trajectories_directory = }")
     init_state_bg_image()
     # Initialize a list of DirectionInfo objects using the provided dictionaries
@@ -118,7 +125,7 @@ def init_session_state() -> None:
     if not hasattr(st.session_state, "trajectory_data"):
         st.session_state.trajectoryData = pedpy.TrajectoryData
 
-    dataconfig = DataConfig(trajectories_directory)
+    dataconfig = DataConfig(trajectories_directory, processed_directory)
     st.session_state.files = dataconfig.files
 
 
