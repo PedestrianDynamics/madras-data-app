@@ -2,6 +2,7 @@
 
 import logging
 import time
+from pathlib import Path
 
 import pedpy
 import streamlit as st
@@ -112,18 +113,13 @@ def run_tab2(selected_file: str, msg: DeltaGenerator) -> None:
         )
         # TODO: remove
         fig2 = plot_trajectories_figure_mpl(trajectory_data, walkable_area, with_colors=True, alpha=alpha, lw=lw)
-        # pfig, ax = plt.subplots()
-        # pedpy.plot_trajectories(traj=trajectory_data, walkable_area=walkable_area, axes=ax)
         c1.pyplot(fig2)
-        figname = "trajectories_" + selected_file.split("/")[-1].split(".txt")[0] + "_colors.pdf"
+        path = Path(__file__)
+        data_directory = path.parent.parent.parent.absolute() / "data" / "processed"
+        figname = data_directory / f"trajectories_{Path(selected_file).stem}.pdf"
+
         fig2.savefig(figname, bbox_inches="tight", pad_inches=0.1)
         download_file(figname, c1, label="color")
-        # fig3z = plots.plot_trajectories_figure_mpl(trajectory_data, walkable_area, with_colors=False)
-        # c2.pyplot(fig3)
-        # figname = "trajectories_" + selected_file.split("/")[-1].split(".txt")[0] + "_gray.pdf"
-        # fig3.savefig(figname, bbox_inches='tight', pad_inches=0.1)
-        # plots.download_file(figname, c2, label="gray")
-
         end_time = time.time()
         elapsed_time = end_time - start_time
         logging.info(f"Time taken to plot trajectories: {elapsed_time:.2f} seconds")

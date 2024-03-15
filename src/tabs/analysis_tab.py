@@ -16,15 +16,18 @@ import streamlit as st
 
 from ..classes.datafactory import load_file
 from ..docs.docs import density_speed, flow
-from ..helpers.utilities import download, get_measurement_lines, is_running_locally, setup_walkable_area
+from ..helpers.utilities import (download, get_measurement_lines,
+                                 is_running_locally, setup_walkable_area)
 from ..plotting.drawing import drawing_canvas, get_measurement_area
-from ..plotting.plots import download_file, plot_fundamental_diagram_all, plot_fundamental_diagram_all_mpl, plot_time_series, plt_plot_time_series, show_fig
+from ..plotting.plots import (download_file, plot_fundamental_diagram_all,
+                              plot_fundamental_diagram_all_mpl,
+                              plot_time_series, plt_plot_time_series, show_fig)
 
 st_column: TypeAlias = st.delta_generator.DeltaGenerator
 
 
 def calculate_or_load_classical_density(
-    precalculated_density: str,
+    precalculated_density: Path,
     filename: str,
 ) -> pd.DataFrame:
     """Calculate classical density or load existing calculation."""
@@ -43,7 +46,7 @@ def calculate_or_load_classical_density(
 
 
 def calculate_or_load_voronoi_diagrams(
-    precalculated_voronoi_polygons: str,
+    precalculated_voronoi_polygons: Path,
     filename: str,
 ) -> pd.DataFrame:
     """Calculate Voronoi diagrams or load existing calculation."""
@@ -63,7 +66,7 @@ def calculate_or_load_voronoi_diagrams(
 
 
 def calculate_or_load_voronoi_speed(
-    precalculated_voronoi_speed: str,
+    precalculated_voronoi_speed: Path,
     intersecting: pd.DataFrame,
     individual_speed: pd.DataFrame,
     filename: str,
@@ -89,7 +92,7 @@ def calculate_or_load_voronoi_speed(
 
 
 def calculate_or_load_voronoi_density(
-    precalculated_voronoi_density: str,
+    precalculated_voronoi_density: Path,
     voronoi_polygons: pd.DataFrame,
     filename: str,
 ) -> Tuple[pd.DataFrame, pd.DataFrame]:
@@ -112,7 +115,7 @@ def calculate_or_load_voronoi_density(
     return voronoi_density, intersecting
 
 
-def calculate_or_load_individual_speed(precalculated_speed: str, filename: str, dv: Optional[int]) -> pd.DataFrame:
+def calculate_or_load_individual_speed(precalculated_speed: Path, filename: str, dv: Optional[int]) -> pd.DataFrame:
     """Calculate speed or load precalculated values if exist."""
     if not Path(precalculated_speed).exists():
         trajectory_data = load_file(filename)
@@ -131,7 +134,8 @@ def calculate_or_load_individual_speed(precalculated_speed: str, filename: str, 
     return individual_speed
 
 
-def calculate_or_load_mean_speed(precalculated_speed: str, filename: str, dv: Optional[int]) -> pd.DataFrame:
+def calculate_or_load_mean_speed(precalculated_speed: Path, filename: str, dv: Optional[int]) -> pd.DataFrame:
+    """Calculate mean speed per frame if not already done."""
     speed = calculate_or_load_individual_speed(precalculated_speed, filename, dv)
     trajectory_data = load_file(filename)
     walkable_area = setup_walkable_area(trajectory_data)
@@ -149,6 +153,8 @@ def calculate_time_series(
     selected_file: str,
 ) -> None:
     """Calculate speed and density."""
+    path = Path(__file__)
+    data_directory = path.parent.parent.parent.absolute() / "data" / "processed"
     docs_expander = st.expander(":orange_book: Documentation (click to expand)", expanded=False)
     with docs_expander:
         density_speed()
@@ -171,16 +177,17 @@ def calculate_time_series(
         # for plots
         pfig1, pfig2 = plt_plot_time_series(classic_density, mean_speed, fps=30)
         c1, c2 = st.columns(2)
-        c1.pyplot(pfig1)
-        c2.pyplot(pfig2)
         bounds = ma.polygon.bounds
         formatted_bounds = f"({bounds[0]:.2f}, {bounds[1]:.2f}, {bounds[2]:.2f}, {bounds[3]:.2f})"
         st.info(f"Measurement area coordinates: {formatted_bounds}, Area: {ma.area:.2} $m^2$.")
         # download figures
-        figname1 = "density_" + selected_file.split("/")[-1].split(".txt")[0] + "_ma_" + str(mai) + ".pdf"
+        base_name = Path(selected_file).stem
+        speed_file_name = f"speed_{base_name}_ma_{mai}.pdf"
+        density_file_name = f"density_{base_name}_ma_{mai}.pdf"
+        figname1 = data_directory / density_file_name
         pfig1.savefig(figname1, bbox_inches="tight", pad_inches=0.1)
         download_file(figname1, c1, "density")
-        figname2 = "speed_" + selected_file.split("/")[-1].split(".txt")[0] + "_ma_" + str(mai) + ".pdf"
+        figname2 = data_directory / speed_file_name
         pfig2.savefig(figname2, bbox_inches="tight", pad_inches=0.1)
         download_file(figname2, c2, "speed")
 
@@ -189,36 +196,42 @@ def calculate_fd_classical(dv: Optional[int]) -> None:
     """Calculate FD classical and write result in pdf file."""
     densities = {}
     speeds = {}
+    path = Path(__file__)
+    data_directory = path.parent.parent.parent.absolute() / "data" / "processed"
     with st.status("Calculating...", expanded=True):
         progress_bar = st.progress(0)
         progress_status = st.empty()
         for i, filename in enumerate(st.session_state.files):
             basename = filename.split("/")[-1].split(".txt")[0]
-            precalculated_density = f"AppData/density_{basename}.pkl"
-            precalculated_speed = f"AppData/speed_{basename}_{dv}.pkl"
+            precalculated_density = Path(data_directory / f"density_{basename}.pkl")
+            precalculated_speed = Path(data_directory / f"speed_{basename}_{dv}.pkl")
             speeds[basename] = calculate_or_load_mean_speed(precalculated_speed, filename, dv)
             densities[basename] = calculate_or_load_classical_density(precalculated_density, filename)
             progress = int(100 * (i + 1) / len(st.session_state.files))
             progress_bar.progress(progress)
             progress_status.text(f"> {progress}%")
 
-    figname = "fundamental_diagram_classical.pdf"
+    figname = data_directory / "fundamental_diagram_classical.pdf"
     fig = plot_fundamental_diagram_all_mpl(densities, speeds)
     fig.savefig(figname, bbox_inches="tight", pad_inches=0.1)
     st.pyplot(fig)
+    st.info(figname)
     download_file(figname)
     # plots.show_fig(fig, figname=figname, html=True, write=True)
 
 
 def calculate_fd_voronoi_local(dv: Optional[int]) -> None:
     """Calculate FD voronoi (locally)."""
+    # todo this should be in datafactory or session_state
+    path = Path(__file__)
+    data_directory = path.parent.parent.parent.absolute() / "data" / "processed"
     voronoi_polygons = {}
     voronoi_density = {}
     voronoi_speed = {}
     individual_speed = {}
     intersecting = {}
     voronoi_results = "voronoi_density_speed.pkl"  # todo should go to datafactory
-    figname = "AppData/fundamental_diagram_voronoi.pdf"
+    figname = data_directory / "fundamental_diagram_voronoi.pdf"
     st.sidebar.divider()
     msg = st.sidebar.empty()
     calculate = msg.button("Calculate", type="primary", help="Calculate fundamental diagram Voronoi")
@@ -240,10 +253,10 @@ def calculate_fd_voronoi_local(dv: Optional[int]) -> None:
             for i, filename in enumerate(st.session_state.files):
                 basename = filename.split("/")[-1].split(".txt")[0]
                 # saved files ============
-                precalculated_voronoi_polygons = f"AppData/voronoi_polygons_{basename}.pkl"
-                precalculated_speed = f"AppData/speed_{basename}_{dv}.pkl"
-                precalculated_voronoi_speed = f"AppData/voronoi_speed_{basename}.pkl"
-                precalculated_voronoi_density = f"AppData/voronoi_density_{basename}.pkl"
+                precalculated_voronoi_polygons = data_directory / f"voronoi_polygons_{basename}.pkl"
+                precalculated_speed = data_directory / f"speed_{basename}_{dv}.pkl"
+                precalculated_voronoi_speed = data_directory / f"voronoi_speed_{basename}.pkl"
+                precalculated_voronoi_density = data_directory / f"voronoi_density_{basename}.pkl"
                 # saved files ============
                 voronoi_polygons[basename] = calculate_or_load_voronoi_diagrams(precalculated_voronoi_polygons, filename)
 
@@ -273,7 +286,7 @@ def calculate_fd_voronoi_local(dv: Optional[int]) -> None:
 
         fig = plot_fundamental_diagram_all(voronoi_density, voronoi_speed)
 
-        show_fig(fig, figname=figname, html=True, write=True)
+        show_fig(fig, figname=str(figname), html=True, write=True)
         end = time.time()
         st.info(f"Computation time: {end-start:.2f} seconds.")
 
@@ -285,11 +298,13 @@ def calculate_fd_voronoi_local(dv: Optional[int]) -> None:
 
 def download_fd_voronoi() -> None:
     """Download preexisting voronoi calculation."""
-    voronoi_results = "AppData/voronoi_density_speed.pkl"
+    path = Path(__file__)
+    data_directory = path.parent.parent.parent.absolute() / "data" / "processed"
+    voronoi_results = data_directory / "voronoi_density_speed.pkl"
     url = "https://go.fzj.de/voronoi-data"
     voronoi_density = {}
     voronoi_speed = {}
-    figname = "fundamental_diagram_voronoi.pdf"
+    figname = data_directory / "fundamental_diagram_voronoi.pdf"
     msg = st.empty()
     if not Path(voronoi_results).exists():
         msg.warning(f"{voronoi_results} does not exist yet!")
@@ -339,8 +354,8 @@ def calculate_nt(
     names = [direction.info.name for direction in directions]
     colors = [direction.info.color for direction in directions]
     selected_names = pl.multiselect("Measurement line", options=names, default=names)
-    filename_without_extension = selected_file.split("/")[-1].replace(".txt", "")
-    figname = f"NT_distance_{distance_to_bounding}_{filename_without_extension}"
+    filename_without_extension = Path(selected_file).stem
+    figname = f"NT_distance_{distance_to_bounding:.2f}_{filename_without_extension}"
     fig1, ax1 = plt.subplots()
     nt_stats = {}
     for i, (name, color) in enumerate(zip(selected_names, colors)):
@@ -369,9 +384,13 @@ def calculate_nt(
     c1.pyplot(fig1)
     c2.write("**Total number of pedestrians over the observed period.**")
     c2.dataframe(pd.DataFrame(nt_stats))
-    figname += ".pdf"
+    figname = Path(figname)
+    figname = figname.with_name(figname.stem + ".pdf")
+    path = Path(__file__)
+    data_directory = path.parent.parent.parent.absolute() / "data" / "processed"
+    figname = data_directory / Path(figname)
     fig1.savefig(figname, bbox_inches="tight", pad_inches=0.1)
-    download_file(figname)
+    download_file(Path(figname))
 
 
 def calculate_density_profile(
@@ -403,12 +422,12 @@ def calculate_density_profile(
     if chose_method == "Gaussian":
         width = float(
             st.sidebar.number_input(
-                "Gaussian width",
+                "fwhm",
                 value=0.5,
                 min_value=0.2,
                 max_value=1.0,
                 step=0.1,
-                placeholder="full width at half maximum for Gaussian.",
+                help="full width at half maximum",
                 format="%.2f",
             )
         )
@@ -449,12 +468,14 @@ def calculate_density_profile(
     ax.set_ylabel("")
     ax.set_xticklabels([])
     ax.set_yticklabels([])
-    base_filename = os.path.splitext(os.path.basename(selected_file))[0]
+    base_filename = Path(selected_file).stem
     if chose_method == "Gaussian":
-        figname = f"density_profile_method_{chose_method}_width_{width}_grid_{grid_size}_{base_filename}.pdf"
+        figname = Path(f"density_profile_method_{chose_method}_width_{width}_grid_{grid_size}_{base_filename}.pdf")
     else:
-        figname = f"density_profile_method_{chose_method}_grid_{grid_size}_{base_filename}.pdf"
-
+        figname = Path(f"density_profile_method_{chose_method}_grid_{grid_size}_{base_filename}.pdf")
+    path = Path(__file__)
+    data_directory = path.parent.parent.parent.absolute() / "data" / "processed"
+    figname = data_directory / figname
     st.pyplot(fig)
     plt.tight_layout()
     fig.savefig(figname, bbox_inches="tight", pad_inches=0.1)
@@ -536,11 +557,14 @@ def calculate_speed_profile(
     ax.set_yticklabels([])
     fig.tight_layout()
 
-    base_filename = os.path.splitext(os.path.basename(selected_file))[0]
-    figname = f"speed_profile_fil_{fil_empty}_grid_{grid_size}_{base_filename}.pdf"
+    base_filename = Path(selected_file).stem
+    figname = Path(f"speed_profile_fil_{fil_empty}_grid_{grid_size}_{base_filename}.pdf")
+    path = Path(__file__)
+    data_directory = path.parent.parent.parent.absolute() / "data" / "processed"
+    figname = data_directory / figname
     st.pyplot(fig)
     fig.savefig(figname, bbox_inches="tight", pad_inches=0.1)
-    download_file(figname)
+    download_file(Path(figname))
 
 
 def ui_tab3_analysis() -> Tuple[str, Optional[int], st_column]:
@@ -550,7 +574,9 @@ def ui_tab3_analysis() -> Tuple[str, Optional[int], st_column]:
         ":red_circle: Delete",
         help="Remove pre-loaded files",
     ):
-        precalculated_files_pattern = "AppData/*.pkl"
+        path: Path = Path(__file__)
+        data_directory = path.parent.parent.parent.absolute() / "data" / "processed"
+        precalculated_files_pattern = str(data_directory / "*.pkl")
         files_to_delete = glob.glob(precalculated_files_pattern)
         for file_path in files_to_delete:
             try:

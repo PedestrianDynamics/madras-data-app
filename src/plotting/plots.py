@@ -3,6 +3,7 @@
 import collections
 import io
 import logging
+from pathlib import Path
 from typing import Any, Dict, Optional, Tuple, TypeAlias
 
 import matplotlib
@@ -484,7 +485,7 @@ def show_fig(
         fig.write_image(figname)
 
 
-def download_file(figname: str, col: Optional[st_column] = None, label: str = "") -> None:
+def download_file(figname: Path, col: Optional[st_column] = None, label: str = "") -> None:
     """Make download button for file."""
     with open(figname, "rb") as pdf_file:
         if col is None:
@@ -492,7 +493,7 @@ def download_file(figname: str, col: Optional[st_column] = None, label: str = ""
                 type="primary",
                 label=f"Download {label}",
                 data=pdf_file,
-                file_name=figname,
+                file_name=figname.name,
                 mime="application/octet-stream",
                 help=f"Download {figname}",
             )
@@ -501,7 +502,7 @@ def download_file(figname: str, col: Optional[st_column] = None, label: str = ""
                 type="primary",
                 label=f"Download {label}",
                 data=pdf_file,
-                file_name=figname,
+                file_name=figname.name,
                 mime="application/octet-stream",
                 help=f"Download {figname}",
             )

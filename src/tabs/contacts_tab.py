@@ -177,7 +177,10 @@ def main() -> None:
     bins = int(st.slider("Select number of bins:", min_value=5, max_value=11, value=10, step=3))
     fig = plot_histogram(contacts_data, bins)
     plt.plotly_chart(fig, use_container_width=True)
-    figname = f"histogram_{bins}.pdf"
+    figname = Path(f"histogram_{bins}.pdf")
+    path = Path(__file__)
+    data_directory = path.parent.parent.parent.absolute() / "data" / "processed"
+    figname = data_directory / Path(figname)
     fig.write_image(figname)
     download_file(figname)
 
