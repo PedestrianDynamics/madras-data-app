@@ -18,7 +18,7 @@ from ..classes.datafactory import load_file
 from ..docs.docs import density_speed, flow
 from ..helpers.utilities import download, get_measurement_lines, is_running_locally, setup_walkable_area
 
-# from ..helpers.speed_profile import compute_gaussian_weighted_speed_profile, compute_mean_speed_profile, compute_speed_profile
+from ..helpers.speed_profile import compute_gaussian_weighted_speed_profile, compute_speed_profile
 from ..plotting.drawing import drawing_canvas, get_measurement_area
 from ..plotting.plots import download_file, plot_fundamental_diagram_all, plot_fundamental_diagram_all_mpl, plot_time_series, plt_plot_time_series, show_fig
 
@@ -425,8 +425,8 @@ def calculate_density_profile(
             st.sidebar.number_input(
                 "fwhm",
                 value=0.5,
-                min_value=0.2,
-                max_value=1.0,
+                min_value=0.1,
+                max_value=2.0,
                 step=0.1,
                 help="full width at half maximum",
                 format="%.2f",
@@ -506,7 +506,7 @@ def calculate_speed_profile(
     )
     chose_method = st.sidebar.radio(
         "Chose method",
-        ["Classic", "Gaussian"],
+        ["Gaussian", "Classic"],
         help="See [PedPy-documentation](https://pedpy.readthedocs.io/en/latest/user_guide.html#density-profiles).",
     )
     chose_method = str(chose_method)
@@ -515,8 +515,8 @@ def calculate_speed_profile(
             st.sidebar.number_input(
                 "fwhm",
                 value=0.5,
-                min_value=0.2,
-                max_value=1.0,
+                min_value=0.1,
+                max_value=2.0,
                 step=0.1,
                 help="full width at half maximum",
                 format="%.2f",
@@ -529,24 +529,20 @@ def calculate_speed_profile(
 
     individual_speed = pedpy.compute_individual_speed(
         traj_data=trajectory_data,
-        frame_step=10,
-        speed_calculation=pedpy.SpeedCalculation.BORDER_ADAPTIVE,
+        frame_step=5,
+        speed_calculation=pedpy.SpeedCalculation.BORDER_SINGLE_SIDED,
     )
     combined_data = individual_speed.merge(
         trajectory_data.data,
         on=[pedpy.column_identifier.ID_COL, pedpy.column_identifier.FRAME_COL],
     )
     if chose_method == "Gaussian":
-        # speed_profiles = compute_gaussian_weighted_speed_profile2(data=combined_data, walkable_area=walkable_area, grid_size=grid_size, width=width, fill_value=fil_empty)
-        # speed_profiles = compute_speed_profile(
-        #     data=combined_data, walkable_area=walkable_area, grid_size=grid_size, fill_value=fil_empty, width=width, speed_method=SpeedMethod.MEAN
-        # )
-        st.info("work in progress")
-        speed_profiles = pedpy.compute_speed_profile(
+        speed_profiles = compute_speed_profile(
             data=combined_data,
             walkable_area=walkable_area,
             grid_size=grid_size,
-            speed_method=pedpy.SpeedMethod.MEAN,
+            width=width,
+            speed_method=SpeedMethod.MEAN,
             fill_value=fil_empty,
         )
 
@@ -562,10 +558,10 @@ def calculate_speed_profile(
     vmax = float(
         st.sidebar.number_input(
             "Max speed",
-            value=1.5,
+            value=0.8,
             min_value=0.5,
             max_value=3.0,
-            step=0.1,
+            step=0.5,
             placeholder="Max speed for colorbar",
             format="%.2f",
         )
