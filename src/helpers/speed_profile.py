@@ -46,7 +46,7 @@ def compute_gaussian_weighted_speed_profile(
     distance = np.sqrt(distance_x_expanded**2 + distance_y_expanded**2)
 
     weights = _compute_gaussian_weights(distance, fwhm)
-    normalized_weights = weights  # / np.sum(weights, axis=(0, 1), keepdims=True)
+    normalized_weights = weights / np.sum(weights, axis=(0, 1), keepdims=True)
     weighted_speeds = np.tensordot(normalized_weights, speeds, axes=([2], [0]))
     return np.array(weighted_speeds.T)
 
