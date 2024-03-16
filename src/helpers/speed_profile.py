@@ -10,33 +10,41 @@ from pedpy.column_identifier import FRAME_COL
 from pedpy import SpeedMethod, WalkableArea
 
 
-# todo: copy/pasted from pedpy
-def _gaussian_full_width_half_maximum(width: float) -> float:
-    return width * np.sqrt(2 * np.log(2))
-
-
-# todo: copy/pasted from pedpy
 def _compute_gaussian_weights(x: npt.NDArray[np.float64], fwhm: float) -> npt.NDArray[np.float64]:
-    """Computes the Gaussian density for a given distance and FWHM."""
-    # sigma = fwhm / np.sqrt(8 * np.log(2))
-    # return np.exp(-(x**2) / (2 * sigma**2))
-    return 1 / (1.7724538 * fwhm) * np.e ** (-(x**2) / fwhm**2)
+    """Computes the Gaussian density for given values and FWHM.
+
+    The Gaussian density is defined as:
+        G(x) = 1 / (sigma * sqrt(2 * pi)) * exp(-x^2 / (2 * sigma^2))
+    where sigma is derived from FWHM as:
+        sigma = FWHM / (2 * sqrt(2 * ln(2)))
+
+    Args:
+        x: Value(s) for which the Gaussian should be computed.
+        fwhm: Full width at half maximum, a measure of spread.
+
+    Returns:
+        Gaussian density corresponding to the given values and FWHM.
+    """
+    sigma = fwhm / (2 * np.sqrt(2 * np.log(2)))
+    return 1 / (sigma * np.sqrt(2 * np.pi)) * np.exp(-(x**2) / (2 * sigma**2))
 
 
 def compute_gaussian_weighted_speed_profile(
-    *, frame_data: pd.DataFrame, center_x: npt.NDArray[np.float64], center_y: npt.NDArray[np.float64], width: float, fill_value: float = np.nan, grid_size
+    *, frame_data: pd.DataFrame, center_x: npt.NDArray[np.float64], center_y: npt.NDArray[np.float64], fwhm: float, fill_value: float = np.nan, grid_size
 ) -> np.ndarray:
     positions_x = frame_data.x.values
     positions_y = frame_data.y.values
     speeds = frame_data.speed.values
-    fwhm = _gaussian_full_width_half_maximum(width)
 
     # distance from each grid center x/y coordinates to the pedestrian positions
     distance_x = np.subtract.outer(center_x, positions_x)
     distance_y = np.subtract.outer(center_y, positions_y)
+
     distance_x_expanded = np.expand_dims(distance_x, axis=1)
     distance_y_expanded = np.expand_dims(distance_y, axis=0)
+
     distance = np.sqrt(distance_x_expanded**2 + distance_y_expanded**2)
+
     weights = _compute_gaussian_weights(distance, fwhm)
     normalized_weights = weights  # / np.sum(weights, axis=(0, 1), keepdims=True)
     weighted_speeds = np.tensordot(normalized_weights, speeds, axes=([2], [0]))
