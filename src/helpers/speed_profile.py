@@ -94,7 +94,7 @@ def compute_speed_profile(
     speed_method: SpeedMethod,
     grid_intersections_area: Optional[npt.NDArray[np.float64]] = None,
     fill_value: float = np.nan,
-    width: float,
+    fwhm: float,
 ) -> List[npt.NDArray[np.float64]]:
     speed_profiles = []
     data_grouped_by_frame = data.groupby(FRAME_COL)
@@ -110,7 +110,7 @@ def compute_speed_profile(
                 center_y=center_y,
                 grid_size=grid_size,
                 fill_value=fill_value,
-                width=width,
+                fwhm=fwhm,
             )
         else:
             raise ValueError(f"Speed method {speed_method} not accepted")

@@ -511,7 +511,7 @@ def calculate_speed_profile(
     )
     chose_method = str(chose_method)
     if chose_method == "Gaussian":
-        width = float(
+        fwhm = float(
             st.sidebar.number_input(
                 "fwhm",
                 value=0.5,
@@ -541,7 +541,7 @@ def calculate_speed_profile(
             data=combined_data,
             walkable_area=walkable_area,
             grid_size=grid_size,
-            width=width,
+            fwhm=fwhm,
             speed_method=SpeedMethod.MEAN,
             fill_value=fil_empty,
         )
