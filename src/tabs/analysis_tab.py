@@ -561,7 +561,7 @@ def calculate_speed_profile(
             value=0.8,
             min_value=0.5,
             max_value=3.0,
-            step=0.5,
+            step=0.1,
             placeholder="Max speed for colorbar",
             format="%.2f",
         )
