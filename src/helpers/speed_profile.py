@@ -8,6 +8,7 @@ import numpy.typing as npt
 import pandas
 from pedpy.column_identifier import FRAME_COL
 from pedpy import SpeedMethod, WalkableArea
+import logging
 
 
 def _compute_gaussian_weights(x: npt.NDArray[np.float64], fwhm: float) -> npt.NDArray[np.float64]:
@@ -35,18 +36,15 @@ def compute_gaussian_weighted_speed_profile(
     positions_x = frame_data.x.values
     positions_y = frame_data.y.values
     speeds = frame_data.speed.values
-
     # distance from each grid center x/y coordinates to the pedestrian positions
     distance_x = np.subtract.outer(center_x, positions_x)
     distance_y = np.subtract.outer(center_y, positions_y)
 
     distance_x_expanded = np.expand_dims(distance_x, axis=1)
     distance_y_expanded = np.expand_dims(distance_y, axis=0)
-
     distance = np.sqrt(distance_x_expanded**2 + distance_y_expanded**2)
-
     weights = _compute_gaussian_weights(distance, fwhm)
-    normalized_weights = weights / np.sum(weights, axis=(0, 1), keepdims=True)
+    normalized_weights = weights / np.sum(weights, axis=2, keepdims=True)
     weighted_speeds = np.tensordot(normalized_weights, speeds, axes=([2], [0]))
     return np.array(weighted_speeds.T)
 
