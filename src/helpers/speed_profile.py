@@ -30,21 +30,45 @@ def _compute_gaussian_weights(x: npt.NDArray[np.float64], fwhm: float) -> npt.ND
     return 1 / (sigma * np.sqrt(2 * np.pi)) * np.exp(-(x**2) / (2 * sigma**2))
 
 
-def compute_gaussian_weighted_speed_profile(
-    *, frame_data: pd.DataFrame, center_x: npt.NDArray[np.float64], center_y: npt.NDArray[np.float64], fwhm: float, fill_value: float = np.nan, grid_size
-) -> np.ndarray:
+def _compute_gaussian_weighted_speed_profile(*, frame_data: pd.DataFrame, center_x: npt.NDArray[np.float64], center_y: npt.NDArray[np.float64], fwhm: float) -> np.ndarray:
+    """
+    Computes a Gaussian-weighted speed profile for a set of pedestrian positions and speeds
+    relative to a grid defined by center_x and center_y coordinates.
+
+    This function calculates the Euclidean distance from each grid center to each pedestrian position,
+    applies a Gaussian kernel to these distances using the specified full width at half maximum (FWHM),
+    normalizes these weights so that the sum across all agents for each grid cell equals 1, and then
+    calculates the weighted average speed at each grid cell based on these normalized weights.
+
+    Parameters:
+    - frame_data (pd.DataFrame): A pandas DataFrame containing the columns 'x', 'y', and 'speed',
+                                 representing the x and y positions of the pedestrians and their speeds, respectively.
+    - center_x (npt.NDArray[np.float64]): A NumPy array of x-coordinates for the grid centers.
+    - center_y (npt.NDArray[np.float64]): A NumPy array of y-coordinates for the grid centers.
+    - fwhm (float): The full width at half maximum (FWHM) parameter for the Gaussian kernel, controlling
+                    the spread of the Gaussian function.
+
+    Returns:
+    - np.ndarray: A 2D NumPy array where each element represents the weighted average speed of pedestrians
+                  at each grid cell, with the shape (len(center_x), len(center_y)). The array is transposed
+                  to align with the expected grid orientation.
+    """
+    # pedestrians' position and speed
     positions_x = frame_data.x.values
     positions_y = frame_data.y.values
     speeds = frame_data.speed.values
-    # distance from each grid center x/y coordinates to the pedestrian positions
+    # distance from each grid center coordinates to the pedestrian positions
     distance_x = np.subtract.outer(center_x, positions_x)
     distance_y = np.subtract.outer(center_y, positions_y)
-
     distance_x_expanded = np.expand_dims(distance_x, axis=1)
     distance_y_expanded = np.expand_dims(distance_y, axis=0)
+    # combine distances along axes into a single Euclidean distance
     distance = np.sqrt(distance_x_expanded**2 + distance_y_expanded**2)
+    # calculate the Gaussian weights based on the distances and the given fwhm
     weights = _compute_gaussian_weights(distance, fwhm)
+    # ensure that weights sum to 1 across all agents for each grid cell.
     normalized_weights = weights / np.sum(weights, axis=2, keepdims=True)
+    # calculate the weighted speeds
     weighted_speeds = np.tensordot(normalized_weights, speeds, axes=([2], [0]))
     return np.array(weighted_speeds.T)
 
@@ -102,12 +126,10 @@ def compute_speed_profile(
     center_y = shapely.get_y(grid_center[::cols])
     for frame, frame_data in data_grouped_by_frame:
         if True or speed_method == SpeedMethod.GAUSSIAN:  # todo
-            speed_profile = compute_gaussian_weighted_speed_profile(
+            speed_profile = _compute_gaussian_weighted_speed_profile(
                 frame_data=frame_data,
                 center_x=center_x,
                 center_y=center_y,
-                grid_size=grid_size,
-                fill_value=fill_value,
                 fwhm=fwhm,
             )
         else:

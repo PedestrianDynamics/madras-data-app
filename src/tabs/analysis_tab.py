@@ -7,7 +7,6 @@ import pickle
 import time
 from pathlib import Path
 from typing import List, Optional, Tuple, TypeAlias
-
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
@@ -18,7 +17,7 @@ from ..classes.datafactory import load_file
 from ..docs.docs import density_speed, flow
 from ..helpers.utilities import download, get_measurement_lines, is_running_locally, setup_walkable_area
 
-from ..helpers.speed_profile import compute_gaussian_weighted_speed_profile, compute_speed_profile
+from ..helpers.speed_profile import compute_speed_profile
 from ..plotting.drawing import drawing_canvas, get_measurement_area
 from ..plotting.plots import download_file, plot_fundamental_diagram_all, plot_fundamental_diagram_all_mpl, plot_time_series, plt_plot_time_series, show_fig
 
@@ -537,6 +536,7 @@ def calculate_speed_profile(
         on=[pedpy.column_identifier.ID_COL, pedpy.column_identifier.FRAME_COL],
     )
     if chose_method == "Gaussian":
+        start = time.time()
         speed_profiles = compute_speed_profile(
             data=combined_data,
             walkable_area=walkable_area,
@@ -545,8 +545,10 @@ def calculate_speed_profile(
             speed_method=SpeedMethod.MEAN,
             fill_value=fil_empty,
         )
-
+        end = time.time()
+        logging.info(f"Compute time Gauss speed profiles: {end-start} s")
     else:
+        start = time.time()
         speed_profiles = pedpy.compute_speed_profile(
             data=combined_data,
             walkable_area=walkable_area,
@@ -554,6 +556,8 @@ def calculate_speed_profile(
             speed_method=pedpy.SpeedMethod.MEAN,
             fill_value=fil_empty,
         )
+        end = time.time()
+        logging.info(f"Compute time Classic: {end-start} s")
 
     vmax = float(
         st.sidebar.number_input(
