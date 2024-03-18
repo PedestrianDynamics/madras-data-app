@@ -57,7 +57,7 @@ class DataConfig:
             with st.status("Downloading ...", expanded=True):
                 download_and_unzip_files(self.url, "data.zip", self.directory)
 
-        self.files = glob.glob(f"{self.directory}/*.txt")
+        self.files = sorted(glob.glob(f"{self.directory}/*.txt"))
 
 
 def increment_frame_start(page_size: int) -> None:
