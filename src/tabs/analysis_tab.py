@@ -399,11 +399,14 @@ def calculate_density_profile(
     selected_file: str,
 ) -> None:
     """Calculate density profiles based on different methods."""
-    chose_method = st.sidebar.radio(
-        "Method",
-        ["Gaussian", "Classic"],
-        help="See [PedPy-documentation](https://pedpy.readthedocs.io/en/latest/user_guide.html#density-profiles).",
-    )
+    # chose_method = st.sidebar.radio(
+    #     "Method",
+    #     ["Gaussian", "Classic"],
+    #     help="See [PedPy-documentation](https://pedpy.readthedocs.io/en/latest/user_guide.html#density-profiles).",
+    # )
+    with st.expander("Documentation"):
+        st.write("This profile is using 'Gaussian density profile' from [PedPy](https://pedpy.readthedocs.io/en/latest/user_guide.html#density-profiles).")
+    chose_method = "Gaussian"
     chose_method = str(chose_method)
     method = {
         "Classic": pedpy.DensityMethod.CLASSIC,
@@ -488,6 +491,8 @@ def calculate_speed_profile(
     selected_file: str,
 ) -> None:
     """Calculate speed profile."""
+    with st.expander("Documentation"):
+        st.write("This profile is using 'Gaussian speed profile' from [PedPy](https://pedpy.readthedocs.io/en/latest/user_guide.html#speed-profiles).")
     grid_size = st.sidebar.number_input(
         "Grid size",
         value=0.4,
@@ -497,17 +502,19 @@ def calculate_speed_profile(
         placeholder="Type the grid size",
         format="%.2f",
     )
-    fil = str(
-        st.sidebar.selectbox(
-            "How to fil empty cells?",
-            ["Nan", "0"],
-        )
-    )
-    chose_method = st.sidebar.radio(
-        "Chose method",
-        ["Gaussian", "Classic"],
-        help="See [PedPy-documentation](https://pedpy.readthedocs.io/en/latest/user_guide.html#density-profiles).",
-    )
+    # fil = str(
+    #     st.sidebar.selectbox(
+    #         "How to fil empty cells?",
+    #         ["Nan", "0"],
+    #     )
+    # )
+    fil = "Nan"
+    # chose_method = st.sidebar.radio(
+    #     "Chose method",
+    #     ["Gaussian", "Classic"],
+    #     help="See [PedPy-documentation](https://pedpy.readthedocs.io/en/latest/user_guide.html#density-profiles).",
+    # )
+    chose_method = "Gaussian"
     chose_method = str(chose_method)
     if chose_method == "Gaussian":
         fwhm = float(
