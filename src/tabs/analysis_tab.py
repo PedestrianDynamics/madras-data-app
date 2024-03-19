@@ -730,7 +730,7 @@ def read_and_plot_outflow(filename: str):
     ax.set_ylim([0.0, 12.5])
     ax.tick_params(axis="x", which="major", labelsize=16)
     ax.tick_params(axis="y", which="major", labelsize=16)
-    ax.set_xlabel("Time (s)", fontsize=16)
+    ax.set_xlabel("Time", fontsize=16)
     ax.set_ylabel("Outflow of pedestrians", fontsize=16)
     ax.grid(True, alpha=0.3)
     fig.autofmt_xdate()
