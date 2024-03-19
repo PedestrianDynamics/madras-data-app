@@ -7,22 +7,21 @@ import pickle
 import time
 from pathlib import Path
 from typing import List, Optional, Tuple, TypeAlias
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pedpy
 import streamlit as st
 from pedpy import SpeedMethod
-from ..classes.datafactory import load_file
-from ..docs.docs import density_speed, flow
-from ..helpers.utilities import download, get_measurement_lines, is_running_locally, setup_walkable_area
-
-from ..helpers.speed_profile import compute_speed_profile
-from ..plotting.drawing import drawing_canvas, get_measurement_area
-from ..plotting.plots import download_file, plot_fundamental_diagram_all, plot_fundamental_diagram_all_mpl, plot_time_series, plt_plot_time_series, show_fig
-
 from scipy.ndimage import gaussian_filter
 
+from ..classes.datafactory import load_file
+from ..docs.docs import density_speed, flow
+from ..helpers.speed_profile import compute_speed_profile
+from ..helpers.utilities import download, get_measurement_lines, is_running_locally, setup_walkable_area
+from ..plotting.drawing import drawing_canvas, get_measurement_area
+from ..plotting.plots import download_file, plot_fundamental_diagram_all, plot_fundamental_diagram_all_mpl, plot_time_series, plt_plot_time_series, show_fig
 
 st_column: TypeAlias = st.delta_generator.DeltaGenerator
 
@@ -741,22 +740,32 @@ def read_and_plot_outflow(filename: str, sigma: float):
     return Path(figname)
 
 
+def select_file() -> str:
+    """Select a file from available options."""
+    file_name_to_path = {path.split("/")[-1]: path for path in st.session_state.files}
+    filename = str(st.selectbox(":open_file_folder: **Select a file**", file_name_to_path, key="tab3_filename"))
+    selected_file = file_name_to_path[filename]
+    st.session_state.selected_file = selected_file
+    return selected_file
+
+
+def handle_outflow(sigma: float):
+    """Handle outflow calculation and plotting."""
+    files = [
+        st.session_state.config.directory / "chenavard_2022_1210.csv",
+        st.session_state.config.directory / "constantine_2022_1210.csv",
+    ]
+    for _file in files:
+        figname = read_and_plot_outflow(_file, sigma)
+        download_file(figname)
+
+
 def run_tab3() -> None:
     """Run the main logic in tab analysis."""
     calculations, dv, c1 = ui_tab3_analysis()
-    file_name_to_path = {path.split("/")[-1]: path for path in st.session_state.files}
     if not calculations.startswith(("FD", "Outflow")):
-        filename = str(
-            st.selectbox(
-                ":open_file_folder: **Select a file**",
-                file_name_to_path,
-                key="tab3_filename",
-            )
-        )
-        selected_file = file_name_to_path[filename]
-        st.session_state.selected_file = selected_file
+        selected_file = select_file()
         trajectory_data, walkable_area = prepare_data(selected_file)
-
     if calculations == "Outflow":
         sigma = float(
             st.sidebar.slider(
@@ -768,14 +777,10 @@ def run_tab3() -> None:
                 help="Standard deviation for Gaussian kernel used to smooth the curve.",
             )
         )
+        handle_outflow(sigma)
 
-        files = [
-            st.session_state.config.directory / "chenavard_2022_1210.csv",
-            st.session_state.config.directory / "constantine_2022_1210.csv",
-        ]
-        for _file in files:
-            figname = read_and_plot_outflow(_file, sigma)
-            download_file(figname)
+    selected_file = st.session_state.selected_file
+    trajectory_data, walkable_area = prepare_data(selected_file)
     if calculations == "N-T":
         calculate_nt(
             trajectory_data,
