@@ -21,6 +21,9 @@ from ..helpers.speed_profile import compute_speed_profile
 from ..plotting.drawing import drawing_canvas, get_measurement_area
 from ..plotting.plots import download_file, plot_fundamental_diagram_all, plot_fundamental_diagram_all_mpl, plot_time_series, plt_plot_time_series, show_fig
 
+from scipy.ndimage import gaussian_filter
+
+
 st_column: TypeAlias = st.delta_generator.DeltaGenerator
 
 
@@ -635,6 +638,7 @@ def ui_tab3_analysis() -> Tuple[str, Optional[int], st_column]:
                 "**Choose calculation**",
                 [
                     "N-T",
+                    "Outflow",
                     "Time series",
                     "FD_classical",
                     "FD_voronoi (load)",
@@ -692,11 +696,56 @@ def prepare_data(selected_file: str) -> Tuple[pedpy.TrajectoryData, List[List[fl
     return trajectory_data, walkable_area
 
 
+from matplotlib.dates import DateFormatter
+
+
+def read_and_plot_outflow(filename: str):
+    """Read file, calculate flow and plot."""
+    st.info(filename.stem)
+    # setup and read file
+    fig, ax = plt.subplots()
+    df = pd.read_csv(filename)
+
+    # Preprocess and calculate time difference
+    df["time"] = pd.to_datetime(df["time"], format="%H:%M:%S")
+    df["date"] = pd.to_datetime("today").normalize()
+    df["datetime"] = pd.to_datetime(df["date"].dt.date.astype(str) + " " + df["time"].dt.time.astype(str))
+    df["time_difference"] = df["datetime"] - df["datetime"].iloc[0]
+    df["seconds"] = df["time_difference"].dt.total_seconds()
+    df["time_difference"] = df["seconds"].diff().fillna(0)
+    # Calculate instant flow, handle the first row before dropping it
+    df["instant_flow"] = df.people_passed / df.time_difference
+    df = df.drop(df.index[0])
+    df["instant_flow"] = df["instant_flow"].fillna(0)
+
+    # Smooth the flow using a Gaussian filter
+    df["gaussian_flow"] = gaussian_filter(df["instant_flow"], sigma=2.0)
+
+    # plotting
+    ax.xaxis.set_major_formatter(DateFormatter("%H:%M"))  # Format time as hours:minutes
+    ax.plot(df["time"], df["instant_flow"], "--.", lw=0.6, color="gray", label="Instant outflow")
+    ax.plot(df["time"], df["gaussian_flow"], label="Smoothed outflow", color="black")
+    legend = plt.legend(loc="upper right")
+    plt.setp(legend.get_texts(), fontweight="bold")
+    ax.set_ylim([0.0, 12.5])
+    ax.tick_params(axis="x", which="major", labelsize=16)
+    ax.tick_params(axis="y", which="major", labelsize=16)
+    ax.set_xlabel("Time (s)", fontsize=16)
+    ax.set_ylabel("Outflow of pedestrians", fontsize=16)
+    ax.grid(True, alpha=0.3)
+    fig.autofmt_xdate()
+    # Save and return figure path
+    st.pyplot(fig)
+    figname = Path(filename).stem + ".pdf"
+    fig.savefig(figname, bbox_inches="tight", pad_inches=0.1)
+    return Path(figname)
+
+
 def run_tab3() -> None:
     """Run the main logic in tab analysis."""
     calculations, dv, c1 = ui_tab3_analysis()
     file_name_to_path = {path.split("/")[-1]: path for path in st.session_state.files}
-    if not calculations.startswith("FD"):
+    if not calculations.startswith(("FD", "Outflow")):
         filename = str(
             st.selectbox(
                 ":open_file_folder: **Select a file**",
@@ -708,6 +757,14 @@ def run_tab3() -> None:
         st.session_state.selected_file = selected_file
         trajectory_data, walkable_area = prepare_data(selected_file)
 
+    if calculations == "Outflow":
+        files = [
+            st.session_state.config.directory / "chenavard_2022_1210.csv",
+            st.session_state.config.directory / "constantine_2022_1210.csv",
+        ]
+        for _file in files:
+            figname = read_and_plot_outflow(_file)
+            download_file(figname)
     if calculations == "N-T":
         calculate_nt(
             trajectory_data,

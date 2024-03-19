@@ -113,6 +113,9 @@ def init_session_state() -> None:
     if "start_frame" not in st.session_state:
         st.session_state.start_frame = 0
 
+    if "config" not in st.session_state:
+        st.session_state.config = DataConfig
+
     if not hasattr(st.session_state, "files"):
         st.session_state.files = []
 
@@ -127,6 +130,7 @@ def init_session_state() -> None:
 
     dataconfig = DataConfig(trajectories_directory, processed_directory)
     st.session_state.files = dataconfig.files
+    st.session_state.config = dataconfig
 
 
 def unzip_files(zip_path: Union[str, Path], destination: Union[str, Path]) -> None:
