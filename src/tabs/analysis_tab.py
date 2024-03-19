@@ -664,7 +664,7 @@ def ui_tab3_analysis() -> Tuple[str, Optional[int], st_column]:
                 horizontal=True,
             )
         )
-    exclude = ["N-T", "Density profile", "Speed profile", "FD_voronoi (load)"]
+    exclude = ["N-T", "Outflow", "Density profile", "Speed profile", "FD_voronoi (load)"]
     if calculations in exclude:
         dv = None
     else:
@@ -699,7 +699,7 @@ def prepare_data(selected_file: str) -> Tuple[pedpy.TrajectoryData, List[List[fl
 from matplotlib.dates import DateFormatter
 
 
-def read_and_plot_outflow(filename: str):
+def read_and_plot_outflow(filename: str, sigma: float):
     """Read file, calculate flow and plot."""
     st.info(filename.stem)
     # setup and read file
@@ -719,7 +719,7 @@ def read_and_plot_outflow(filename: str):
     df["instant_flow"] = df["instant_flow"].fillna(0)
 
     # Smooth the flow using a Gaussian filter
-    df["gaussian_flow"] = gaussian_filter(df["instant_flow"], sigma=2.0)
+    df["gaussian_flow"] = gaussian_filter(df["instant_flow"], sigma=sigma)
 
     # plotting
     ax.xaxis.set_major_formatter(DateFormatter("%H:%M"))  # Format time as hours:minutes
@@ -736,7 +736,7 @@ def read_and_plot_outflow(filename: str):
     fig.autofmt_xdate()
     # Save and return figure path
     st.pyplot(fig)
-    figname = Path(filename).stem + ".pdf"
+    figname = Path(filename).stem + f"_sigma_{sigma}.pdf"
     fig.savefig(figname, bbox_inches="tight", pad_inches=0.1)
     return Path(figname)
 
@@ -758,12 +758,23 @@ def run_tab3() -> None:
         trajectory_data, walkable_area = prepare_data(selected_file)
 
     if calculations == "Outflow":
+        sigma = float(
+            st.sidebar.slider(
+                r"$\sigma$",
+                value=2.0,
+                max_value=10.0,
+                min_value=0.1,
+                step=1.0,
+                help="Standard deviation for Gaussian kernel used to smooth the curve.",
+            )
+        )
+
         files = [
             st.session_state.config.directory / "chenavard_2022_1210.csv",
             st.session_state.config.directory / "constantine_2022_1210.csv",
         ]
         for _file in files:
-            figname = read_and_plot_outflow(_file)
+            figname = read_and_plot_outflow(_file, sigma)
             download_file(figname)
     if calculations == "N-T":
         calculate_nt(
