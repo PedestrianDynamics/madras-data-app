@@ -656,6 +656,7 @@ def ui_tab3_analysis() -> Tuple[str, Optional[int], st_column]:
                 [
                     "N-T",
                     "Time series",
+                    "Outflow",
                     "FD_classical",
                     "FD_voronoi (load)",
                     "Density profile",
