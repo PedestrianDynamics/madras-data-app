@@ -13,6 +13,7 @@ import numpy as np
 import pandas as pd
 import pedpy
 import streamlit as st
+from matplotlib.dates import DateFormatter
 from pedpy import SpeedMethod
 from scipy.ndimage import gaussian_filter
 
@@ -693,9 +694,6 @@ def prepare_data(selected_file: str) -> Tuple[pedpy.TrajectoryData, List[List[fl
     walkable_area = setup_walkable_area(trajectory_data)
 
     return trajectory_data, walkable_area
-
-
-from matplotlib.dates import DateFormatter
 
 
 def read_and_plot_outflow(filename: str, sigma: float):
