@@ -82,7 +82,7 @@ def plot_gps_tracks(map_object: folium.Map, all_gps_tracks: pd.DataFrame) -> Non
         track_points = track_df[["latitude", "longitude"]].values.tolist()
         rgba_color = viridis(track_index / len(unique_tracks))
         hex_color = mcolors.to_hex(rgba_color)
-        folium.PolyLine(track_points, color=hex_color, weight=2.5, opacity=1, popup=name_subj).add_to(map_object)
+        folium.PolyLine(track_points, color=hex_color, weight=2.5, opacity=1).add_to(map_object)
 
 
 def add_contact_markers(map_object: folium.Map, contact_gps_merged: pd.DataFrame, path_icon: str) -> None:
