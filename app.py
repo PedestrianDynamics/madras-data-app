@@ -7,6 +7,7 @@ from src.docs import docs
 from src.helpers.log_config import setup_logging
 from src.tabs.analysis_tab import run_tab3
 from src.tabs.contacts_tab import run_tab_contact
+from src.tabs.animation_tab import run_tab_animation
 from src.tabs.explorer import run_explorer
 from src.tabs.map_tab import run_tab_map
 from src.tabs.traj_tab import run_tab2
@@ -40,3 +41,6 @@ if __name__ == "__main__":
 
     if selected_tab == "Explorer":
         run_explorer()
+        
+    if selected_tab == "Animation":
+        run_tab_animation()
