@@ -118,7 +118,7 @@ def plot_histogram(df: pd.DataFrame, bins: int, log_plot: Tuple[bool,bool]) -> F
     plt.xlabel('Number of contacts along the path')
     plt.ylabel('Number of people')
     plt.title('Histogram of the total number of collisions')
-    # plt.savefig(Path(__file__).parent.parent.parent.absolute() / "data" / "processed" / f"histogram_{bins}.pdf")
+    plt.savefig(Path(__file__).parent.parent.parent.absolute() / "data" / "processed" / f"histogram_{bins}.pdf")
 
 
     return fig
@@ -143,7 +143,7 @@ def plot_cumulative_contacts(df: pd.DataFrame) -> Figure:
     # Update layout of the figure
     fig.update_layout(
         title="Cumulative Contacts as a Function of Time",
-        xaxis_title="Time [microseconds]",
+        xaxis_title="Time [seconds]",
         yaxis_title="Cumulative Number of Contacts",
         width=600, height=600
     )
