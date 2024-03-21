@@ -8,3 +8,4 @@ AppData
 *.pkl
 *.sh
 *.zip
+*._*.txt
