@@ -45,8 +45,7 @@ def initialize_map(all_gps_tracks: pd.DataFrame) -> folium.Map:
     Returns:
         folium.Map: A folium map object.
     """
-    first_track_df = all_gps_tracks[all_gps_tracks["name_subj"] == "Ludovic-Gardre1"]
-    map_center = first_track_df.iloc[len(first_track_df) // 2][["latitude", "longitude"]].tolist()
+    map_center = [45.76714745916146, 4.833552178368124] # first_track_df.iloc[len(first_track_df) // 2][["latitude", "longitude"]].tolist()
     return folium.Map(location=map_center, zoom_start=17.5)
 
 
@@ -114,12 +113,12 @@ def plot_histogram(df: pd.DataFrame, bins: int, log_plot: Tuple[bool,bool]) -> F
         Figure: The Plotly figure object for the histogram.
     """
   
-    fig, ax = plt.subplots()
+    fig, ax = plt.subplots(figsize=(2, 2), dpi=10)
     sns.histplot(df['Total-number-of-collisions'], bins=bins, kde=True, log_scale=(log_plot[0], log_plot[1]), ax=ax)
     plt.xlabel('Number of contacts along the path')
     plt.ylabel('Number of people')
     plt.title('Histogram of the total number of collisions')
-    plt.savefig(Path(__file__).parent.parent.parent.absolute() / "data" / "processed" / f"histogram_{bins}.pdf")
+    # plt.savefig(Path(__file__).parent.parent.parent.absolute() / "data" / "processed" / f"histogram_{bins}.pdf")
 
 
     return fig
@@ -128,23 +127,25 @@ def plot_histogram(df: pd.DataFrame, bins: int, log_plot: Tuple[bool,bool]) -> F
 def plot_cumulative_contacts(df: pd.DataFrame) -> Figure:
     """To plot cumulative contacts as a function of time using Plotly"""
     # Initialize an empty figure
-    fig = go.Figure()
+    # Drop the non-numeric 'Détail' columns
+    detail_data = df.drop(columns=["Name", "Date", "Time-of-stop", "Total-number-of-collisions", "Duration"], inplace=False)
 
+    fig = go.Figure()
     # Loop through the DataFrame and plot each person's contact times
-    for index, row in df.iterrows():
+    for index, row in detail_data.iterrows():
         times = row.dropna().values  # Get the 'Détail' times for the person
         if len(times) > 0:
             values = np.cumsum(np.concatenate(([0], np.ones(len(times), dtype="int"))))  # type: ignore
             edges = np.concatenate((times, [df["Duration"].iloc[index].total_seconds()]))
             # Add a trace for each person
-            fig.add_trace(go.Scatter(x=edges, y=values, mode="lines+markers", name=row["Name"]))
+            fig.add_trace(go.Scatter(x=edges, y=values, mode="lines+markers"))
 
     # Update layout of the figure
     fig.update_layout(
         title="Cumulative Contacts as a Function of Time",
         xaxis_title="Time [microseconds]",
         yaxis_title="Cumulative Number of Contacts",
-        drawstyle="steps-pre",
+        width=600, height=600
     )
 
     return fig
@@ -193,9 +194,11 @@ def main() -> None:
     path = Path(__file__)
     data_directory = path.parent.parent.parent.absolute() / "data" / "processed"
     figname = data_directory / Path(figname)
-    st.pyplot(fig, use_container_width=True)
+    st.pyplot(fig)
     download_file(figname)
-
+    
+    fig = plot_cumulative_contacts(contacts_data)
+    st.plotly_chart(fig)
 
 def run_tab_contact() -> None:
     main()
