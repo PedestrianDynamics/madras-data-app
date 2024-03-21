@@ -7,22 +7,22 @@ import pickle
 import time
 from pathlib import Path
 from typing import List, Optional, Tuple, TypeAlias
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import pedpy
 import streamlit as st
+from matplotlib.dates import DateFormatter
 from pedpy import SpeedMethod
-from ..classes.datafactory import load_file
-from ..docs.docs import density_speed, flow
-from ..helpers.utilities import download, get_measurement_lines, is_running_locally, setup_walkable_area
-
-from ..helpers.speed_profile import compute_speed_profile
-from ..plotting.drawing import drawing_canvas, get_measurement_area
-from ..plotting.plots import download_file, plot_fundamental_diagram_all, plot_fundamental_diagram_all_mpl, plot_time_series, plt_plot_time_series, show_fig
-
 from scipy.ndimage import gaussian_filter
 
+from ..classes.datafactory import load_file
+from ..docs.docs import density_speed, flow
+from ..helpers.speed_profile import compute_speed_profile
+from ..helpers.utilities import download, get_measurement_lines, is_running_locally, setup_walkable_area
+from ..plotting.drawing import drawing_canvas, get_measurement_area
+from ..plotting.plots import download_file, plot_fundamental_diagram_all, plot_fundamental_diagram_all_mpl, plot_time_series, plt_plot_time_series, show_fig
 
 st_column: TypeAlias = st.delta_generator.DeltaGenerator
 
@@ -656,6 +656,7 @@ def ui_tab3_analysis() -> Tuple[str, Optional[int], st_column]:
                 [
                     "N-T",
                     "Time series",
+                    "Outflow",
                     "FD_classical",
                     "FD_voronoi (load)",
                     "Density profile",
@@ -664,7 +665,7 @@ def ui_tab3_analysis() -> Tuple[str, Optional[int], st_column]:
                 horizontal=True,
             )
         )
-    exclude = ["N-T", "Density profile", "Speed profile", "FD_voronoi (load)"]
+    exclude = ["N-T", "Outflow", "Density profile", "Speed profile", "FD_voronoi (load)"]
     if calculations in exclude:
         dv = None
     else:
@@ -696,10 +697,7 @@ def prepare_data(selected_file: str) -> Tuple[pedpy.TrajectoryData, List[List[fl
     return trajectory_data, walkable_area
 
 
-from matplotlib.dates import DateFormatter
-
-
-def read_and_plot_outflow(filename: str):
+def read_and_plot_outflow(filename: str, sigma: float):
     """Read file, calculate flow and plot."""
     st.info(filename.stem)
     # setup and read file
@@ -719,7 +717,7 @@ def read_and_plot_outflow(filename: str):
     df["instant_flow"] = df["instant_flow"].fillna(0)
 
     # Smooth the flow using a Gaussian filter
-    df["gaussian_flow"] = gaussian_filter(df["instant_flow"], sigma=2.0)
+    df["gaussian_flow"] = gaussian_filter(df["instant_flow"], sigma=sigma)
 
     # plotting
     ax.xaxis.set_major_formatter(DateFormatter("%H:%M"))  # Format time as hours:minutes
@@ -730,41 +728,58 @@ def read_and_plot_outflow(filename: str):
     ax.set_ylim([0.0, 12.5])
     ax.tick_params(axis="x", which="major", labelsize=16)
     ax.tick_params(axis="y", which="major", labelsize=16)
-    ax.set_xlabel("Time (s)", fontsize=16)
+    ax.set_xlabel("Time", fontsize=16)
     ax.set_ylabel("Outflow of pedestrians", fontsize=16)
     ax.grid(True, alpha=0.3)
     fig.autofmt_xdate()
     # Save and return figure path
     st.pyplot(fig)
-    figname = Path(filename).stem + ".pdf"
+    figname = Path(filename).stem + f"_sigma_{sigma}.pdf"
     fig.savefig(figname, bbox_inches="tight", pad_inches=0.1)
     return Path(figname)
+
+
+def select_file() -> str:
+    """Select a file from available options."""
+    file_name_to_path = {path.split("/")[-1]: path for path in st.session_state.files}
+    filename = str(st.selectbox(":open_file_folder: **Select a file**", file_name_to_path, key="tab3_filename"))
+    selected_file = file_name_to_path[filename]
+    st.session_state.selected_file = selected_file
+    return selected_file
+
+
+def handle_outflow(sigma: float):
+    """Handle outflow calculation and plotting."""
+    files = [
+        st.session_state.config.directory / "chenavard_2022_1210.csv",
+        st.session_state.config.directory / "constantine_2022_1210.csv",
+    ]
+    for _file in files:
+        figname = read_and_plot_outflow(_file, sigma)
+        download_file(figname)
 
 
 def run_tab3() -> None:
     """Run the main logic in tab analysis."""
     calculations, dv, c1 = ui_tab3_analysis()
-    file_name_to_path = {path.split("/")[-1]: path for path in st.session_state.files}
     if not calculations.startswith(("FD", "Outflow")):
-        filename = str(
-            st.selectbox(
-                ":open_file_folder: **Select a file**",
-                file_name_to_path,
-                key="tab3_filename",
+        selected_file = select_file()
+        trajectory_data, walkable_area = prepare_data(selected_file)
+    if calculations == "Outflow":
+        sigma = float(
+            st.sidebar.slider(
+                r"$\sigma$",
+                value=2.0,
+                max_value=10.0,
+                min_value=0.1,
+                step=1.0,
+                help="Standard deviation for Gaussian kernel used to smooth the curve.",
             )
         )
-        selected_file = file_name_to_path[filename]
-        st.session_state.selected_file = selected_file
-        trajectory_data, walkable_area = prepare_data(selected_file)
+        handle_outflow(sigma)
 
-    if calculations == "Outflow":
-        files = [
-            st.session_state.config.directory / "chenavard_2022_1210.csv",
-            st.session_state.config.directory / "constantine_2022_1210.csv",
-        ]
-        for _file in files:
-            figname = read_and_plot_outflow(_file)
-            download_file(figname)
+    selected_file = st.session_state.selected_file
+    trajectory_data, walkable_area = prepare_data(selected_file)
     if calculations == "N-T":
         calculate_nt(
             trajectory_data,

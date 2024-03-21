@@ -5,10 +5,8 @@ import shapely
 import numpy as np
 import pandas as pd
 import numpy.typing as npt
-import pandas
 from pedpy.column_identifier import FRAME_COL
 from pedpy import SpeedMethod, WalkableArea
-import logging
 
 
 def _compute_gaussian_weights(x: npt.NDArray[np.float64], fwhm: float) -> npt.NDArray[np.float64]:
