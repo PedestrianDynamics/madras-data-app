@@ -9,3 +9,4 @@ AppData
 *.zip
 *._*.txt
 *._*.csv
+./data/trajectories/
