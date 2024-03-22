@@ -5,6 +5,8 @@ __pycache__/
 .venv
 AppData
 *.pdf
-*.pkl
 *.sh
 *.zip
+*._*.txt
+*._*.csv
+./data/trajectories/

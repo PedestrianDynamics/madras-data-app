@@ -5,9 +5,10 @@ from typing import Tuple
 
 import folium
 import matplotlib.colors as mcolors
+import matplotlib.pyplot as plt
+import seaborn as sns
 import numpy as np
 import pandas as pd
-import plotly.express as px
 import plotly.graph_objects as go
 import streamlit as st
 from matplotlib import colormaps
@@ -44,8 +45,7 @@ def initialize_map(all_gps_tracks: pd.DataFrame) -> folium.Map:
     Returns:
         folium.Map: A folium map object.
     """
-    first_track_df = all_gps_tracks[all_gps_tracks["name_subj"] == "Ludovic-Gardre1"]
-    map_center = first_track_df.iloc[len(first_track_df) // 2][["latitude", "longitude"]].tolist()
+    map_center = [45.76714745916146, 4.833552178368124] # first_track_df.iloc[len(first_track_df) // 2][["latitude", "longitude"]].tolist()
     return folium.Map(location=map_center, zoom_start=17.5)
 
 
@@ -82,7 +82,7 @@ def plot_gps_tracks(map_object: folium.Map, all_gps_tracks: pd.DataFrame) -> Non
         track_points = track_df[["latitude", "longitude"]].values.tolist()
         rgba_color = viridis(track_index / len(unique_tracks))
         hex_color = mcolors.to_hex(rgba_color)
-        folium.PolyLine(track_points, color=hex_color, weight=2.5, opacity=1, popup=name_subj).add_to(map_object)
+        folium.PolyLine(track_points, color=hex_color, weight=2.5, opacity=1).add_to(map_object)
 
 
 def add_contact_markers(map_object: folium.Map, contact_gps_merged: pd.DataFrame, path_icon: str) -> None:
@@ -102,7 +102,7 @@ def add_contact_markers(map_object: folium.Map, contact_gps_merged: pd.DataFrame
         ).add_to(map_object)
 
 
-def plot_histogram(df: pd.DataFrame, bins: int) -> Figure:
+def plot_histogram(df: pd.DataFrame, bins: int, log_plot: Tuple[bool,bool]) -> Figure:
     """
     Creates an interactive bar chart using Plotly to visualize the total number of collisions.
 
@@ -112,40 +112,40 @@ def plot_histogram(df: pd.DataFrame, bins: int) -> Figure:
     Returns:
         Figure: The Plotly figure object for the histogram.
     """
-    fig = px.histogram(
-        df,
-        x="Total-number-of-collisions",
-        nbins=bins,
-        marginal="rug",
-        hover_data=df.columns,
-        labels={"waiting": "Waiting time"},
-        text_auto=True,
-        title="<b>Histogram of the total number of collisions</b>",
-    )
-    fig.update_layout(bargap=0.2, xaxis_title="Number of contacts along the path", yaxis_title="Number of people")  # Set the range for the log scale
+  
+    fig, ax = plt.subplots(figsize=(2, 2), dpi=10)
+    sns.histplot(df['Total-number-of-collisions'], bins=bins, kde=True, log_scale=(log_plot[0], log_plot[1]), ax=ax)
+    plt.xlabel('Number of contacts along the path')
+    plt.ylabel('Number of people')
+    plt.title('Histogram of the total number of collisions')
+    plt.savefig(Path(__file__).parent.parent.parent.absolute() / "data" / "processed" / f"histogram_{bins}.pdf")
+
+
     return fig
 
 
 def plot_cumulative_contacts(df: pd.DataFrame) -> Figure:
     """To plot cumulative contacts as a function of time using Plotly"""
     # Initialize an empty figure
-    fig = go.Figure()
+    # Drop the non-numeric 'Détail' columns
+    detail_data = df.drop(columns=["Name", "Date", "Time-of-stop", "Total-number-of-collisions", "Duration"], inplace=False)
 
+    fig = go.Figure()
     # Loop through the DataFrame and plot each person's contact times
-    for index, row in df.iterrows():
+    for index, row in detail_data.iterrows():
         times = row.dropna().values  # Get the 'Détail' times for the person
         if len(times) > 0:
             values = np.cumsum(np.concatenate(([0], np.ones(len(times), dtype="int"))))  # type: ignore
             edges = np.concatenate((times, [df["Duration"].iloc[index].total_seconds()]))
             # Add a trace for each person
-            fig.add_trace(go.Scatter(x=edges, y=values, mode="lines+markers", name=row["Name"]))
+            fig.add_trace(go.Scatter(x=edges, y=values, mode="lines+markers"))
 
     # Update layout of the figure
     fig.update_layout(
         title="Cumulative Contacts as a Function of Time",
-        xaxis_title="Time [microseconds]",
+        xaxis_title="Time [seconds]",
         yaxis_title="Cumulative Number of Contacts",
-        drawstyle="steps-pre",
+        width=600, height=600
     )
 
     return fig
@@ -172,18 +172,33 @@ def main() -> None:
 
     # Display the map in the Streamlit app
     st_folium(my_map, width=825, height=700)
+    
     # Slider for selecting the number of bins
     plt = st.empty()
-    bins = int(st.slider("Select number of bins:", min_value=5, max_value=11, value=10, step=3))
-    fig = plot_histogram(contacts_data, bins)
-    plt.plotly_chart(fig, use_container_width=True)
+    bins = int(st.slider("Select number of bins:", min_value=5, max_value=11, value=6, step=1))
+    
+    # Initialize the session state variable if it doesn't exist
+    if 'bool_var' not in st.session_state:
+        st.session_state['bool_var'] = True
+
+    # Create a button in the Streamlit app
+    if st.button('log-x-scale'):
+        # When the button is clicked, toggle the session state boolean variable
+        st.session_state['bool_var'] = not st.session_state['bool_var']
+
+    # Display the current value of the session state boolean variable
+    st.write(f'Current value of boolean variable: {st.session_state["bool_var"]}')
+
+    fig = plot_histogram(contacts_data, bins, (st.session_state["bool_var"],False))
     figname = Path(f"histogram_{bins}.pdf")
     path = Path(__file__)
     data_directory = path.parent.parent.parent.absolute() / "data" / "processed"
     figname = data_directory / Path(figname)
-    fig.write_image(figname)
+    st.pyplot(fig)
     download_file(figname)
-
+    
+    fig = plot_cumulative_contacts(contacts_data)
+    st.plotly_chart(fig)
 
 def run_tab_contact() -> None:
     main()

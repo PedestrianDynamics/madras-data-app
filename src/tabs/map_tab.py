@@ -26,6 +26,7 @@ tile_layers = {
     "Open Street Map": "openstreetmap",
     "CartoDB Positron": "CartoDB positron",
     "CartoDB Dark_Matter": "CartoDB dark_matter",
+    "Google Satellite": "google_satellite"
 }
 
 
@@ -77,7 +78,7 @@ def load_cameras_from_json(file_path: str) -> Dict[str, Camera]:
 
 def create_map(
     center: List[float],
-    tile_layer: str,
+    selected_layer: str,
     cameras: Dict[str, Camera],
     zoom: int = 16,
 ) -> folium.Map:
@@ -92,8 +93,21 @@ def create_map(
     """
     path = Path(__file__).parent.parent.parent
     logo_cameras = path / "data" / "assets" / "logo_cameras"
-    m = folium.Map(location=center, zoom_start=zoom, tiles=tile_layer, max_zoom=21)
-
+    m = folium.Map(location=center, zoom_start=zoom, max_zoom=21)
+    if selected_layer == "Google Satellite":
+        google_satellite = folium.TileLayer(
+            tiles="http://www.google.cn/maps/vt?lyrs=s@189&gl=cn&x={x}&y={y}&z={z}",
+            attr="Google",
+            name="Google Satellite",
+            overlay=True,
+            control=True,
+            opacity=1.0,
+        )
+        google_satellite.add_to(m)
+    else:
+        # Assuming 'tile_layers' is a dictionary that maps layer names to their tile URLs
+        folium.TileLayer(tile_layers[selected_layer], attr="Attribution for the tile source").add_to(m)
+    
     camera_layers = []
     for name in cameras.keys():
         camera_layers.append(
@@ -172,7 +186,12 @@ def main(cameras: Dict[str, Camera], selected_layer: str) -> None:
     cameras (Dict[str, Camera]): A dictionary of Camera objects.
     """
     center = [45.76322690683106, 4.83001470565796]  # Coordinates for Lyon, France
-    m = create_map(center, tile_layer=tile_layers[selected_layer], cameras=cameras)
+    
+    m = create_map(center, selected_layer=selected_layer, cameras=cameras)
+
+   
+    
+    
     c1, c2 = st.columns((0.8, 0.2))
     with c1:
         map_data = st_folium(m, width=800, height=700)
