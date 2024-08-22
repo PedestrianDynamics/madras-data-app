@@ -102,25 +102,14 @@ def add_contact_markers(map_object: folium.Map, contact_gps_merged: pd.DataFrame
         ).add_to(map_object)
 
 
-def plot_histogram(df: pd.DataFrame, bins: int, log_plot: Tuple[bool,bool]) -> Figure:
-    """
-    Creates an interactive bar chart using Plotly to visualize the total number of collisions.
-
-    Args:
-        df (pd.DataFrame): The DataFrame containing the 'Total-number-of-collisions' column.
-
-    Returns:
-        Figure: The Plotly figure object for the histogram.
-    """
-  
-    fig, ax = plt.subplots(figsize=(2, 2), dpi=10)
-    sns.histplot(df['Total-number-of-collisions'], bins=bins, kde=True, log_scale=(log_plot[0], log_plot[1]), ax=ax)
+def plot_histogram(df: pd.DataFrame, bins: int, log_plot: Tuple[bool, bool]) -> plt.Figure:
+    fig, ax = plt.subplots(figsize=(10, 6), dpi=1800)
+    sns.histplot(df['Total-number-of-collisions'], bins=bins, kde=True, log_scale=log_plot, ax=ax)
     plt.xlabel('Number of contacts along the path')
     plt.ylabel('Number of people')
     plt.title('Histogram of the total number of collisions')
     plt.savefig(Path(__file__).parent.parent.parent.absolute() / "data" / "processed" / f"histogram_{bins}.pdf")
-
-
+    plt.close(fig)  # Close the figure
     return fig
 
 
@@ -143,9 +132,9 @@ def plot_cumulative_contacts(df: pd.DataFrame) -> Figure:
     # Update layout of the figure
     fig.update_layout(
         title="Cumulative Contacts as a Function of Time",
-        xaxis_title="Time [seconds]",
+        xaxis_title="Time [microseconds]",
         yaxis_title="Cumulative Number of Contacts",
-        width=600, height=600
+        width=800, height=800
     )
 
     return fig
@@ -172,33 +161,42 @@ def main() -> None:
 
     # Display the map in the Streamlit app
     st_folium(my_map, width=825, height=700)
-    
-    # Slider for selecting the number of bins
-    plt = st.empty()
-    bins = int(st.slider("Select number of bins:", min_value=5, max_value=11, value=6, step=1))
-    
+
     # Initialize the session state variable if it doesn't exist
     if 'bool_var' not in st.session_state:
         st.session_state['bool_var'] = True
 
-    # Create a button in the Streamlit app
-    if st.button('log-x-scale'):
-        # When the button is clicked, toggle the session state boolean variable
-        st.session_state['bool_var'] = not st.session_state['bool_var']
 
-    # Display the current value of the session state boolean variable
-    st.write(f'Current value of boolean variable: {st.session_state["bool_var"]}')
+    col1, col2 = st.columns([1, 1])  # Adjust the ratio to control space allocation
+    with col1:
+        # Slider for selecting the number of bins
+        plt = st.empty()
+        bins = int(st.slider("Select number of bins:", min_value=5, max_value=11, value=6, step=1))
 
-    fig = plot_histogram(contacts_data, bins, (st.session_state["bool_var"],False))
-    figname = Path(f"histogram_{bins}.pdf")
-    path = Path(__file__)
-    data_directory = path.parent.parent.parent.absolute() / "data" / "processed"
-    figname = data_directory / Path(figname)
-    st.pyplot(fig)
-    download_file(figname)
-    
-    fig = plot_cumulative_contacts(contacts_data)
-    st.plotly_chart(fig)
+        # Create a button in the Streamlit app
+        if st.button('log-x-scale'):
+            # When the button is clicked, toggle the session state boolean variable
+            st.session_state['bool_var'] = not st.session_state['bool_var']
+
+        # Display the current value of the session state boolean variable
+        st.write(f'Current value of boolean variable: {st.session_state["bool_var"]}')
+
+        fig = plot_histogram(contacts_data, bins, (st.session_state["bool_var"],False))
+        figname = Path(f"histogram_{bins}.pdf")
+        path = Path(__file__)
+        data_directory = path.parent.parent.parent.absolute() / "data" / "processed"
+        figname = data_directory / Path(figname)
+
+        st.pyplot(fig)
+        download_file(figname)
+
+    with col2:
+        fig = plot_cumulative_contacts(contacts_data)
+        st.plotly_chart(fig)
+
+    # remove the histogram files created in the processed directory
+    for file in data_directory.glob("histogram_*.pdf"):
+        file.unlink()
 
 def run_tab_contact() -> None:
     main()
