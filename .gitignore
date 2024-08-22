@@ -10,4 +10,7 @@ AppData
 *._*.txt
 *._*.csv
 ./data/trajectories/
+*.txt
 *.DS_Store
+*.csv
+*._*
