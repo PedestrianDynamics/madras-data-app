@@ -47,4 +47,3 @@ if __name__ == "__main__":
         filename = str(st.selectbox(":open_file_folder: **Select a file**", file_name_to_path))
         st.session_state.selected_file = file_name_to_path[filename]
         run_tab_animation(file_name_to_path[filename])
-
