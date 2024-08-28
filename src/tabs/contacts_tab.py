@@ -371,7 +371,9 @@ def plot_gps_tracks(map_object: folium.Map, all_gps_tracks: pd.DataFrame) -> Non
         track_points = track_df[["latitude", "longitude"]].values.tolist()
         rgba_color = viridis(track_index / len(unique_tracks))
         hex_color = mcolors.to_hex(rgba_color)
-        folium.PolyLine(track_points, color=hex_color, weight=2.5, opacity=1).add_to(map_object)
+        folium.PolyLine(track_points, color=hex_color, weight=2.5, opacity=1, name=name_subj, popup=name_subj).add_to(
+            map_object
+        )
 
 
 def add_contact_markers(map_object: folium.Map, contact_gps_merged: pd.DataFrame, path_icon: str) -> None:
@@ -433,7 +435,6 @@ def plot_cumulative_contacts(df: pd.DataFrame) -> Figure:
     # Drop the non-numeric 'Détail' columns
     detail_data = df.drop(
         columns=[
-            "Name",
             "Date",
             "Time-of-stop",
             "Total-number-of-collisions",
@@ -451,13 +452,13 @@ def plot_cumulative_contacts(df: pd.DataFrame) -> Figure:
             values = np.cumsum(np.concatenate(([0], np.ones(len(times), dtype="int"))))  # type: ignore
             edges = np.concatenate((times, [df["Duration"].iloc[index].total_seconds()]))
             # Add a trace for each person
-            fig.add_trace(go.Scatter(x=edges, y=values, mode="lines+markers"))
+            fig.add_trace(go.Scatter(x=edges, y=values, mode="lines+markers", name=f"Subject {row.name}"))
 
     # Update layout of the figure
     fig.update_layout(
-        title="Cumulative Number of Contacts as a Function of Time",
-        xaxis_title="Time [seconds]",
-        yaxis_title="Cumulative Number of Contacts",
+        title="Cumulative number of contacts as a function of time",
+        xaxis_title="Time [s]",
+        yaxis_title="Cumulative number of contacts",
         width=800,
         height=600,
     )

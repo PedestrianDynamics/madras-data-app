@@ -1,14 +1,15 @@
 """Streamlit app to create an animation of pedestrian movements."""
 
 from pathlib import Path
+
+import numpy as np
 import pandas as pd
-import streamlit as st
 import plotly.express as px
-from pyproj import Transformer
-from shapely.wkt import loads
 import plotly.graph_objects as go
-from shapely.geometry import Polygon
-from shapely.geometry import mapping
+import streamlit as st
+from pyproj import Transformer
+from shapely.geometry import Polygon, mapping
+from shapely.wkt import loads
 
 
 def load_data(pickle_name: str) -> pd.DataFrame:
@@ -67,7 +68,12 @@ def trajs_from_rgf93_to_wgs84(trajs: pd.DataFrame) -> pd.DataFrame:
 
 
 def create_animation_plotly(
-    pd_trajs: pd.DataFrame, pd_geometry: pd.DataFrame, show_polygons: bool, is_topview: bool
+    pd_trajs: pd.DataFrame,
+    pd_geometry: pd.DataFrame,
+    show_polygons: bool,
+    frame_duration: float,
+    min_velocity: float = 0.0,
+    max_velocity: float = 1.0,
 ) -> go.Figure:
     """
     Create a Plotly animation of pedestrian movements.
@@ -76,28 +82,81 @@ def create_animation_plotly(
         pd_trajs (pd.DataFrame): DataFrame containing the pedestrian trajectory data.
         pd_geometry (pd.DataFrame): DataFrame containing geometric data for obstacles.
         show_polygons (bool): Flag to show polygons on the map.
-        is_topview (bool): Flag to adjust settings for top view.
 
     Returns:
         Figure: Plotly figure object with the pedestrian movement animation.
     """
+
+    # Create the scatter plot with velocity as the color using log scale
     fig = px.scatter(
         pd_trajs,
         x="lon_wgs84",
         y="lat_wgs84",
-        animation_frame="frame",
+        animation_frame="t/s",
         animation_group="id",
-        color="id",
-        hover_name="id",
+        color="velocity",
+        color_continuous_scale=px.colors.sequential.Viridis,
+        range_color=(min_velocity, max_velocity),
     )
 
+    # change the legend of the slider to show the time in seconds
+    if len(fig.layout.sliders) > 0:
+        fig.layout.sliders[0].currentvalue.prefix = "Time [s]: "
+
+    # Set the scale of the color axis to logarithmic
+    fig.update_coloraxes(
+        colorbar=dict(title="Velocity [m/s]"),
+        colorscale="Viridis",
+        cmin=min_velocity,
+        cmax=max_velocity,
+        colorbar_tickformat=".0e",  # Optional: format ticks in scientific notation
+    )
+
+    # Set the layout of the figure
     fig.update_layout(
         xaxis_title="Longitude [WGS84]",
         yaxis_title="Latitude [WGS84]",
-        yaxis_scaleanchor="x",
-        yaxis_scaleratio=1.4,
     )
 
+    if len(fig.layout.sliders) > 0:
+        fig.update_layout(
+            updatemenus=[
+                {
+                    "buttons": [
+                        {
+                            "args": [
+                                None,
+                                {"frame": {"duration": frame_duration, "redraw": True}, "fromcurrent": True},
+                            ],
+                            "label": "Play",
+                            "method": "animate",
+                        },
+                        {
+                            "args": [
+                                [None],
+                                {
+                                    "frame": {"duration": 0, "redraw": True},
+                                    "mode": "immediate",
+                                    "transition": {"duration": 0},
+                                },
+                            ],
+                            "label": "Pause",
+                            "method": "animate",
+                        },
+                    ],
+                    "direction": "left",
+                    "pad": {"r": 10, "t": 87},
+                    "showactive": False,
+                    "type": "buttons",
+                    "x": 0.1,
+                    "xanchor": "right",
+                    "y": 0,
+                    "yanchor": "top",
+                }
+            ],
+        )
+
+    # Add filled geometric obstacles to the map
     if show_polygons:
         for _, row in pd_geometry.iterrows():
             polygon_coords = mapping(row["geometry"])["coordinates"][0]
@@ -133,15 +192,14 @@ def create_animation_plotly(
             yaxis_range=[pd_trajs["lat_wgs84"].min(), pd_trajs["lat_wgs84"].max()],
         )
 
-    if len(pd_trajs["frame"].unique()) > 1:
-        frame_duration = 1000 / 30.0 if is_topview else 1000.0 / 12.0
-        fig.layout.updatemenus[0].buttons[0].args[1]["frame"]["duration"] = frame_duration
-        fig.layout.updatemenus[0].buttons[0].args[1]["transition"]["duration"] = 1e-7
-
     return fig
 
 
-def visualize_map(pd_trajs: pd.DataFrame, pd_geometry: pd.DataFrame, show_polygons: bool) -> go.Figure:
+def visualize_map(
+    pd_trajs: pd.DataFrame,
+    pd_geometry: pd.DataFrame,
+    show_polygons: bool,
+) -> go.Figure:
     """
     Visualizes a map with a scatter plot of initial pedestrian positions and optional filled geometric obstacles.
 
@@ -161,18 +219,21 @@ def visualize_map(pd_trajs: pd.DataFrame, pd_geometry: pd.DataFrame, show_polygo
         initial_pedestrians,
         lat="lat_wgs84",
         lon="lon_wgs84",
-        hover_name="id",
         color="id",
         mapbox_style="open-street-map",
+        zoom=18,
+        color_continuous_scale=px.colors.sequential.Viridis,
+        center=dict(lat=45.76751, lon=4.833584),
     )
+
+    # Set the layout of the figure
     fig.update_layout(
-        mapbox_bounds={
-            "west": 4.831,  # Minimum longitude
-            "east": 4.836,  # Maximum longitude
-            "south": 45.7665,  # Minimum latitude
-            "north": 45.7684,  # Maximum latitude
-        },
+        xaxis_title="Longitude [WGS84]",
+        yaxis_title="Latitude [WGS84]",
+        showlegend=False,
     )
+
+    # Add filled geometric obstacles to the map
     if show_polygons:
         # Add filled geometric obstacles to the map
         for _, row in pd_geometry.iterrows():
@@ -194,8 +255,8 @@ def visualize_map(pd_trajs: pd.DataFrame, pd_geometry: pd.DataFrame, show_polygo
 
         # Adjust the layout size of the figure and position the legend below the map
         fig.update_layout(
-            height=1200,
-            width=900,
+            height=600,
+            width=600,
             legend=dict(
                 orientation="h",
                 yanchor="bottom",
@@ -207,11 +268,89 @@ def visualize_map(pd_trajs: pd.DataFrame, pd_geometry: pd.DataFrame, show_polygo
     else:
         # Adjust the layout size of the figure
         fig.update_layout(
-            height=900,
-            width=1100,
+            height=600,
+            width=600,
         )
 
     return fig
+
+
+def compute_pedestrian_velocity(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Calculate the velocity of pedestrians based on their movement data.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing the movement data of pedestrians.
+
+    Returns:
+        pd.DataFrame: DataFrame with additional columns for calculated velocities.
+
+    """
+    # Calculate velocities
+    # Convert the coordinates from degrees to meters
+    df[["x_meters", "y_meters"]] = df.apply(
+        lambda row: degrees_to_meters(row["lat_wgs84"], row["lon_wgs84"]), axis=1, result_type="expand"
+    )
+
+    # Sort the DataFrame by 'id' and 't/s' to ensure correct calculation
+    df = df.sort_values(by=["id", "t/s"])
+
+    # Calculate differences in longitude, latitude, and time
+    df["delta_x"] = df.groupby("id")["x_meters"].diff()
+    df["delta_y"] = df.groupby("id")["y_meters"].diff()
+    df["delta_t"] = df.groupby("id")["t/s"].diff()
+
+    # Calculate distance using Euclidean distance
+    df["distance"] = np.sqrt(df["delta_x"] ** 2 + df["delta_y"] ** 2)
+
+    # Calculate velocity (distance/time)
+    df["velocity"] = df["distance"] / df["delta_t"]
+
+    # Round the velocity values to 2 decimal places
+    df["velocity"] = df["velocity"].round(8)
+
+    # Fill NaN values in velocity with 0 (first frame for each pedestrian)
+    df["velocity"] = df["velocity"].fillna(0)
+
+    # Fill inf values with 0
+    df["velocity"] = df["velocity"].replace([np.inf, -np.inf], 0)
+
+    return df
+
+
+def adjust_time(df: pd.DataFrame) -> pd.DataFrame:
+    """
+    Adjust the time values in the DataFrame to start from 0.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing the pedestrian trajectory data.
+
+    Returns:
+        pd.DataFrame: DataFrame with adjusted time values.
+    """
+    # Subtract the initial time value from all time values
+    df["t/s"] = df["t/s"] - df["t/s"][0]
+    df["t/s"] = df["t/s"].round(1)
+
+    return df
+
+
+def degrees_to_meters(lat, lon):
+    """
+    Converts latitude and longitude coordinates from degrees to meters.
+    Parameters:
+    lat (float): Latitude coordinate in degrees.
+    lon (float): Longitude coordinate in degrees.
+    Returns:
+    tuple: A tuple containing the converted x and y coordinates in meters.
+    """
+
+    R = 6371000  # Radius of Earth in meters
+    lat_rad = np.radians(lat)
+    lon_rad = np.radians(lon)
+    x = R * lon_rad * np.cos(lat_rad)
+    y = R * lat_rad
+    return x, y
 
 
 def prepare_data(traj_path: Path, GEOMETRY_PATH: Path, selected_traj_file: Path) -> None:
@@ -224,7 +363,6 @@ def prepare_data(traj_path: Path, GEOMETRY_PATH: Path, selected_traj_file: Path)
     Returns:
         None
     """
-
     # Loop over files in trajectories that start with Topview or LargeView
     if str(selected_traj_file.stem).startswith("LargeView"):
         # Assuming the data starts at line 8 (adjust this as necessary)
@@ -235,10 +373,12 @@ def prepare_data(traj_path: Path, GEOMETRY_PATH: Path, selected_traj_file: Path)
             skiprows=7,
             names=["id", "frame", "x/m", "y/m", "z/m", "t/s", "x_RGF", "y_RGF"],
         )
-
         # Convert the coordinates from RGF93 to WGS84
         df_converted = trajs_from_rgf93_to_wgs84(df)
-
+        # Subtract the initial time value from all time values
+        df_converted["t/s"] = adjust_time(df_converted)["t/s"]
+        # Add a column for pedestrian velocity
+        df_converted = compute_pedestrian_velocity(df_converted)
         # Save the converted DataFrame to a pickle file
         PICKLE_SAVE_PATH = str(traj_path.parent / "pickle" / (selected_traj_file.stem + "_converted.pkl"))
         df_converted.to_pickle(PICKLE_SAVE_PATH)
@@ -254,10 +394,12 @@ def prepare_data(traj_path: Path, GEOMETRY_PATH: Path, selected_traj_file: Path)
         )
         df = df.drop(columns=["id"])
         df = df.rename(columns={"id_global": "id"})
-
         # Convert the coordinates from RGF93 to WGS84
         df_converted = trajs_from_rgf93_to_wgs84(df)
-
+        # Subtract the initial time value from all time values
+        df_converted["t/s"] = adjust_time(df_converted)["t/s"]
+        # Add a column for pedestrian velocity
+        df_converted = compute_pedestrian_velocity(df_converted)
         # Save the converted DataFrame to a pickle file
         PICKLE_SAVE_PATH = str(traj_path.parent / "pickle" / (selected_traj_file.stem + "_converted.pkl"))
         df_converted.to_pickle(PICKLE_SAVE_PATH)
@@ -318,17 +460,30 @@ def main(selected_file: str) -> None:
     # Checkbox to toggle the display of geometric polygons
     show_polygons = st.checkbox("Show Obstacles", value=True)
 
-    # Create the Streamlit app
-    col1, col2 = st.columns([1, 1])  # Adjust the ratio to control space allocation
+    # Display the initial position of pedestrians
+    st.title("Initial position of pedestrians")
+    fig = visualize_map(pd_trajs, pd_geometry, show_polygons)
+    st.plotly_chart(fig, use_container_width=True)
 
-    with col1:
-        st.title("Initial position of pedestrians")
-        fig = visualize_map(pd_trajs, pd_geometry, show_polygons)
-        st.plotly_chart(fig, use_container_width=True)
-    with col2:
-        st.title("Animation")
-        fig = create_animation_plotly(pd_trajs, pd_geometry, show_polygons, is_topview)
-        st.plotly_chart(fig, use_container_width=True)
+    # Calculate minimum and maximum velocities
+    min_velocity = pd_trajs["velocity"].min()
+    max_velocity = pd_trajs["velocity"].max()
+
+    # Display the animation of pedestrian movements
+    st.title("Animation")
+
+    # Streamlit slider for frame duration
+    freq_topview = 30
+    freq_largeview = 10
+    frame_duration = st.slider(
+        "Select frame duration (ms)",
+        min_value=int(1000 / (2 * freq_topview)),
+        max_value=int(1000 / (0.5 * freq_largeview)),
+        value=int(1000 / freq_topview) if is_topview else int(1000 / freq_largeview),
+        step=5,
+    )
+    fig = create_animation_plotly(pd_trajs, pd_geometry, show_polygons, frame_duration, min_velocity, max_velocity)
+    st.plotly_chart(fig, use_container_width=True)
 
 
 def run_tab_animation(selected_file: str) -> None:

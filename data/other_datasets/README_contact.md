@@ -25,7 +25,7 @@ The CSV file is structured as follows:
   - **SS**: Seconds (00-59)
   - **mmm**: Milliseconds (000-999)
 
-For example, "00:00:33.520" represents 30 seconds and 520 milliseconds.
+For example, "00:00:33.520" represents 33 seconds and 520 milliseconds.
 
 - **Date Format (DD/MM/YYYY)**:
   - **DD**: Day (01-31)
