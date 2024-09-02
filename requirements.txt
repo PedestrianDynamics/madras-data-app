@@ -11,3 +11,4 @@ gpxpy
 tqdm
 pygwalker
 pyproj
+kaleido

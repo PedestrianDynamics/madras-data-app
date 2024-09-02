@@ -22,7 +22,16 @@ from ..docs.docs import density_speed, flow
 from ..helpers.speed_profile import compute_speed_profile
 from ..helpers.utilities import download, get_measurement_lines, is_running_locally, setup_walkable_area
 from ..plotting.drawing import drawing_canvas, get_measurement_area
-from ..plotting.plots import download_file, plot_fundamental_diagram_all, plot_fundamental_diagram_all_mpl, plot_time_series, plt_plot_time_series, show_fig
+from ..plotting.plots import (
+    download_file,
+    plot_fundamental_diagram_all,
+    plot_fundamental_diagram_all_mpl,
+    plot_time_series,
+    plt_plot_time_series,
+    show_fig,
+)
+
+from .CCTV_analysis import run_cctv_analysis
 
 st_column: TypeAlias = st.delta_generator.DeltaGenerator
 
@@ -54,7 +63,9 @@ def calculate_or_load_voronoi_diagrams(
     if not Path(precalculated_voronoi_polygons).exists():
         trajectory_data = load_file(filename)
         walkable_area = setup_walkable_area(trajectory_data)
-        voronoi_polygons = pedpy.compute_individual_voronoi_polygons(traj_data=trajectory_data, walkable_area=walkable_area)
+        voronoi_polygons = pedpy.compute_individual_voronoi_polygons(
+            traj_data=trajectory_data, walkable_area=walkable_area
+        )
 
         with open(precalculated_voronoi_polygons, "wb") as f:
             pickle.dump(voronoi_polygons, f, pickle.HIGHEST_PROTOCOL)
@@ -244,7 +255,9 @@ def calculate_fd_voronoi_local(dv: Optional[int]) -> None:
             """
         )
         st.code("streamlit run app.py")
-        st.warning("See [README](https://github.com/PedestrianDynamics/madras-data-app?tab=readme-ov-file#local-execution-guide) for more information.")
+        st.warning(
+            "See [README](https://github.com/PedestrianDynamics/madras-data-app?tab=readme-ov-file#local-execution-guide) for more information."
+        )
 
     if is_running_locally() and calculate:
         with st.status("Calculating Voronoi FD ...", expanded=True):
@@ -259,7 +272,9 @@ def calculate_fd_voronoi_local(dv: Optional[int]) -> None:
                 precalculated_voronoi_speed = data_directory / f"voronoi_speed_{basename}.pkl"
                 precalculated_voronoi_density = data_directory / f"voronoi_density_{basename}.pkl"
                 # saved files ============
-                voronoi_polygons[basename] = calculate_or_load_voronoi_diagrams(precalculated_voronoi_polygons, filename)
+                voronoi_polygons[basename] = calculate_or_load_voronoi_diagrams(
+                    precalculated_voronoi_polygons, filename
+                )
 
                 individual_speed[basename] = calculate_or_load_individual_speed(precalculated_speed, filename, dv)
                 # todo save to files
@@ -408,7 +423,9 @@ def calculate_density_profile(
     #     help="See [PedPy-documentation](https://pedpy.readthedocs.io/en/latest/user_guide.html#density-profiles).",
     # )
     with st.expander("Documentation"):
-        st.write("This profile is using 'Gaussian density profile' from [PedPy](https://pedpy.readthedocs.io/en/latest/user_guide.html#density-profiles).")
+        st.write(
+            "This profile is using 'Gaussian density profile' from [PedPy](https://pedpy.readthedocs.io/en/latest/user_guide.html#density-profiles)."
+        )
     chose_method = "Gaussian"
     chose_method = str(chose_method)
     method = {
@@ -495,7 +512,9 @@ def calculate_speed_profile(
 ) -> None:
     """Calculate speed profile."""
     with st.expander("Documentation"):
-        st.write("This profile is using 'Gaussian speed profile' from [PedPy](https://pedpy.readthedocs.io/en/latest/user_guide.html#speed-profiles).")
+        st.write(
+            "This profile is using 'Gaussian speed profile' from [PedPy](https://pedpy.readthedocs.io/en/latest/user_guide.html#speed-profiles)."
+        )
     grid_size = st.sidebar.number_input(
         "Grid size",
         value=0.4,
@@ -786,11 +805,16 @@ def run_tab3() -> None:
             selected_file,
         )
     if calculations == "Density profile":
-        calculate_density_profile(
-            trajectory_data,
-            walkable_area,
-            selected_file,
-        )
+        # if top view is in selected file
+        if "Topview" in selected_file:
+            calculate_density_profile(
+                trajectory_data,
+                walkable_area,
+                selected_file,
+            )
+        else:
+            run_cctv_analysis(selected_file)
+
     if calculations == "Speed profile":
         calculate_speed_profile(
             trajectory_data,

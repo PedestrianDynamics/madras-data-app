@@ -537,7 +537,6 @@ def main() -> None:
         # Plot a histogram of the contacts data
         fig = plot_histogram(contacts_data, bins, (st.session_state["bool_var"], False))
         figname = Path(f"histogram_{bins}.pdf")
-        path = Path(__file__)
         data_directory = path.parent.parent.parent.absolute() / "data" / "processed"
         figname = data_directory / Path(figname)
         st.pyplot(fig)
