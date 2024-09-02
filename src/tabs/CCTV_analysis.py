@@ -452,7 +452,9 @@ def normalize_density(density: np.ndarray, pa: Parameters) -> np.ndarray:
     return density
 
 
-def update_figure(df_observables: Dict[str, np.ndarray], pa: Parameters, plot_density: bool, zsmooth) -> go.Figure:
+def update_figure(
+    df_observables: Dict[str, np.ndarray], pa: Parameters, plot_density: bool, zsmooth=False
+) -> go.Figure:
     """
     Update the figure with the given observables and parameters.
 
@@ -620,9 +622,9 @@ def main(selected_file: str):
     folder_save = create_save_folder(pa)
 
     if (
-        not Path(folder_save / "traj_data.pickle").exists()
-        or not Path(folder_save / "parameters.pickle").exists()
-        or not Path(folder_save / "dictionnary_observables.pickle").exists()
+        not Path(folder_save / "traj_data.pkl").exists()
+        or not Path(folder_save / "parameters.pkl").exists()
+        or not Path(folder_save / "dictionnary_observables.pkl").exists()
     ):
         ########## PROCESS TRAJECTORIES ##########
         all_data = read_and_process_file(selected_file)
@@ -630,17 +632,17 @@ def main(selected_file: str):
         all_data["vy"] = np.nan  # Initialize the velocity columns
         all_trajs = process_trajectories(all_data, pa)
         calculate_grid_dimensions(pa)
-        save_data(all_trajs, folder_save, "traj_data.pickle")
-        save_data(pa, folder_save, "parameters.pickle")
+        save_data(all_trajs, folder_save, "traj_data.pkl")
+        save_data(pa, folder_save, "parameters.pkl")
 
         ########## FIELDS ##########
         df_observables = initialize_dict(pa.NB_CG_X, pa.NB_CG_Y)
         compute_fields(all_trajs, df_observables, pa)
-        save_data(df_observables, folder_save, "dictionnary_observables.pickle")
+        save_data(df_observables, folder_save, "dictionnary_observables.pkl")
 
     # Load the data from the pickle files
-    params = load_data(folder_save, "parameters.pickle")
-    dict_observables = load_data(folder_save, "dictionnary_observables.pickle")
+    params = load_data(folder_save, "parameters.pkl")
+    dict_observables = load_data(folder_save, "dictionnary_observables.pkl")
 
     # Sidebar for controls
     st.sidebar.title("Controls")

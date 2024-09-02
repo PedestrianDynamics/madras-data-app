@@ -172,7 +172,7 @@ def create_animation_plotly(
                 )
             )
         fig.update_layout(
-            height=1550,
+            height=1700,
             width=1200,
             xaxis=dict(range=[4.8325, 4.8346]),
             yaxis=dict(range=[45.767, 45.7679]),

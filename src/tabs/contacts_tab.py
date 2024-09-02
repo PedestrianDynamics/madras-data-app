@@ -45,14 +45,14 @@ def load_and_process_contacts_data(csv_path: Path, pickle_path: Path) -> None:
     df.iloc[:, 5:] = df.iloc[:, 5:].apply(lambda col: col.apply(lambda x: x.total_seconds() if pd.notna(x) else None))
 
     # Save the DataFrame to a pickle file
-    df.to_pickle(pickle_path / "contacts_data.pickle")
+    df.to_pickle(pickle_path / "contacts_data.pkl")
 
     # Process the saved pickle file
-    all_instant_contacts = pd.read_pickle(pickle_path / "contacts_data.pickle")
+    all_instant_contacts = pd.read_pickle(pickle_path / "contacts_data.pkl")
     processed_df = process_contacts_data(all_instant_contacts)
 
     # Save the processed DataFrame to a pickle file
-    processed_df.to_pickle(pickle_path / "contacts_data_melted.pickle")
+    processed_df.to_pickle(pickle_path / "contacts_data_melted.pkl")
 
 
 def convert_to_timedelta(time_str: str) -> pd.Timedelta:
@@ -132,7 +132,7 @@ def process_gpx(gpx_path: Path, pickle_path: Path) -> None:
     df = pd.DataFrame(data)
 
     # Save the DataFrame to a pickle file
-    df.to_pickle(pickle_path / "all_gps_tracks.pickle")
+    df.to_pickle(pickle_path / "all_gps_tracks.pkl")
 
     # Process the saved pickle file
     process_tracks_data(pickle_path)
@@ -191,7 +191,7 @@ def process_tracks_data(pickle_path: Path) -> None:
     - None
     """
     # Load all tracks
-    all_gps_tracks = pd.read_pickle(pickle_path / "all_gps_tracks.pickle")
+    all_gps_tracks = pd.read_pickle(pickle_path / "all_gps_tracks.pkl")
 
     # Convert 'time' column to timedelta by subtracting a reference time
     reference_time = all_gps_tracks["time"].min()
@@ -214,7 +214,7 @@ def process_tracks_data(pickle_path: Path) -> None:
     all_gps_tracks.drop_duplicates(subset=["name_subj", "time_seconds"], inplace=True)
 
     # Save the processed DataFrame to a pickle file
-    all_gps_tracks.to_pickle(pickle_path / "all_gps_tracks_timeseconds.pickle")
+    all_gps_tracks.to_pickle(pickle_path / "all_gps_tracks_timeseconds.pkl")
 
 
 def merge_contacts_and_gps_data(path_pickle: Path) -> None:
@@ -229,8 +229,8 @@ def merge_contacts_and_gps_data(path_pickle: Path) -> None:
         None
     """
     # Load all tracks
-    df1 = pd.read_pickle(path_pickle / "contacts_data_melted.pickle")
-    df2 = pd.read_pickle(path_pickle / "all_gps_tracks_timeseconds.pickle")
+    df1 = pd.read_pickle(path_pickle / "contacts_data_melted.pkl")
+    df2 = pd.read_pickle(path_pickle / "all_gps_tracks_timeseconds.pkl")
 
     # Convert 'time_seconds' to numeric
     df1["time_seconds"] = pd.to_numeric(df1["time_seconds"], errors="coerce")
@@ -271,7 +271,7 @@ def merge_contacts_and_gps_data(path_pickle: Path) -> None:
     merged_df.dropna(subset=["latitude", "longitude"], inplace=True)
 
     # Save the merged DataFrame to a pickle file
-    merged_df.to_pickle(path_pickle / "contacts_gps_merged.pickle")
+    merged_df.to_pickle(path_pickle / "contacts_gps_merged.pkl")
 
 
 def interpolate_data(group):
@@ -315,9 +315,9 @@ def load_data(path_pickle: Path) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFra
     Returns:
         tuple: A tuple containing all GPS tracks and contact GPS merged data.
     """
-    all_gps_tracks = pd.read_pickle(path_pickle / "all_gps_tracks.pickle")
-    contact_gps_merged = pd.read_pickle(path_pickle / "contacts_gps_merged.pickle")
-    contacts_data = pd.read_pickle(path_pickle / "contacts_data.pickle")
+    all_gps_tracks = pd.read_pickle(path_pickle / "all_gps_tracks.pkl")
+    contact_gps_merged = pd.read_pickle(path_pickle / "contacts_gps_merged.pkl")
+    contacts_data = pd.read_pickle(path_pickle / "contacts_data.pkl")
     return all_gps_tracks, contact_gps_merged, contacts_data
 
 
@@ -498,8 +498,8 @@ def main() -> None:
     path_gpx = path.parent.parent.parent.absolute() / "data" / "other_datasets" / "GPSTracks"
     path_icon = str(path.parent.parent.parent.absolute() / "data" / "assets" / "logo_contact")
 
-    # If "contacts_gps_merged.pickle" does not exist, run the following code
-    if not Path(path_pickle / "contacts_gps_merged.pickle").exists():
+    # If "contacts_gps_merged.pkl" does not exist, run the following code
+    if not Path(path_pickle / "contacts_gps_merged.pkl").exists():
         load_and_process_contacts_data(path_csv, path_pickle)
         process_gpx(path_gpx, path_pickle)
         merge_contacts_and_gps_data(path_pickle)
