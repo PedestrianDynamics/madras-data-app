@@ -12,3 +12,4 @@ tqdm
 pygwalker
 pyproj
 kaleido
+numba

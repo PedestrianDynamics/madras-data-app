@@ -81,23 +81,6 @@ def gaussian_kernel_scalar(r: float, r_c: float, xi: float) -> float:
     return np.exp(-0.5 * (r / xi) ** 2)  # Prefactor is omitted because it cancels out
 
 
-def gaussian_kernel(r: np.array, r_c: float, xi: float) -> np.ndarray:
-    """
-    Compute the Gaussian kernel for a given distance array.
-
-    Parameters:
-    r (np.array): Array of distances.
-    r_c (float): Cutoff distance.
-    xi (float): Decay parameter.
-
-    Returns:
-    np.array: Array of Gaussian kernel values.
-
-    """
-    r[r > r_c] = 0.0  # Set to 0 if the distance is greater than the cutoff distance
-    return np.exp(-0.5 * (r / xi) ** 2)  # Prefactor is omitted because it cancels out
-
-
 @njit
 def get_r(i_line: int, j_column: int, r_cg: float, x_min: float, y_min: float) -> Tuple[float, float]:
     """
@@ -217,7 +200,6 @@ def process_trajectories(all_datas: pd.DataFrame, pa: Parameters) -> Dict[str, p
         - It removes NaN values from the velocities.
         - It returns a dictionary of processed dataframes, where the keys are trajectory numbers.
     """
-
     # Initialize the dictionary and list
     dict_all_datas = {}
     list_files_skipped = []
@@ -371,7 +353,6 @@ def initialize_dict(nb_cg_x: int, nb_cg_y: int) -> Dict[str, np.ndarray]:
     Returns:
         Dict[str, np.ndarray]: Dictionary containing the initialized density and velocity fields.
     """
-
     # List of field names
     field_names = ["X", "Y", "rho", "vxs", "vys", "vxs2", "vys2", "var_vs"]
 
