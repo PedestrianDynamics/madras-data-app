@@ -1,5 +1,6 @@
 """Map of the gps trajectories coupled with the contacts locations."""
 
+from io import BytesIO
 from pathlib import Path
 from typing import Tuple
 
@@ -15,8 +16,6 @@ import streamlit as st
 from matplotlib import colormaps
 from plotly.graph_objects import Figure
 from streamlit_folium import st_folium
-
-from ..plotting.plots import download_file
 
 
 def load_and_process_contacts_data(csv_path: Path, pickle_path: Path) -> None:
@@ -412,7 +411,7 @@ def plot_histogram(df: pd.DataFrame, bins: int, log_plot: Tuple[bool, bool]) -> 
         data = df["Total-number-of-collisions"]
 
     # Create the histogram
-    fig, ax = plt.subplots(figsize=(10, 6), dpi=1800)
+    fig, ax = plt.subplots(figsize=(8, 6), dpi=1800)
     sns.histplot(data, bins=bins, kde=True, log_scale=log_plot, ax=ax)
     plt.xlabel("Number of contacts along the path")
     plt.ylabel("Number of people")
@@ -456,11 +455,17 @@ def plot_cumulative_contacts(df: pd.DataFrame) -> Figure:
 
     # Update layout of the figure
     fig.update_layout(
-        title="Cumulative number of contacts as a function of time",
-        xaxis_title="Time [s]",
-        yaxis_title="Cumulative number of contacts",
-        width=800,
-        height=600,
+        title=dict(text="Cumulative Number of Contacts as a Function of Time", font_size=28),
+        width=700,
+        height=700,
+        xaxis=dict(
+            title=dict(text="Time [s]", font_size=20),
+            tickfont_size=20,
+        ),
+        yaxis=dict(
+            title=dict(text="Cumulative number of contacts", font_size=20),
+            tickfont_size=20,
+        ),
     )
 
     return fig
@@ -489,8 +494,6 @@ def main() -> None:
     16. Removes the histogram files created in the processed directory.
     """
 
-    st.title("Map of GPS Trajectories coupled with contacts locations.")
-
     # Paths to the data directories
     path = Path(__file__)
     path_csv = path.parent.parent.parent.absolute() / "data" / "other_datasets"
@@ -513,38 +516,52 @@ def main() -> None:
     plot_gps_tracks(my_map, all_gps_tracks)
     add_contact_markers(my_map, contact_gps_merged, path_icon)
 
-    # Display the map in the Streamlit app
-    st_folium(my_map, width=825, height=700)
+    # Set a default value for the session state boolean variable
+    st.session_state["bool_log"] = True
 
-    col1, col2 = st.columns([1, 1])  # Adjust the ratio to control space allocation
+    # Sidebar title
+    st.sidebar.title("Settings")
+
+    # Checkbox to toggle log-x-scale, initially set to True
+    log_x_scale_checkbox = st.sidebar.checkbox("Log-x-scale", value=st.session_state["bool_log"])
+
+    # Update session state based on checkbox
+    st.session_state["bool_log"] = log_x_scale_checkbox
+
+    col1, _ = st.columns([1, 0.8])  # Adjust the ratio to control space allocation
     with col1:
-        # Initialize the session state variable if it doesn't exist
-        if "bool_var" not in st.session_state:
-            st.session_state["bool_var"] = True
-
+        # Title for the histogram
+        st.subheader("Histogram of the Total Number of Collisions\n\n\n")
         # Slider for selecting the number of bins
-        plt = st.empty()
-        bins = int(st.slider("Select number of bins:", min_value=5, max_value=11, value=6, step=1))
-
-        # Create a button in the Streamlit app
-        if st.button("log-x-scale"):
-            # When the button is clicked, toggle the session state boolean variable
-            st.session_state["bool_var"] = not st.session_state["bool_var"]
-
-        # Display the current value of the session state boolean variable
-        st.write(f'Current value of boolean variable: {st.session_state["bool_var"]}')
-
+        bins = st.sidebar.slider("Select number of bins:", min_value=4, max_value=8, value=6, step=1)
         # Plot a histogram of the contacts data
-        fig = plot_histogram(contacts_data, bins, (st.session_state["bool_var"], False))
-        figname = Path(f"histogram_{bins}.pdf")
-        data_directory = path.parent.parent.parent.absolute() / "data" / "processed"
-        figname = data_directory / Path(figname)
-        st.pyplot(fig)
-        download_file(figname)
+        histogram_fig = plot_histogram(contacts_data, bins, (st.session_state["bool_log"], False))
+        # Define file path for saving the histogram
+        data_directory = Path(__file__).resolve().parent.parent.parent / "data" / "processed"
+        histogram_filename = data_directory / f"histogram_{bins}.pdf"
+        # Display the histgram in the first column
+        st.pyplot(histogram_fig, clear_figure=True)
+        # Save the histogram to a BytesIO object in PDF format
+        histogram_buffer = BytesIO()
+        histogram_fig.savefig(histogram_buffer, format="pdf")
+        histogram_buffer.seek(0)  # Rewind the buffer to the beginning
+        # Download button for the histogram
+        st.sidebar.download_button(label="Download Histogram", data=histogram_buffer, file_name=str(histogram_filename))
 
-    with col2:
-        fig = plot_cumulative_contacts(contacts_data)
-        st.plotly_chart(fig)
+    # Plot cumulative contacts
+    cumulative_fig = plot_cumulative_contacts(contacts_data)
+    # Display the cumulative contacts chart using Plotly
+    st.plotly_chart(cumulative_fig)
+    # Convert the Plotly figure to PDF bytes
+    cumulative_img_bytes = cumulative_fig.to_image(format="pdf")
+    # Download button for the cumulative contacts chart
+    st.sidebar.download_button(
+        label="Download Cumulative", data=cumulative_img_bytes, file_name="cumulative_contacts.pdf"
+    )
+
+    # Display the map in the Streamlit app
+    st.subheader("Map of GPS Trajectories coupled with contacts locations.")
+    st_folium(my_map, width=625, height=600)
 
     # remove the histogram files created in the processed directory
     for file in data_directory.glob("histogram_*.pdf"):

@@ -88,17 +88,24 @@ def create_animation_plotly(
     """
 
     # Create the scatter plot with velocity as the color using log scale
-    fig = px.scatter(
+    fig = px.scatter_geo(
         pd_trajs,
-        x="lon_wgs84",
-        y="lat_wgs84",
+        lon="lon_wgs84",
+        lat="lat_wgs84",
         animation_frame="t/s",
         animation_group="id",
         color="velocity",
         color_continuous_scale=px.colors.sequential.Viridis,
         range_color=(min_velocity, max_velocity),
+        projection="mercator",
     )
-
+    # Update traces to customize hovertemplate
+    fig.update_traces(
+        hovertemplate="<b>Pedestrian</b><br><br>"
+        + "lon_wgs84: %{lon:.7f}°<br>"
+        + "lat_wgs84: %{lat:.7f}°<br>"
+        + "velocity: %{marker.color:.4f} m/s<extra></extra>"
+    )
     # change the legend of the slider to show the time in seconds
     if len(fig.layout.sliders) > 0:
         fig.layout.sliders[0].currentvalue.prefix = "Time [s]: "
@@ -109,13 +116,6 @@ def create_animation_plotly(
         colorscale="Viridis",
         cmin=min_velocity,
         cmax=max_velocity,
-        colorbar_tickformat=".0e",  # Optional: format ticks in scientific notation
-    )
-
-    # Set the layout of the figure
-    fig.update_layout(
-        xaxis_title="Longitude [WGS84]",
-        yaxis_title="Latitude [WGS84]",
     )
 
     if len(fig.layout.sliders) > 0:
@@ -160,117 +160,32 @@ def create_animation_plotly(
     if show_polygons:
         for _, row in pd_geometry.iterrows():
             polygon_coords = mapping(row["geometry"])["coordinates"][0]
+            center_of_mass = Polygon(polygon_coords).centroid
             fig.add_trace(
-                go.Scatter(
-                    x=[coord[0] for coord in polygon_coords],
-                    y=[coord[1] for coord in polygon_coords],
+                go.Scattergeo(
+                    lon=[coord[0] for coord in polygon_coords],
+                    lat=[coord[1] for coord in polygon_coords],
                     fill="toself",
                     mode="lines",
                     fillcolor="rgba(255, 0, 0, 0.3)",
                     line=dict(width=1),
-                    name=f"Obstacle {row['Type']}",
+                    hoverinfo="text",  # Display hover text
+                    hovertext=f"<b>Obstacle {row['Type']}</b><br><br>center of mass<br>lon_wgs84={center_of_mass.x:.7f}°<br>lat_wgs84={center_of_mass.y:.7f}°",
                 )
             )
         fig.update_layout(
-            height=1700,
-            width=1200,
-            xaxis=dict(range=[4.8325, 4.8346]),
-            yaxis=dict(range=[45.767, 45.7679]),
-            legend=dict(
-                orientation="h",
-                yanchor="bottom",
-                y=-1.8,
-                xanchor="center",
-                x=0.5,
-            ),
+            height=800,  # Set the height of the figure
+            width=800,  # Set the width of the figure
         )
     else:
         fig.update_layout(
-            height=700,
-            width=900,
-            xaxis_range=[pd_trajs["lon_wgs84"].min(), pd_trajs["lon_wgs84"].max()],
-            yaxis_range=[pd_trajs["lat_wgs84"].min(), pd_trajs["lat_wgs84"].max()],
+            height=800,
+            width=800,
         )
 
-    return fig
-
-
-def visualize_map(
-    pd_trajs: pd.DataFrame,
-    pd_geometry: pd.DataFrame,
-    show_polygons: bool,
-) -> go.Figure:
-    """
-    Visualizes a map with a scatter plot of initial pedestrian positions and optional filled geometric obstacles.
-
-    Args:
-        pd_trajs (pd.DataFrame): DataFrame containing pedestrian trajectories.
-        pd_geometry (pd.DataFrame): DataFrame containing geometric obstacle information.
-        show_polygons (bool): Flag indicating whether to show filled geometric obstacles on the map.
-
-    Returns:
-        Figure: Scatter mapbox figure displaying the map visualization.
-    """
-    # Filter data for pedestrians with frame 0
-    initial_pedestrians = pd_trajs[pd_trajs["frame"] == 0]
-
-    # Create the scatter_mapbox figure
-    fig = px.scatter_mapbox(
-        initial_pedestrians,
-        lat="lat_wgs84",
-        lon="lon_wgs84",
-        color="id",
-        mapbox_style="open-street-map",
-        zoom=18,
-        color_continuous_scale=px.colors.sequential.Viridis,
-        center=dict(lat=45.76751, lon=4.833584),
-    )
-
-    # Set the layout of the figure
-    fig.update_layout(
-        xaxis_title="Longitude [WGS84]",
-        yaxis_title="Latitude [WGS84]",
-        showlegend=False,
-    )
-
-    # Add filled geometric obstacles to the map
-    if show_polygons:
-        # Add filled geometric obstacles to the map
-        for _, row in pd_geometry.iterrows():
-            try:
-                polygon_coords = mapping(row["geometry"])["coordinates"][0]
-                fig.add_trace(
-                    go.Scattermapbox(
-                        lon=[coord[0] for coord in polygon_coords],
-                        lat=[coord[1] for coord in polygon_coords],
-                        mode="lines",
-                        fill="toself",
-                        fillcolor="rgba(255, 0, 0, 0.3)",
-                        line=dict(width=1),
-                        name=f"Obstacle {row['Type']}",
-                    )
-                )
-            except Exception as e:
-                print(f"Error processing polygon: {e}")
-
-        # Adjust the layout size of the figure and position the legend below the map
-        fig.update_layout(
-            height=600,
-            width=600,
-            legend=dict(
-                orientation="h",
-                yanchor="bottom",
-                y=-1.2,
-                xanchor="center",
-                x=0.5,
-            ),
-        )
-    else:
-        # Adjust the layout size of the figure
-        fig.update_layout(
-            height=600,
-            width=600,
-        )
+    # Updating layout for geographic centering
+    fig.update_geos(center=dict(lat=45.76751, lon=4.833584), projection_scale=200000.0, showland=False)
+    fig.update_layout(xaxis_title="Longitude [WGS84]", yaxis_title="Latitude [WGS84]", showlegend=False)
 
     return fig
 
@@ -306,14 +221,21 @@ def compute_pedestrian_velocity(df: pd.DataFrame) -> pd.DataFrame:
     # Calculate velocity (distance/time)
     df["velocity"] = df["distance"] / df["delta_t"]
 
-    # Round the velocity values to 2 decimal places
-    df["velocity"] = df["velocity"].round(8)
+    # Round the velocity values to 3 decimal places
+    df["velocity"] = df["velocity"].round(3)
 
     # Fill NaN values in velocity with 0 (first frame for each pedestrian)
     df["velocity"] = df["velocity"].fillna(0)
 
     # Fill inf values with 0
     df["velocity"] = df["velocity"].replace([np.inf, -np.inf], 0)
+
+    # Round lat and lon to 4 decimal places
+    df["lat_wgs84"] = df["lat_wgs84"].round(7)
+    df["lon_wgs84"] = df["lon_wgs84"].round(7)
+
+    # Add a column for pedestrian name
+    df["Pedestrian"] = "Pedestrian " + df["id"].astype(str)
 
     return df
 
@@ -457,25 +379,20 @@ def main(selected_file: str) -> None:
     pd_trajs = load_data(selected_pickle)
     pd_geometry = load_data(geometry_pickle)
 
-    # Checkbox to toggle the display of geometric polygons
-    show_polygons = st.checkbox("Show Obstacles", value=True)
+    # Title for the sidebar
+    st.sidebar.title("Animation settings")
 
-    # Display the initial position of pedestrians
-    st.title("Initial position of pedestrians")
-    fig = visualize_map(pd_trajs, pd_geometry, show_polygons)
-    st.plotly_chart(fig, use_container_width=True)
+    # Checkbox to toggle the display of geometric polygons
+    show_polygons = st.sidebar.checkbox("Show Obstacles", value=True)
 
     # Calculate minimum and maximum velocities
     min_velocity = pd_trajs["velocity"].min()
     max_velocity = pd_trajs["velocity"].max()
 
-    # Display the animation of pedestrian movements
-    st.title("Animation")
-
     # Streamlit slider for frame duration
     freq_topview = 30
     freq_largeview = 10
-    frame_duration = st.slider(
+    frame_duration = st.sidebar.slider(
         "Select frame duration (ms)",
         min_value=int(1000 / (2 * freq_topview)),
         max_value=int(1000 / (0.5 * freq_largeview)),

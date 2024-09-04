@@ -2,23 +2,58 @@
 
 import logging
 import pickle
+from dataclasses import dataclass
 from math import ceil, floor
 from pathlib import Path
-import plotly.figure_factory as ff
-import plotly.graph_objects as go
+from typing import Dict, Tuple
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
+import plotly.figure_factory as ff
+import plotly.graph_objects as go
+import streamlit as st
 from numba import njit
 from scipy.signal import butter, filtfilt
 from tqdm import tqdm
-from typing import Tuple, Dict
-from dataclasses import dataclass
-import streamlit as st
+
+plt.rcParams["font.family"] = "STIXGeneral"
+
+########## DATA CLASSES ##########
 
 
 @dataclass
 class Parameters:
+    """
+    Parameters dataclass for CCTV_analysis.
+
+    Attributes:
+        FOLDER_TRAJ (Path): Path to the folder containing trajectory data.
+        FOLDER_SAVE (Path): Path to the folder where the analysis results will be saved.
+        SELECTED_NAME (str): Name of the selected data.
+        START_TIME (float): Start time of the analysis.
+        DURATION (float): Duration of the analysis.
+        X_MIN (int): Minimum value of the x-coordinate.
+        X_MAX (int): Maximum value of the x-coordinate.
+        Y_MIN (int): Minimum value of the y-coordinate.
+        Y_MAX (int): Maximum value of the y-coordinate.
+        DT (float): Time step for the analysis.
+        XI (float): Parameter for the analysis.
+        R_C (float): Parameter for the analysis.
+        R_CG (float): Parameter for the analysis.
+        CUTOFF (float): Parameter for the analysis.
+        DELTA_T (float): Parameter for the analysis.
+        QUIVER_STEP (int): Step size for the quiver plot.
+        QUIVER_SCALE (float): Scale factor for the quiver plot.
+        CUM_TIME (float, optional): Cumulative time for the analysis. Defaults to 0.0.
+        NB_CG_X (int, optional): Number of cells in the x-direction for the analysis. Defaults to 0.
+        NB_CG_Y (int, optional): Number of cells in the y-direction for the analysis. Defaults to 0.
+        DELTA (float, optional): Parameter for the analysis. Defaults to 0.0.
+        COLORBAR_MIN (float, optional): Minimum value for the colorbar. Defaults to 0.0.
+        COLORBAR_MAX (float, optional): Maximum value for the colorbar. Defaults to 4.0.
+        COLORBAR_MAX_V (float, optional): Maximum value for the colorbar (vorticity). Defaults to 0.25.
+    """
+
     FOLDER_TRAJ: Path
     FOLDER_SAVE: Path
     SELECTED_NAME: str
@@ -210,7 +245,7 @@ def process_trajectories(all_datas: pd.DataFrame, pa: Parameters) -> Dict[str, p
     # Filter trajectories
     unique_ids = all_datas["id"].unique()
     # print(f"Processing {len(unique_ids)} trajectories...")
-    for traj_nb in unique_ids:
+    for _, traj_nb in enumerate(unique_ids):
         traj_data = all_datas[all_datas["id"] == traj_nb]
 
         # Skip empty trajectories
@@ -362,7 +397,9 @@ def initialize_dict(nb_cg_x: int, nb_cg_y: int) -> Dict[str, np.ndarray]:
     return density_velocity_fields
 
 
-def compute_fields(all_trajs: dict, df_observables: Dict[str, np.ndarray], pa: Parameters) -> np.ndarray:
+def compute_fields(
+    all_trajs: dict, df_observables: Dict[str, np.ndarray], pa: Parameters, my_progress_bar, status_text
+) -> np.ndarray:
     """
     Compute the density field based on the given trajectories and parameters.
     Args:
@@ -372,8 +409,9 @@ def compute_fields(all_trajs: dict, df_observables: Dict[str, np.ndarray], pa: P
     Returns:
         np.ndarray: The computed density field.
     """
+    nb_traj = len(all_trajs)
     # Iterate over all trajectories
-    for _, traj in tqdm(enumerate(all_trajs.values()), desc="Processing grid"):
+    for i_traj, traj in tqdm(enumerate(all_trajs.values()), desc="Processing grid"):
         traj = traj.loc[(traj["t_s"] >= pa.START_TIME) & (traj["t_s"] < pa.START_TIME + pa.DURATION + 2.0 * pa.DT)]
         if traj.shape[0] == 0:
             continue
@@ -401,6 +439,17 @@ def compute_fields(all_trajs: dict, df_observables: Dict[str, np.ndarray], pa: P
                     df_observables["vys"][i, j] += phi_r * row.vy
                     df_observables["vxs2"][i, j] += phi_r * row.vx**2
                     df_observables["vys2"][i, j] += phi_r * row.vy**2
+
+        # Update progress bar
+        percent_complete = int((i_traj / nb_traj) * 100)
+        my_progress_bar.progress(percent_complete)
+        # Update status text
+        progress_text = "Operation in progress. Please wait. ⏳"
+        status_text.text(f"{progress_text} {percent_complete}%")
+
+    # Clear status text and progress bar after completion
+    status_text.text("Operation complete! ⌛")
+    my_progress_bar.empty()
 
     # Normalize and calculate standard deviation
     nonzero_mask = df_observables["rho"] > 1e-10
@@ -549,17 +598,22 @@ def update_figure(
     # Correct layout update with proper domain
     fig.update_layout(
         font=dict(
-            family="Courier New, monospace",
+            # family="Courier New, monospace",
             size=20,
         ),
-        title="Velocity field for density heatmap" if plot_density else "Velocity field for variance velocity heatmap",
+        title=dict(
+            text=(
+                "Velocity field for density heatmap" if plot_density else "Velocity field for variance velocity heatmap"
+            ),
+            font_size=20,
+        ),
         xaxis=dict(
             title=dict(text="x [m]", font_size=20), scaleanchor="y", scaleratio=1, range=[0.0, 12.0], tickfont_size=20
         ),
         yaxis=dict(
             title=dict(text="y [m]", font_size=20), scaleanchor="x", scaleratio=1, range=[2.2, 23], tickfont_size=20
         ),
-        width=600,
+        width=650,
         height=900,
     )
 
@@ -576,6 +630,14 @@ def main(selected_file: str):
     Returns:
         None
     """
+    # Sidebar for settings
+    st.sidebar.title("Settings")
+
+    # Add a slider to the sidebar
+    slider_value_R_CG = st.sidebar.slider(
+        "Select a value for the grid cell size", min_value=0.2, max_value=1.5, value=1.1, step=0.1  # Default value
+    )
+
     ########## PARAMETERS ##########
     path = Path(__file__)
 
@@ -599,6 +661,7 @@ def main(selected_file: str):
         QUIVER_STEP=1,
         QUIVER_SCALE=3.0,
     )
+    pa.R_CG = slider_value_R_CG
     pa.DELTA = int(ceil(pa.R_C / pa.R_CG)) + 1  # Number of cells to consider around the cell containing the point
     folder_save = create_save_folder(pa)
 
@@ -607,6 +670,11 @@ def main(selected_file: str):
         or not Path(folder_save / "parameters.pkl").exists()
         or not Path(folder_save / "dictionnary_observables.pkl").exists()
     ):
+        ########## PROGRESS BAR ##########
+        st.text("Progress Bar")
+        my_progress_bar = st.progress(0)
+        status_text = st.empty()
+
         ########## PROCESS TRAJECTORIES ##########
         all_data = read_and_process_file(selected_file)
         all_data["vx"] = np.nan  # Initialize the velocity columns
@@ -618,24 +686,21 @@ def main(selected_file: str):
 
         ########## FIELDS ##########
         df_observables = initialize_dict(pa.NB_CG_X, pa.NB_CG_Y)
-        compute_fields(all_trajs, df_observables, pa)
+        compute_fields(all_trajs, df_observables, pa, my_progress_bar, status_text)
         save_data(df_observables, folder_save, "dictionnary_observables.pkl")
 
     # Load the data from the pickle files
     params = load_data(folder_save, "parameters.pkl")
     dict_observables = load_data(folder_save, "dictionnary_observables.pkl")
 
-    # Sidebar for controls
-    st.sidebar.title("Controls")
+    # Set the interpolation button initially to False
+    st.session_state["zsmooth"] = False
 
     # Button to toggle interpolation
-    if "zsmooth" not in st.session_state:
-        st.session_state["zsmooth"] = "best"
+    toggle_interpolation = st.sidebar.checkbox("Interpolation", value=st.session_state["zsmooth"])
 
-    # Button to toggle interpolation
-    toggle_interpolation = st.sidebar.button("Toggle Interpolation")
-    if toggle_interpolation:
-        st.session_state["zsmooth"] = "best" if st.session_state["zsmooth"] == False else False
+    # Update session state based on checkbox
+    st.session_state["zsmooth"] = "best" if toggle_interpolation else False
 
     # Double column layout with the density and variance heatmaps and velocity field
     col1, col2 = st.columns([1, 1])  # Adjust the ratio to control space allocation
