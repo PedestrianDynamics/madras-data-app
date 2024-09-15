@@ -13,3 +13,4 @@ pygwalker
 pyproj
 kaleido
 numba
+selenium

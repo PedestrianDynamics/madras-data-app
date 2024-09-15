@@ -1,6 +1,8 @@
-## CSV File Structure
+## Contact Data Structure
 
-The CSV file is structured as follows:
+The **GPS** folder contains GPS trajectories in the `.gpx` file format.
+
+The **Contacts.csv** file is structured as follows:
 
 - **Columns**:
   - **Name**: Participant's name.
@@ -8,7 +10,7 @@ The CSV file is structured as follows:
   - **Time-of-stop**: Time when recording stopped (format: HH:MM:SS.mmm).
   - **Total-number-of-collisions**: Number of collisions recorded.
   - **Duration**: Total duration of the recording (format: HH:MM:SS.mmm).
-  - **Instant contact 1-6**: Time stamps for each contact instance from the start (format: HH:MM:SS.mmm).
+  - **Instant contact**: Time stamps for each contact instance from the start (format: HH:MM:SS.mmm).
 
 - **Rows**:
   - Each row represents a single recording session for a participant.

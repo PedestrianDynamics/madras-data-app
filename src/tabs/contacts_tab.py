@@ -16,6 +16,7 @@ import streamlit as st
 from matplotlib import colormaps
 from plotly.graph_objects import Figure
 from streamlit_folium import st_folium
+import plotly.express as px
 
 
 def load_and_process_contacts_data(csv_path: Path, pickle_path: Path) -> None:
@@ -456,8 +457,8 @@ def plot_cumulative_contacts(df: pd.DataFrame) -> Figure:
     # Update layout of the figure
     fig.update_layout(
         title=dict(text="Cumulative Number of Contacts as a Function of Time", font_size=28),
-        width=700,
-        height=700,
+        width=600,
+        height=600,
         xaxis=dict(
             title=dict(text="Time [s]", font_size=20),
             tickfont_size=20,
@@ -471,35 +472,79 @@ def plot_cumulative_contacts(df: pd.DataFrame) -> Figure:
     return fig
 
 
+def histogram_survey(df_survey: pd.DataFrame, remove_outlier: bool) -> Figure:
+
+    # Calculate the group sizes
+    values_adults = df_survey["Adults"].fillna(0).tolist()
+    if remove_outlier:
+        values_adults = [x for x in values_adults if x != max(values_adults)]
+    values_children = df_survey["Children"].fillna(0).tolist()
+    values_both = [a + b for a, b in zip(values_adults, values_children)]
+
+    # Create a DataFrame for the histogram
+    data = pd.DataFrame(
+        {
+            "Data": values_both + values_children,
+            "Categories": ["Adults and children"] * len(values_both) + ["Children"] * len(values_children),
+        }
+    )
+
+    fig = px.histogram(
+        data,
+        x="Data",
+        nbins=20,  # Adjust the number of bins as needed
+        color="Categories",
+        color_discrete_map={"Adults and children": "darkturquoise", "Children": "firebrick"},
+    )
+
+    # Update hover template
+    fig.update_traces(
+        hovertemplate="<br>".join(
+            ["<b>Counts</b>: %{y}", "<b>Group Size</b>: %{x}", "<b>Category</b>: %{customdata[0]}", "<extra></extra>"]
+        ),
+        customdata=data[["Categories"]].values,
+    )
+
+    fig.update_layout(
+        title=dict(text="Distribution of Group Sizes", font_size=28),
+        width=600,
+        height=500,
+        xaxis=dict(
+            title=dict(text="Group Size", font_size=20),
+            tickfont_size=20,
+        ),
+        yaxis=dict(
+            title=dict(text="Counts", font_size=20),
+            tickfont_size=20,
+        ),
+    )
+
+    return fig
+
+
 def main() -> None:
     """
-    Main function for generating a map of GPS trajectories coupled with contacts locations.
-
-    This function performs the following steps:
-    1. Sets the title of the map.
-    2. Defines the paths to the data directories.
-    3. Loads GPS tracks and contact data.
-    4. Initializes the map and adds layers.
-    5. Displays the map in the Streamlit app.
-    6. Initializes the session state variable if it doesn't exist.
-    7. Creates a slider for selecting the number of bins.
-    8. Creates a button for toggling the session state boolean variable.
-    9. Displays the current value of the session state boolean variable.
-    10. Plots a histogram of the contacts data.
-    11. Saves the histogram as a PDF file.
-    12. Displays the histogram in the Streamlit app.
-    13. Downloads the histogram PDF file.
-    14. Plots a cumulative contacts chart.
-    15. Displays the cumulative contacts chart in the Streamlit app.
-    16. Removes the histogram files created in the processed directory.
+    This function performs the following tasks:
+    1. Defines paths to various data directories.
+    2. Checks for the existence of processed data files and processes raw data if necessary.
+    3. Loads survey data, either from a pickle file or a CSV file, and processes it.
+    4. Loads GPS tracks and contact data.
+    5. Provides a sidebar menu for plot selection in a Streamlit app.
+    6. Based on the selected plot option, it generates and displays:
+       - Contacts Histogram: A histogram of the total number of collisions with options for log-x-scale and bin selection.
+       - Cumulative Contacts: A cumulative contacts chart.
+       - Survey Histogram: A histogram of survey results with an option to remove outliers.
+       - Contacts Map: A map displaying GPS trajectories and contact locations.
+    7. Provides download buttons for the generated plots and map in PDF format.
     """
 
     # Paths to the data directories
-    path = Path(__file__)
-    path_csv = path.parent.parent.parent.absolute() / "data" / "other_datasets"
+    path = Path(__file__).resolve()
+    path_csv = path.parent.parent.parent.absolute() / "data" / "GPS_traces_&_physical_contacts"
     path_pickle = path.parent.parent.parent.absolute() / "data" / "pickle"
-    path_gpx = path.parent.parent.parent.absolute() / "data" / "other_datasets" / "GPSTracks"
+    path_gpx = path.parent.parent.parent.absolute() / "data" / "GPS_traces_&_physical_contacts" / "GPSTracks"
     path_icon = str(path.parent.parent.parent.absolute() / "data" / "assets" / "logo_contact")
+    survey_path = path.parent.parent.parent.absolute() / "data" / "surveys" / "survey_results.csv"
 
     # If "contacts_gps_merged.pkl" does not exist, run the following code
     if not Path(path_pickle / "contacts_gps_merged.pkl").exists():
@@ -507,65 +552,98 @@ def main() -> None:
         process_gpx(path_gpx, path_pickle)
         merge_contacts_and_gps_data(path_pickle)
 
+    # Check if survey.pkl exists, if not create it, else load it
+    pickle_survey_path = path_pickle / "survey_results.pkl"
+    if Path(path_pickle / "survey_results.pkl").exists():
+        df_survey = pd.read_pickle(pickle_survey_path)
+    else:
+        df_survey = pd.read_csv(survey_path, sep=";")
+        df_survey["Adults"] = df_survey["Adults"].fillna(0)
+        df_survey["Children"] = df_survey["Children"].fillna(0)
+        df_survey.to_pickle(pickle_survey_path)
+
     # Load GPS tracks and contact data
     all_gps_tracks, contact_gps_merged, contacts_data = load_data(path_pickle)
 
-    # Initialize map and add layers
-    my_map = initialize_map()
-    add_tile_layer(my_map)
-    plot_gps_tracks(my_map, all_gps_tracks)
-    add_contact_markers(my_map, contact_gps_merged, path_icon)
-
-    # Set a default value for the session state boolean variable
-    st.session_state["bool_log"] = True
-
+    # Sidebar menu for plot selection
+    plot_option = st.selectbox(
+        "Select Plot",
+        ("Contacts Map", "Contacts Histogram", "Cumulative Contacts", "Survey Histogram"),
+    )
     # Sidebar title
     st.sidebar.title("Settings")
 
-    # Checkbox to toggle log-x-scale, initially set to True
-    log_x_scale_checkbox = st.sidebar.checkbox("Log-x-scale", value=st.session_state["bool_log"])
+    # Plot based on selection
+    if plot_option == "Contacts Histogram":
+        col1, _ = st.columns([1, 0.8])  # Adjust the ratio to control space allocation
+        with col1:
+            # Set a default value for the session state boolean variable
+            st.session_state["bool_log"] = True
+            # Checkbox to toggle log-x-scale, initially set to True
+            log_x_scale_checkbox = st.sidebar.checkbox("Log-x-scale", value=st.session_state["bool_log"])
+            # Update session state based on checkbox
+            st.session_state["bool_log"] = log_x_scale_checkbox
+            # Title for the histogram
+            st.subheader("Histogram of the Total Number of Collisions\n")
+            # Slider for selecting the number of bins
+            bins = st.sidebar.slider("Select number of bins:", min_value=4, max_value=8, value=6, step=1)
+            # Plot a histogram of the contacts data
+            histogram_fig = plot_histogram(contacts_data, bins, (st.session_state["bool_log"], False))
+            # Define file path for saving the histogram
+            data_directory = Path(__file__).resolve().parent.parent.parent / "data" / "processed"
+            histogram_filename = data_directory / f"histogram_{bins}.pdf"
+            # Display the histgram in the first column
+            st.pyplot(histogram_fig, clear_figure=True)
+            # Save the histogram to a BytesIO object in PDF format
+            histogram_buffer = BytesIO()
+            histogram_fig.savefig(histogram_buffer, format="pdf")
+            histogram_buffer.seek(0)  # Rewind the buffer to the beginning
+            # Download button for the histogram
+            st.sidebar.download_button(
+                label="Download Contacts Histogram", data=histogram_buffer, file_name=str(histogram_filename)
+            )
 
-    # Update session state based on checkbox
-    st.session_state["bool_log"] = log_x_scale_checkbox
+    elif plot_option == "Cumulative Contacts":
+        # Plot cumulative contacts
+        cumulative_fig = plot_cumulative_contacts(contacts_data)
+        st.plotly_chart(cumulative_fig)
+        # Convert the Plotly figure to PDF bytes
+        cumulative_img_bytes = cumulative_fig.to_image(format="pdf")
+        # Download button for the cumulative contacts chart
+        st.sidebar.download_button(
+            label="Download Cumulative",
+            data=cumulative_img_bytes,
+            file_name="cumulative_contacts.pdf",
+        )
 
-    col1, _ = st.columns([1, 0.8])  # Adjust the ratio to control space allocation
-    with col1:
-        # Title for the histogram
-        st.subheader("Histogram of the Total Number of Collisions\n\n\n")
-        # Slider for selecting the number of bins
-        bins = st.sidebar.slider("Select number of bins:", min_value=4, max_value=8, value=6, step=1)
-        # Plot a histogram of the contacts data
-        histogram_fig = plot_histogram(contacts_data, bins, (st.session_state["bool_log"], False))
-        # Define file path for saving the histogram
-        data_directory = Path(__file__).resolve().parent.parent.parent / "data" / "processed"
-        histogram_filename = data_directory / f"histogram_{bins}.pdf"
-        # Display the histgram in the first column
-        st.pyplot(histogram_fig, clear_figure=True)
-        # Save the histogram to a BytesIO object in PDF format
-        histogram_buffer = BytesIO()
-        histogram_fig.savefig(histogram_buffer, format="pdf")
-        histogram_buffer.seek(0)  # Rewind the buffer to the beginning
-        # Download button for the histogram
-        st.sidebar.download_button(label="Download Histogram", data=histogram_buffer, file_name=str(histogram_filename))
+    elif plot_option == "Survey Histogram":
+        # Sidebar remove outlier button for the survey
+        remove_outlier = st.sidebar.checkbox("Remove outlier", value=True)
+        # Histogram of the survey results
+        fig = histogram_survey(df_survey, remove_outlier)
+        st.plotly_chart(fig)
+        # Streamlit button in the sidebar to download the graph in PDF format
+        st.sidebar.download_button(
+            label="Download Survey Histogram",
+            data=fig.to_image(format="pdf"),
+            file_name="survey_results.pdf",
+        )
 
-    # Plot cumulative contacts
-    cumulative_fig = plot_cumulative_contacts(contacts_data)
-    # Display the cumulative contacts chart using Plotly
-    st.plotly_chart(cumulative_fig)
-    # Convert the Plotly figure to PDF bytes
-    cumulative_img_bytes = cumulative_fig.to_image(format="pdf")
-    # Download button for the cumulative contacts chart
-    st.sidebar.download_button(
-        label="Download Cumulative", data=cumulative_img_bytes, file_name="cumulative_contacts.pdf"
-    )
-
-    # Display the map in the Streamlit app
-    st.subheader("Map of GPS Trajectories coupled with contacts locations.")
-    st_folium(my_map, width=625, height=600)
-
-    # remove the histogram files created in the processed directory
-    for file in data_directory.glob("histogram_*.pdf"):
-        file.unlink()
+    elif plot_option == "Contacts Map":
+        # Initialize map and add layers
+        my_map = initialize_map()
+        add_tile_layer(my_map)
+        plot_gps_tracks(my_map, all_gps_tracks)
+        add_contact_markers(my_map, contact_gps_merged, path_icon)
+        # Display the map in the Streamlit app
+        st.subheader("Map of GPS Trajectories coupled with contact locations.")
+        st_folium(my_map, width=625, height=600)
+        # Download the map as pdf file
+        st.sidebar.download_button(
+            label="Download Map",
+            data=my_map._to_png(),
+            file_name="contacts_map.png",
+        )
 
 
 def run_tab_contact() -> None:

@@ -5,6 +5,7 @@ from typing import Any
 
 import streamlit as st
 from streamlit_option_menu import option_menu
+import string
 
 
 def setup_app() -> None:
@@ -41,9 +42,38 @@ def init_sidebar() -> Any:
     To add more tabs, add the name of the tab and add an icon from
     https://icons.getbootstrap.com/
     """
+    # Custom CSS to handle multi-line text alignment and indentation
+    st.markdown(
+        """
+        <style>
+        .nav-link {
+            display: flex;
+            align-items: center;
+            white-space: pre-wrap; /* Allows text to wrap */
+            text-align: left;
+        }
+        .nav-link div {
+            margin-left: 10px; /* Adjust margin to align text with icon */
+        }
+        .nav-link div span {
+            display: block;
+            padding-left: 20px; /* Simulate tab space */
+        }
+        </style>
+        """,
+        unsafe_allow_html=True,
+    )
     return option_menu(
         "Multi-agent modelling of dense crowd dynamics: Predict & Understand",
-        ["About", "Map", "Trajectories", "Analysis", "Contacts", "Explorer", "Animation"],
+        [
+            "About",
+            "Map",
+            "Trajectories",
+            "Analysis",
+            "Contacts",
+            "Explorer",
+            "Animation",
+        ],
         icons=[
             "info-square",
             "pin-map",
@@ -51,7 +81,7 @@ def init_sidebar() -> Any:
             "bar-chart-line",
             "exclamation-triangle",
             "graph-up-arrow",
-            "camera-reels-fill"
+            "camera-reels-fill",
         ],
         menu_icon="cast",
         default_index=0,

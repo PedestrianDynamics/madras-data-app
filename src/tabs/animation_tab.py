@@ -275,7 +275,7 @@ def degrees_to_meters(lat, lon):
     return x, y
 
 
-def prepare_data(traj_path: Path, GEOMETRY_PATH: Path, selected_traj_file: Path) -> None:
+def prepare_data(traj_path: Path, geometry_path: Path, selected_traj_file: Path) -> None:
     """
     Prepare and convert trajectory data from RGF93 to WGS84 coordinates.
 
@@ -285,51 +285,53 @@ def prepare_data(traj_path: Path, GEOMETRY_PATH: Path, selected_traj_file: Path)
     Returns:
         None
     """
-    # Loop over files in trajectories that start with Topview or LargeView
-    if str(selected_traj_file.stem).startswith("LargeView"):
-        # Assuming the data starts at line 8 (adjust this as necessary)
-        df = pd.read_csv(
-            selected_traj_file,
-            sep=" ",
-            header=None,
-            skiprows=7,
-            names=["id", "frame", "x/m", "y/m", "z/m", "t/s", "x_RGF", "y_RGF"],
-        )
-        # Convert the coordinates from RGF93 to WGS84
-        df_converted = trajs_from_rgf93_to_wgs84(df)
-        # Subtract the initial time value from all time values
-        df_converted["t/s"] = adjust_time(df_converted)["t/s"]
-        # Add a column for pedestrian velocity
-        df_converted = compute_pedestrian_velocity(df_converted)
-        # Save the converted DataFrame to a pickle file
-        PICKLE_SAVE_PATH = str(traj_path.parent / "pickle" / (selected_traj_file.stem + "_converted.pkl"))
-        df_converted.to_pickle(PICKLE_SAVE_PATH)
+    selected_pickle = str(traj_path.parent / "pickle" / (str(Path(selected_traj_file).stem) + "_converted.pkl"))
+    if not Path(selected_pickle).exists():
+        # Loop over files in trajectories that start with Topview or LargeView
+        if str(selected_traj_file.stem).startswith("LargeView"):
+            # Assuming the data starts at line 8 (adjust this as necessary)
+            df = pd.read_csv(
+                selected_traj_file,
+                sep=" ",
+                header=None,
+                skiprows=7,
+                names=["id", "frame", "x/m", "y/m", "z/m", "t/s", "x_RGF", "y_RGF"],
+            )
+            # Convert the coordinates from RGF93 to WGS84
+            df_converted = trajs_from_rgf93_to_wgs84(df)
+            # Subtract the initial time value from all time values
+            df_converted["t/s"] = adjust_time(df_converted)["t/s"]
+            # Add a column for pedestrian velocity
+            df_converted = compute_pedestrian_velocity(df_converted)
+            # Save the converted DataFrame to a pickle file
+            PICKLE_SAVE_PATH = str(traj_path.parent / "pickle" / (selected_traj_file.stem + "_converted.pkl"))
+            df_converted.to_pickle(PICKLE_SAVE_PATH)
 
-    if str(selected_traj_file.stem).startswith("Topview"):
-        # Assuming the data starts at line 8 (adjust this as necessary)
-        df = pd.read_csv(
-            selected_traj_file,
-            sep=" ",
-            header=None,
-            skiprows=7,
-            names=["id", "frame", "x/m", "y/m", "z/m", "id_global", "t/s", "x_RGF", "y_RGF"],
-        )
-        df = df.drop(columns=["id"])
-        df = df.rename(columns={"id_global": "id"})
-        # Convert the coordinates from RGF93 to WGS84
-        df_converted = trajs_from_rgf93_to_wgs84(df)
-        # Subtract the initial time value from all time values
-        df_converted["t/s"] = adjust_time(df_converted)["t/s"]
-        # Add a column for pedestrian velocity
-        df_converted = compute_pedestrian_velocity(df_converted)
-        # Save the converted DataFrame to a pickle file
-        PICKLE_SAVE_PATH = str(traj_path.parent / "pickle" / (selected_traj_file.stem + "_converted.pkl"))
-        df_converted.to_pickle(PICKLE_SAVE_PATH)
+        if str(selected_traj_file.stem).startswith("Topview"):
+            # Assuming the data starts at line 8 (adjust this as necessary)
+            df = pd.read_csv(
+                selected_traj_file,
+                sep=" ",
+                header=None,
+                skiprows=7,
+                names=["id", "frame", "x/m", "y/m", "z/m", "id_global", "t/s", "x_RGF", "y_RGF"],
+            )
+            df = df.drop(columns=["id"])
+            df = df.rename(columns={"id_global": "id"})
+            # Convert the coordinates from RGF93 to WGS84
+            df_converted = trajs_from_rgf93_to_wgs84(df)
+            # Subtract the initial time value from all time values
+            df_converted["t/s"] = adjust_time(df_converted)["t/s"]
+            # Add a column for pedestrian velocity
+            df_converted = compute_pedestrian_velocity(df_converted)
+            # Save the converted DataFrame to a pickle file
+            PICKLE_SAVE_PATH = str(traj_path.parent / "pickle" / (selected_traj_file.stem + "_converted.pkl"))
+            df_converted.to_pickle(PICKLE_SAVE_PATH)
 
     # Geometry data
-    geometry_pickle = GEOMETRY_PATH.parent.parent / "pickle" / "geometry_converted.pkl"
+    geometry_pickle = geometry_path.parent / "pickle" / "geometry_converted.pkl"
     if not geometry_pickle.exists():
-        pd_geometry_converted = extract_gps_data_from_csv_geometry(GEOMETRY_PATH / "WKT.csv")
+        pd_geometry_converted = extract_gps_data_from_csv_geometry(geometry_path / "WKT.csv")
         pd_geometry_converted.to_pickle(geometry_pickle)
 
 
@@ -361,19 +363,18 @@ def main(selected_file: str) -> None:
     """
     path = Path(__file__)
 
-    TRAJ_PATH = path.parent.parent.parent.absolute() / "data" / "trajectories"
-    GEOMETRY_PATH = Path(path.parent.parent.parent.absolute() / "data" / "other_datasets" / "geometry")
+    TRAJ_PATH = Path(path.parent.parent.parent.absolute() / "data" / "trajectories")
+    GEOMETRY_PATH = Path(path.parent.parent.parent.absolute() / "data" / "geometry")
 
     # is topview or largeview
     is_topview = str(Path(selected_file).stem).startswith("Topview")
 
     # select the pickle file
     selected_pickle = str(TRAJ_PATH.parent / "pickle" / (str(Path(selected_file).stem) + "_converted.pkl"))
-    geometry_pickle = str(GEOMETRY_PATH.parent.parent / "pickle" / "geometry_converted.pkl")
+    geometry_pickle = str(GEOMETRY_PATH.parent / "pickle" / "geometry_converted.pkl")
 
-    # if selected_pickle does not exist, prepare the data
-    if not Path(selected_pickle).exists():
-        prepare_data(TRAJ_PATH, GEOMETRY_PATH, Path(selected_file))
+    # prepare the data
+    prepare_data(TRAJ_PATH, GEOMETRY_PATH, Path(selected_file))
 
     # Load the pedestrian trajectory data
     pd_trajs = load_data(selected_pickle)
