@@ -126,7 +126,10 @@ def create_animation_plotly(
                         {
                             "args": [
                                 None,
-                                {"frame": {"duration": frame_duration, "redraw": True}, "fromcurrent": True},
+                                {
+                                    "frame": {"duration": frame_duration, "redraw": True},
+                                    "fromcurrent": True,
+                                },
                             ],
                             "label": "Play",
                             "method": "animate",
@@ -170,7 +173,8 @@ def create_animation_plotly(
                     fillcolor="rgba(255, 0, 0, 0.3)",
                     line=dict(width=1),
                     hoverinfo="text",  # Display hover text
-                    hovertext=f"<b>Obstacle {row['Type']}</b><br><br>center of mass<br>lon_wgs84={center_of_mass.x:.7f}°<br>lat_wgs84={center_of_mass.y:.7f}°",
+                    hovertext=f"<b>Obstacle {row['Type']}</b><br><br>center of "
+                    + f"mass<br>lon_wgs84={center_of_mass.x:.7f}°<br>lat_wgs84={center_of_mass.y:.7f}°",
                 )
             )
         fig.update_layout(
@@ -184,8 +188,12 @@ def create_animation_plotly(
         )
 
     # Updating layout for geographic centering
-    fig.update_geos(center=dict(lat=45.76751, lon=4.833584), projection_scale=200000.0, showland=False)
-    fig.update_layout(xaxis_title="Longitude [WGS84]", yaxis_title="Latitude [WGS84]", showlegend=False)
+    fig.update_geos(
+        center=dict(lat=45.76751, lon=4.833584), projection_scale=200000.0, showland=False
+    )
+    fig.update_layout(
+        xaxis_title="Longitude [WGS84]", yaxis_title="Latitude [WGS84]", showlegend=False
+    )
 
     return fig
 
@@ -204,7 +212,9 @@ def compute_pedestrian_velocity(df: pd.DataFrame) -> pd.DataFrame:
     # Calculate velocities
     # Convert the coordinates from degrees to meters
     df[["x_meters", "y_meters"]] = df.apply(
-        lambda row: degrees_to_meters(row["lat_wgs84"], row["lon_wgs84"]), axis=1, result_type="expand"
+        lambda row: degrees_to_meters(row["lat_wgs84"], row["lon_wgs84"]),
+        axis=1,
+        result_type="expand",
     )
 
     # Sort the DataFrame by 'id' and 't/s' to ensure correct calculation
@@ -285,7 +295,9 @@ def prepare_data(traj_path: Path, geometry_path: Path, selected_traj_file: Path)
     Returns:
         None
     """
-    selected_pickle = str(traj_path.parent / "pickle" / (str(Path(selected_traj_file).stem) + "_converted.pkl"))
+    selected_pickle = str(
+        traj_path.parent / "pickle" / (str(Path(selected_traj_file).stem) + "_converted.pkl")
+    )
     if not Path(selected_pickle).exists():
         # Loop over files in trajectories that start with Topview or LargeView
         if str(selected_traj_file.stem).startswith("LargeView"):
@@ -304,7 +316,9 @@ def prepare_data(traj_path: Path, geometry_path: Path, selected_traj_file: Path)
             # Add a column for pedestrian velocity
             df_converted = compute_pedestrian_velocity(df_converted)
             # Save the converted DataFrame to a pickle file
-            PICKLE_SAVE_PATH = str(traj_path.parent / "pickle" / (selected_traj_file.stem + "_converted.pkl"))
+            PICKLE_SAVE_PATH = str(
+                traj_path.parent / "pickle" / (selected_traj_file.stem + "_converted.pkl")
+            )
             df_converted.to_pickle(PICKLE_SAVE_PATH)
 
         if str(selected_traj_file.stem).startswith("Topview"):
@@ -325,7 +339,9 @@ def prepare_data(traj_path: Path, geometry_path: Path, selected_traj_file: Path)
             # Add a column for pedestrian velocity
             df_converted = compute_pedestrian_velocity(df_converted)
             # Save the converted DataFrame to a pickle file
-            PICKLE_SAVE_PATH = str(traj_path.parent / "pickle" / (selected_traj_file.stem + "_converted.pkl"))
+            PICKLE_SAVE_PATH = str(
+                traj_path.parent / "pickle" / (selected_traj_file.stem + "_converted.pkl")
+            )
             df_converted.to_pickle(PICKLE_SAVE_PATH)
 
     # Geometry data
@@ -370,7 +386,9 @@ def main(selected_file: str) -> None:
     is_topview = str(Path(selected_file).stem).startswith("Topview")
 
     # select the pickle file
-    selected_pickle = str(TRAJ_PATH.parent / "pickle" / (str(Path(selected_file).stem) + "_converted.pkl"))
+    selected_pickle = str(
+        TRAJ_PATH.parent / "pickle" / (str(Path(selected_file).stem) + "_converted.pkl")
+    )
     geometry_pickle = str(GEOMETRY_PATH.parent / "pickle" / "geometry_converted.pkl")
 
     # prepare the data
@@ -400,7 +418,9 @@ def main(selected_file: str) -> None:
         value=int(1000 / freq_topview) if is_topview else int(1000 / freq_largeview),
         step=5,
     )
-    fig = create_animation_plotly(pd_trajs, pd_geometry, show_polygons, frame_duration, min_velocity, max_velocity)
+    fig = create_animation_plotly(
+        pd_trajs, pd_geometry, show_polygons, frame_duration, min_velocity, max_velocity
+    )
     st.plotly_chart(fig, use_container_width=True)
 
 

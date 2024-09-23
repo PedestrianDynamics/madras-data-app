@@ -16,7 +16,6 @@ import streamlit as st
 from matplotlib import colormaps
 from plotly.graph_objects import Figure
 from streamlit_folium import st_folium
-import plotly.express as px
 
 
 def load_and_process_contacts_data(csv_path: Path, pickle_path: Path) -> None:
@@ -42,7 +41,9 @@ def load_and_process_contacts_data(csv_path: Path, pickle_path: Path) -> None:
     df.iloc[:, 5:] = df.iloc[:, 5:].map(convert_to_timedelta)
 
     # Convert 'Détail' entries to total seconds
-    df.iloc[:, 5:] = df.iloc[:, 5:].apply(lambda col: col.apply(lambda x: x.total_seconds() if pd.notna(x) else None))
+    df.iloc[:, 5:] = df.iloc[:, 5:].apply(
+        lambda col: col.apply(lambda x: x.total_seconds() if pd.notna(x) else None)
+    )
 
     # Save the DataFrame to a pickle file
     df.to_pickle(pickle_path / "contacts_data.pkl")
@@ -73,7 +74,10 @@ def convert_to_timedelta(time_str: str) -> pd.Timedelta:
         hours, minutes, seconds_micros = time_str.split(":")
         seconds, microseconds = seconds_micros.split(".")
         return pd.Timedelta(
-            hours=int(hours), minutes=int(minutes), seconds=int(seconds), microseconds=int(microseconds)
+            hours=int(hours),
+            minutes=int(minutes),
+            seconds=int(seconds),
+            microseconds=int(microseconds),
         )
 
 
@@ -89,7 +93,9 @@ def process_contacts_data(df: pd.DataFrame) -> pd.DataFrame:
     """
 
     # Drop non-numeric 'Détail' columns
-    df.drop(columns=["Date", "Time-of-stop", "Total-number-of-collisions", "Duration"], inplace=True)
+    df.drop(
+        columns=["Date", "Time-of-stop", "Total-number-of-collisions", "Duration"], inplace=True
+    )
 
     # Transpose the DataFrame and rename columns
     df = df.transpose()
@@ -263,8 +269,10 @@ def merge_contacts_and_gps_data(path_pickle: Path) -> None:
     merged_df = pd.merge_asof(df1, df2, on="time_seconds", by="name_subj", direction="nearest")
     # - **Grouping**: The merge operation groups the data by `name_subj`.
     # - **Juxtaposition**: Within each group, it aligns rows from `df1` and `df2` based on the `time_seconds` column.
-    # - **Merging**: For each subject (e.g., `subj7`), if the `time_seconds` values are similar (nearest match), the content from both DataFrames is combined into a single row.
-    # - **Directionality**: The `direction="nearest"` parameter ensures that the merge operation considers the nearest value in `df2` for each row in `df1`.
+    # - **Merging**: For each subject (e.g., `subj7`), if the `time_seconds` values are similar (nearest match),
+    #                the content from both DataFrames is combined into a single row.
+    # - **Directionality**: The `direction="nearest"` parameter ensures that the merge operation considers
+    #                       the nearest value in `df2` for each row in `df1`.
 
     # Drop unnecessary columns and NaN rows
     merged_df.drop(columns=["time_seconds"], inplace=True)
@@ -371,12 +379,14 @@ def plot_gps_tracks(map_object: folium.Map, all_gps_tracks: pd.DataFrame) -> Non
         track_points = track_df[["latitude", "longitude"]].values.tolist()
         rgba_color = viridis(track_index / len(unique_tracks))
         hex_color = mcolors.to_hex(rgba_color)
-        folium.PolyLine(track_points, color=hex_color, weight=2.5, opacity=1, name=name_subj, popup=name_subj).add_to(
-            map_object
-        )
+        folium.PolyLine(
+            track_points, color=hex_color, weight=2.5, opacity=1, name=name_subj, popup=name_subj
+        ).add_to(map_object)
 
 
-def add_contact_markers(map_object: folium.Map, contact_gps_merged: pd.DataFrame, path_icon: str) -> None:
+def add_contact_markers(
+    map_object: folium.Map, contact_gps_merged: pd.DataFrame, path_icon: str
+) -> None:
     """
     Add markers for each contact point on the map.
 
@@ -385,7 +395,9 @@ def add_contact_markers(map_object: folium.Map, contact_gps_merged: pd.DataFrame
         contact_gps_merged (pd.DataFrame): DataFrame containing contact GPS merged data.
     """
     for _, row in contact_gps_merged.iterrows():
-        icon_person = folium.features.CustomIcon(icon_image=path_icon + "/contact_icon.png", icon_size=(30, 30))
+        icon_person = folium.features.CustomIcon(
+            icon_image=path_icon + "/contact_icon.png", icon_size=(30, 30)
+        )
         folium.Marker(
             location=[row["latitude"], row["longitude"]],
             icon=icon_person,
@@ -400,7 +412,8 @@ def plot_histogram(df: pd.DataFrame, bins: int, log_plot: Tuple[bool, bool]) -> 
     Parameters:
         df (pd.DataFrame): The DataFrame containing the data.
         bins (int): The number of bins for the histogram.
-        log_plot (Tuple[bool, bool]): A tuple indicating whether to use a logarithmic scale for the x-axis and y-axis, respectively.
+        log_plot (Tuple[bool, bool]): A tuple indicating whether to use a logarithmic scale for
+                                      the x-axis and y-axis, respectively.
 
     Returns:
         plt.Figure: The generated matplotlib Figure object.
@@ -417,7 +430,12 @@ def plot_histogram(df: pd.DataFrame, bins: int, log_plot: Tuple[bool, bool]) -> 
     plt.xlabel("Number of contacts along the path")
     plt.ylabel("Number of people")
     plt.title("Histogram of the total number of collisions")
-    plt.savefig(Path(__file__).parent.parent.parent.absolute() / "data" / "processed" / f"histogram_{bins}.pdf")
+    plt.savefig(
+        Path(__file__).parent.parent.parent.absolute()
+        / "data"
+        / "processed"
+        / f"histogram_{bins}.pdf"
+    )
     plt.close(fig)
 
     return fig
@@ -452,7 +470,9 @@ def plot_cumulative_contacts(df: pd.DataFrame) -> Figure:
             values = np.cumsum(np.concatenate(([0], np.ones(len(times), dtype="int"))))  # type: ignore
             edges = np.concatenate((times, [df["Duration"].iloc[index].total_seconds()]))
             # Add a trace for each person
-            fig.add_trace(go.Scatter(x=edges, y=values, mode="lines+markers", name=f"Subject {row.name}"))
+            fig.add_trace(
+                go.Scatter(x=edges, y=values, mode="lines+markers", name=f"Subject {row.name}")
+            )
 
     # Update layout of the figure
     fig.update_layout(
@@ -472,79 +492,37 @@ def plot_cumulative_contacts(df: pd.DataFrame) -> Figure:
     return fig
 
 
-def histogram_survey(df_survey: pd.DataFrame, remove_outlier: bool) -> Figure:
-
-    # Calculate the group sizes
-    values_adults = df_survey["Adults"].fillna(0).tolist()
-    if remove_outlier:
-        values_adults = [x for x in values_adults if x != max(values_adults)]
-    values_children = df_survey["Children"].fillna(0).tolist()
-    values_both = [a + b for a, b in zip(values_adults, values_children)]
-
-    # Create a DataFrame for the histogram
-    data = pd.DataFrame(
-        {
-            "Data": values_both + values_children,
-            "Categories": ["Adults and children"] * len(values_both) + ["Children"] * len(values_children),
-        }
-    )
-
-    fig = px.histogram(
-        data,
-        x="Data",
-        nbins=20,  # Adjust the number of bins as needed
-        color="Categories",
-        color_discrete_map={"Adults and children": "darkturquoise", "Children": "firebrick"},
-    )
-
-    # Update hover template
-    fig.update_traces(
-        hovertemplate="<br>".join(
-            ["<b>Counts</b>: %{y}", "<b>Group Size</b>: %{x}", "<b>Category</b>: %{customdata[0]}", "<extra></extra>"]
-        ),
-        customdata=data[["Categories"]].values,
-    )
-
-    fig.update_layout(
-        title=dict(text="Distribution of Group Sizes", font_size=28),
-        width=600,
-        height=500,
-        xaxis=dict(
-            title=dict(text="Group Size", font_size=20),
-            tickfont_size=20,
-        ),
-        yaxis=dict(
-            title=dict(text="Counts", font_size=20),
-            tickfont_size=20,
-        ),
-    )
-
-    return fig
-
-
 def main() -> None:
     """
+    Main function to visualize contact and GPS data using Streamlit.
+
     This function performs the following tasks:
-    1. Defines paths to various data directories.
-    2. Checks for the existence of processed data files and processes raw data if necessary.
-    3. Loads survey data, either from a pickle file or a CSV file, and processes it.
-    4. Loads GPS tracks and contact data.
-    5. Provides a sidebar menu for plot selection in a Streamlit app.
-    6. Based on the selected plot option, it generates and displays:
-       - Contacts Histogram: A histogram of the total number of collisions with options for log-x-scale and bin selection.
-       - Cumulative Contacts: A cumulative contacts chart.
-       - Survey Histogram: A histogram of survey results with an option to remove outliers.
-       - Contacts Map: A map displaying GPS trajectories and contact locations.
-    7. Provides download buttons for the generated plots and map in PDF format.
+    1. Defines paths to data directories.
+    2. Checks if the merged contacts and GPS data file exists; if not, processes and merges the data.
+    3. Loads GPS tracks and contact data.
+    4. Provides a sidebar menu for plot selection with options: "Contacts Map", "Contacts Histogram",
+       and "Cumulative Contacts".
+    5. Based on the selected plot option, it:
+       - Displays a histogram of contact data with options to adjust the number of bins and toggle log-x-scale.
+       - Displays a cumulative contacts plot.
+       - Displays a map of GPS trajectories coupled with contact locations.
+    6. Provides download buttons for the generated plots and map.
+
+    Returns:
+        None
     """
 
     # Paths to the data directories
     path = Path(__file__).resolve()
     path_csv = path.parent.parent.parent.absolute() / "data" / "GPS_traces_&_physical_contacts"
     path_pickle = path.parent.parent.parent.absolute() / "data" / "pickle"
-    path_gpx = path.parent.parent.parent.absolute() / "data" / "GPS_traces_&_physical_contacts" / "GPSTracks"
+    path_gpx = (
+        path.parent.parent.parent.absolute()
+        / "data"
+        / "GPS_traces_&_physical_contacts"
+        / "GPSTracks"
+    )
     path_icon = str(path.parent.parent.parent.absolute() / "data" / "assets" / "logo_contact")
-    survey_path = path.parent.parent.parent.absolute() / "data" / "surveys" / "survey_results.csv"
 
     # If "contacts_gps_merged.pkl" does not exist, run the following code
     if not Path(path_pickle / "contacts_gps_merged.pkl").exists():
@@ -552,23 +530,13 @@ def main() -> None:
         process_gpx(path_gpx, path_pickle)
         merge_contacts_and_gps_data(path_pickle)
 
-    # Check if survey.pkl exists, if not create it, else load it
-    pickle_survey_path = path_pickle / "survey_results.pkl"
-    if Path(path_pickle / "survey_results.pkl").exists():
-        df_survey = pd.read_pickle(pickle_survey_path)
-    else:
-        df_survey = pd.read_csv(survey_path, sep=";")
-        df_survey["Adults"] = df_survey["Adults"].fillna(0)
-        df_survey["Children"] = df_survey["Children"].fillna(0)
-        df_survey.to_pickle(pickle_survey_path)
-
     # Load GPS tracks and contact data
     all_gps_tracks, contact_gps_merged, contacts_data = load_data(path_pickle)
 
     # Sidebar menu for plot selection
     plot_option = st.selectbox(
         "Select Plot",
-        ("Contacts Map", "Contacts Histogram", "Cumulative Contacts", "Survey Histogram"),
+        ("Contacts Map", "Contacts Histogram", "Cumulative Contacts"),
     )
     # Sidebar title
     st.sidebar.title("Settings")
@@ -580,15 +548,21 @@ def main() -> None:
             # Set a default value for the session state boolean variable
             st.session_state["bool_log"] = True
             # Checkbox to toggle log-x-scale, initially set to True
-            log_x_scale_checkbox = st.sidebar.checkbox("Log-x-scale", value=st.session_state["bool_log"])
+            log_x_scale_checkbox = st.sidebar.checkbox(
+                "Log-x-scale", value=st.session_state["bool_log"]
+            )
             # Update session state based on checkbox
             st.session_state["bool_log"] = log_x_scale_checkbox
             # Title for the histogram
             st.subheader("Histogram of the Total Number of Collisions\n")
             # Slider for selecting the number of bins
-            bins = st.sidebar.slider("Select number of bins:", min_value=4, max_value=8, value=6, step=1)
+            bins = st.sidebar.slider(
+                "Select number of bins:", min_value=4, max_value=8, value=6, step=1
+            )
             # Plot a histogram of the contacts data
-            histogram_fig = plot_histogram(contacts_data, bins, (st.session_state["bool_log"], False))
+            histogram_fig = plot_histogram(
+                contacts_data, bins, (st.session_state["bool_log"], False)
+            )
             # Define file path for saving the histogram
             data_directory = Path(__file__).resolve().parent.parent.parent / "data" / "processed"
             histogram_filename = data_directory / f"histogram_{bins}.pdf"
@@ -600,7 +574,9 @@ def main() -> None:
             histogram_buffer.seek(0)  # Rewind the buffer to the beginning
             # Download button for the histogram
             st.sidebar.download_button(
-                label="Download Contacts Histogram", data=histogram_buffer, file_name=str(histogram_filename)
+                label="Download Contacts Histogram",
+                data=histogram_buffer,
+                file_name=str(histogram_filename),
             )
 
     elif plot_option == "Cumulative Contacts":
@@ -614,19 +590,6 @@ def main() -> None:
             label="Download Cumulative",
             data=cumulative_img_bytes,
             file_name="cumulative_contacts.pdf",
-        )
-
-    elif plot_option == "Survey Histogram":
-        # Sidebar remove outlier button for the survey
-        remove_outlier = st.sidebar.checkbox("Remove outlier", value=True)
-        # Histogram of the survey results
-        fig = histogram_survey(df_survey, remove_outlier)
-        st.plotly_chart(fig)
-        # Streamlit button in the sidebar to download the graph in PDF format
-        st.sidebar.download_button(
-            label="Download Survey Histogram",
-            data=fig.to_image(format="pdf"),
-            file_name="survey_results.pdf",
         )
 
     elif plot_option == "Contacts Map":
@@ -643,6 +606,7 @@ def main() -> None:
             label="Download Map",
             data=my_map._to_png(),
             file_name="contacts_map.png",
+            mime="image/png",
         )
 
 

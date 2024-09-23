@@ -5,7 +5,6 @@ from typing import Any
 
 import streamlit as st
 from streamlit_option_menu import option_menu
-import string
 
 
 def setup_app() -> None:
@@ -18,12 +17,25 @@ def setup_app() -> None:
         menu_items={
             "Get Help": "https://github.com/PedestrianDynamics/madras-data-app",
             "Report a bug": "https://github.com/PedestrianDynamics/madras-data-app//issues",
-            "About": "# Field observation for Madras project.\n This is a tool to analyse and visualise several field data of pedestrian dynamics during the festival of lights in 2022:\n\n :flag-fr: - :flag-de: Germany.",
+            "About": "# Field observation for Madras project.\n This is a tool to analyse "
+            + "and visualise several field data of pedestrian dynamics during the festival of lights in 2022:\n\n"
+            + ":flag-fr: - :flag-de: Germany.",
         },
     )
 
 
 def init_app_looks() -> None:
+    """
+    Initializes the appearance of the application.
+
+    This function sets up the sidebar with a GitHub repository badge, a DOI badge,
+    and a logo image. It constructs the paths and URLs required for these elements
+    and uses Streamlit's sidebar components to display them.
+
+    - Displays a GitHub repository badge with a link to the repository.
+    - Displays a DOI badge with a link to the DOI.
+    - Displays a logo image from the assets directory.
+    """
     path = Path(__file__)
     ROOT_DIR = path.parent.parent.parent.absolute()
     logo_path = ROOT_DIR / "data" / "assets" / "logo.png"
@@ -32,7 +44,9 @@ def init_app_looks() -> None:
     repo_name = f"[![Repo]({gh})]({repo})"
     c1, c2 = st.sidebar.columns((1.2, 0.5))
     c2.markdown(repo_name, unsafe_allow_html=True)
-    c1.write("[![DOI](https://zenodo.org/badge/760394097.svg)](https://zenodo.org/doi/10.5281/zenodo.10694866)")
+    c1.write(
+        "[![DOI](https://zenodo.org/badge/760394097.svg)](https://zenodo.org/doi/10.5281/zenodo.10694866)"
+    )
     st.sidebar.image(str(logo_path), use_column_width=True)
 
 
@@ -71,8 +85,9 @@ def init_sidebar() -> Any:
             "Trajectories",
             "Analysis",
             "Contacts",
-            "Explorer",
-            "Animation",
+            "Surveys",
+            # "Explorer",
+            "Geometry",
         ],
         icons=[
             "info-square",
@@ -80,7 +95,8 @@ def init_sidebar() -> Any:
             "people",
             "bar-chart-line",
             "exclamation-triangle",
-            "graph-up-arrow",
+            # "graph-up-arrow",
+            "bi bi-clipboard2-data",
             "camera-reels-fill",
         ],
         menu_icon="cast",

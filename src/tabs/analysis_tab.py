@@ -20,7 +20,12 @@ from scipy.ndimage import gaussian_filter
 from ..classes.datafactory import load_file
 from ..docs.docs import density_speed, flow
 from ..helpers.speed_profile import compute_speed_profile
-from ..helpers.utilities import download, get_measurement_lines, is_running_locally, setup_walkable_area
+from ..helpers.utilities import (
+    download,
+    get_measurement_lines,
+    is_running_locally,
+    setup_walkable_area,
+)
 from ..plotting.drawing import drawing_canvas, get_measurement_area
 from ..plotting.plots import (
     download_file,
@@ -30,8 +35,7 @@ from ..plotting.plots import (
     plt_plot_time_series,
     show_fig,
 )
-
-from .CCTV_analysis import run_cctv_analysis
+from .LargeView_analysis import run_cctv_analysis
 
 st_column: TypeAlias = st.delta_generator.DeltaGenerator
 
@@ -44,11 +48,13 @@ def calculate_or_load_classical_density(
     if not Path(precalculated_density).exists():
         trajectory_data = load_file(filename)
         walkable_area = setup_walkable_area(trajectory_data)
-        classic_density = pedpy.compute_classic_density(traj_data=trajectory_data, measurement_area=walkable_area)
+        classic_density = pedpy.compute_classic_density(
+            traj_data=trajectory_data, measurement_area=walkable_area
+        )
         with open(precalculated_density, "wb") as f:
             pickle.dump(classic_density, f)
     else:
-        logging.info(f"load precalculated density: {precalculated_density}")
+        logging.info("load precalculated density: %s", precalculated_density)
         with open(precalculated_density, "rb") as f:
             classic_density = pickle.load(f)
 
@@ -70,7 +76,7 @@ def calculate_or_load_voronoi_diagrams(
         with open(precalculated_voronoi_polygons, "wb") as f:
             pickle.dump(voronoi_polygons, f, pickle.HIGHEST_PROTOCOL)
     else:
-        logging.info(f"load precalculated voronoi polygons: {precalculated_voronoi_polygons}")
+        logging.info("load precalculated voronoi polygons: %s", precalculated_voronoi_polygons)
         with open(precalculated_voronoi_polygons, "rb") as f:
             voronoi_polygons = pickle.load(f)
 
@@ -96,7 +102,7 @@ def calculate_or_load_voronoi_speed(
         with open(precalculated_voronoi_speed, "wb") as f:
             pickle.dump(voronoi_speed, f, pickle.HIGHEST_PROTOCOL)
     else:
-        logging.info(f"load precalculated voronoi speed: {precalculated_voronoi_speed}")
+        logging.info("load precalculated voronoi speed: %s", precalculated_voronoi_speed)
         with open(precalculated_voronoi_speed, "rb") as f:
             voronoi_speed = pickle.load(f)
 
@@ -120,14 +126,16 @@ def calculate_or_load_voronoi_density(
         with open(precalculated_voronoi_density, "wb") as f:
             pickle.dump((voronoi_density, intersecting), f, pickle.HIGHEST_PROTOCOL)
     else:
-        logging.info(f"load precalculated voronoi density: {precalculated_voronoi_density}")
+        logging.info("load precalculated voronoi density: %s", precalculated_voronoi_density)
         with open(precalculated_voronoi_density, "rb") as f:
             voronoi_density, intersecting = pickle.load(f)
 
     return voronoi_density, intersecting
 
 
-def calculate_or_load_individual_speed(precalculated_speed: Path, filename: str, dv: Optional[int]) -> pd.DataFrame:
+def calculate_or_load_individual_speed(
+    precalculated_speed: Path, filename: str, dv: Optional[int]
+) -> pd.DataFrame:
     """Calculate speed or load precalculated values if exist."""
     if not Path(precalculated_speed).exists():
         trajectory_data = load_file(filename)
@@ -139,14 +147,16 @@ def calculate_or_load_individual_speed(precalculated_speed: Path, filename: str,
         with open(precalculated_speed, "wb") as f:
             pickle.dump(individual_speed, f)
     else:
-        logging.info(f"load precalculated speed: {precalculated_speed}")
+        logging.info("load precalculated speed: %s", precalculated_speed)
         with open(precalculated_speed, "rb") as f:
             individual_speed = pickle.load(f)
 
     return individual_speed
 
 
-def calculate_or_load_mean_speed(precalculated_speed: Path, filename: str, dv: Optional[int]) -> pd.DataFrame:
+def calculate_or_load_mean_speed(
+    precalculated_speed: Path, filename: str, dv: Optional[int]
+) -> pd.DataFrame:
     """Calculate mean speed per frame if not already done."""
     speed = calculate_or_load_individual_speed(precalculated_speed, filename, dv)
     trajectory_data = load_file(filename)
@@ -183,7 +193,9 @@ def calculate_time_series(
             measurement_area=ma,
             individual_speed=individual_speed,
         )
-        classic_density = pedpy.compute_classic_density(traj_data=trajectory_data, measurement_area=ma)
+        classic_density = pedpy.compute_classic_density(
+            traj_data=trajectory_data, measurement_area=ma
+        )
         fig = plot_time_series(classic_density, mean_speed, fps=30)
         show_fig(fig, html=True, write=False)
         # for plots
@@ -218,7 +230,9 @@ def calculate_fd_classical(dv: Optional[int]) -> None:
             precalculated_density = Path(data_directory / f"density_{basename}.pkl")
             precalculated_speed = Path(data_directory / f"speed_{basename}_{dv}.pkl")
             speeds[basename] = calculate_or_load_mean_speed(precalculated_speed, filename, dv)
-            densities[basename] = calculate_or_load_classical_density(precalculated_density, filename)
+            densities[basename] = calculate_or_load_classical_density(
+                precalculated_density, filename
+            )
             progress = int(100 * (i + 1) / len(st.session_state.files))
             progress_bar.progress(progress)
             progress_status.text(f"> {progress}%")
@@ -246,7 +260,9 @@ def calculate_fd_voronoi_local(dv: Optional[int]) -> None:
     figname = data_directory / "fundamental_diagram_voronoi.pdf"
     st.sidebar.divider()
     msg = st.sidebar.empty()
-    calculate = msg.button("Calculate", type="primary", help="Calculate fundamental diagram Voronoi")
+    calculate = msg.button(
+        "Calculate", type="primary", help="Calculate fundamental diagram Voronoi"
+    )
     if not is_running_locally():
         st.warning(
             """
@@ -276,15 +292,19 @@ def calculate_fd_voronoi_local(dv: Optional[int]) -> None:
                     precalculated_voronoi_polygons, filename
                 )
 
-                individual_speed[basename] = calculate_or_load_individual_speed(precalculated_speed, filename, dv)
+                individual_speed[basename] = calculate_or_load_individual_speed(
+                    precalculated_speed, filename, dv
+                )
                 # todo save to files
                 # trajectory_data = datafactory.load_file(filename)
                 # walkable_area = setup_walkable_area(trajectory_data)
 
-                voronoi_density[basename], intersecting[basename] = calculate_or_load_voronoi_density(
-                    precalculated_voronoi_density,
-                    voronoi_polygons[basename],
-                    filename,
+                voronoi_density[basename], intersecting[basename] = (
+                    calculate_or_load_voronoi_density(
+                        precalculated_voronoi_density,
+                        voronoi_polygons[basename],
+                        filename,
+                    )
                 )
                 voronoi_speed[basename] = calculate_or_load_voronoi_speed(
                     precalculated_voronoi_speed,
@@ -404,9 +424,9 @@ def calculate_nt(
     figname = figname.with_name(figname.stem + ".pdf")
     path = Path(__file__)
     data_directory = path.parent.parent.parent.absolute() / "data" / "processed"
-    logging.info(f"Check existance {data_directory}: {data_directory.exists()}")
+    logging.info("Check existance %s: %s", data_directory, data_directory.exists())
     figname = data_directory / Path(figname)
-    logging.info(f"Try to save {figname}")
+    logging.info("Try to save %s", figname)
     fig1.savefig(figname, bbox_inches="tight", pad_inches=0.1)
     download_file(Path(figname))
 
@@ -424,7 +444,8 @@ def calculate_density_profile(
     # )
     with st.expander("Documentation"):
         st.write(
-            "This profile is using 'Gaussian density profile' from [PedPy](https://pedpy.readthedocs.io/en/latest/user_guide.html#density-profiles)."
+            "This profile is using 'Gaussian density profile' from [PedPy]"
+            + "(https://pedpy.readthedocs.io/en/latest/user_guide.html#density-profiles)."
         )
     chose_method = "Gaussian"
     chose_method = str(chose_method)
@@ -493,9 +514,13 @@ def calculate_density_profile(
     ax.set_yticklabels([])
     base_filename = Path(selected_file).stem
     if chose_method == "Gaussian":
-        figname = Path(f"density_profile_method_{chose_method}_width_{width}_grid_{grid_size}_{base_filename}.pdf")
+        figname = Path(
+            f"density_profile_method_{chose_method}_width_{width}_grid_{grid_size}_{base_filename}.pdf"
+        )
     else:
-        figname = Path(f"density_profile_method_{chose_method}_grid_{grid_size}_{base_filename}.pdf")
+        figname = Path(
+            f"density_profile_method_{chose_method}_grid_{grid_size}_{base_filename}.pdf"
+        )
     path = Path(__file__)
     data_directory = path.parent.parent.parent.absolute() / "data" / "processed"
     figname = data_directory / figname
@@ -513,7 +538,8 @@ def calculate_speed_profile(
     """Calculate speed profile."""
     with st.expander("Documentation"):
         st.write(
-            "This profile is using 'Gaussian speed profile' from [PedPy](https://pedpy.readthedocs.io/en/latest/user_guide.html#speed-profiles)."
+            "This profile is using 'Gaussian speed profile' from [PedPy]"
+            + "(https://pedpy.readthedocs.io/en/latest/user_guide.html#speed-profiles)."
         )
     grid_size = st.sidebar.number_input(
         "Grid size",
@@ -575,7 +601,7 @@ def calculate_speed_profile(
             fill_value=fil_empty,
         )
         end = time.time()
-        logging.info(f"Compute time Gauss speed profiles: {end-start} s")
+        logging.info("Compute time Gauss speed profiles: %s s", end - start)
     else:
         start = time.time()
         speed_profiles = pedpy.compute_speed_profile(
@@ -586,7 +612,7 @@ def calculate_speed_profile(
             fill_value=fil_empty,
         )
         end = time.time()
-        logging.info(f"Compute time Classic: {end-start} s")
+        logging.info("Compute time Classic: %s s", end - start)
 
     vmax = float(
         st.sidebar.number_input(
@@ -634,7 +660,7 @@ def calculate_speed_profile(
 
 def ui_tab3_analysis() -> Tuple[str, Optional[int], st_column]:
     """Prepare ui elements."""
-    c0, c1, c2 = st.columns((1, 1, 1))
+    _, c1, _ = st.columns((1, 1, 1))
     if st.sidebar.button(
         ":red_circle: Delete",
         help="Remove pre-loaded files",
@@ -726,7 +752,9 @@ def read_and_plot_outflow(filename: str, sigma: float):
     # Preprocess and calculate time difference
     df["time"] = pd.to_datetime(df["time"], format="%H:%M:%S")
     df["date"] = pd.to_datetime("today").normalize()
-    df["datetime"] = pd.to_datetime(df["date"].dt.date.astype(str) + " " + df["time"].dt.time.astype(str))
+    df["datetime"] = pd.to_datetime(
+        df["date"].dt.date.astype(str) + " " + df["time"].dt.time.astype(str)
+    )
     df["time_difference"] = df["datetime"] - df["datetime"].iloc[0]
     df["seconds"] = df["time_difference"].dt.total_seconds()
     df["time_difference"] = df["seconds"].diff().fillna(0)
@@ -761,7 +789,9 @@ def read_and_plot_outflow(filename: str, sigma: float):
 def select_file() -> str:
     """Select a file from available options."""
     file_name_to_path = {path.split("/")[-1]: path for path in st.session_state.files}
-    filename = str(st.selectbox(":open_file_folder: **Select a file**", file_name_to_path, key="tab3_filename"))
+    filename = str(
+        st.selectbox(":open_file_folder: **Select a file**", file_name_to_path, key="tab3_filename")
+    )
     selected_file = file_name_to_path[filename]
     st.session_state.selected_file = selected_file
     return selected_file
@@ -780,7 +810,7 @@ def handle_outflow(sigma: float):
 
 def run_tab3() -> None:
     """Run the main logic in tab analysis."""
-    calculations, dv, c1 = ui_tab3_analysis()
+    calculations, dv, _ = ui_tab3_analysis()
     if not calculations.startswith(("FD", "Outflow")):
         selected_file = select_file()
         trajectory_data, walkable_area = prepare_data(selected_file)
