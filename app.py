@@ -41,7 +41,7 @@ if __name__ == "__main__":
     if selected_tab == "Contacts":
         run_tab_contact()
 
-    if selected_tab == "Survey":
+    if selected_tab == "Surveys":
         run_tab_survey()
 
     # if selected_tab == "Explorer":
