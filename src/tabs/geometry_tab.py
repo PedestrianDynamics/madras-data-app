@@ -71,7 +71,6 @@ def create_animation_plotly(
     pd_trajs: pd.DataFrame,
     pd_geometry: pd.DataFrame,
     show_polygons: bool,
-    frame_duration: float,
     min_velocity: float = 0.0,
     max_velocity: float = 1.0,
 ) -> go.Figure:
@@ -86,7 +85,6 @@ def create_animation_plotly(
     Returns:
         Figure: Plotly figure object with the pedestrian movement animation.
     """
-
     # Create the scatter plot with velocity as the color using log scale
     fig = px.scatter_geo(
         pd_trajs,
@@ -110,9 +108,15 @@ def create_animation_plotly(
     if len(fig.layout.sliders) > 0:
         fig.layout.sliders[0].currentvalue.prefix = "Time [s]: "
 
-    # Set the scale of the color axis to logarithmic
+    # Set the scale of the color axis to logarithmic and adjust colorbar size
     fig.update_coloraxes(
-        colorbar=dict(title="Velocity [m/s]"),
+        colorbar=dict(
+            title="Velocity [m/s]",
+            title_font=dict(size=20),
+            lenmode="fraction",  # Use fraction mode for length
+            len=1.0,  # Set length to full height
+            tickfont=dict(size=20),  # Set font size for ticks
+        ),
         colorscale="Viridis",
         cmin=min_velocity,
         cmax=max_velocity,
@@ -127,7 +131,7 @@ def create_animation_plotly(
                             "args": [
                                 None,
                                 {
-                                    "frame": {"duration": frame_duration, "redraw": True},
+                                    "frame": {"duration": 0, "redraw": True},
                                     "fromcurrent": True,
                                 },
                             ],
@@ -178,13 +182,13 @@ def create_animation_plotly(
                 )
             )
         fig.update_layout(
-            height=800,  # Set the height of the figure
-            width=800,  # Set the width of the figure
+            height=700,  # Set the height of the figure
+            width=700,  # Set the width of the figure
         )
     else:
         fig.update_layout(
-            height=800,
-            width=800,
+            height=700,
+            width=700,
         )
 
     # Updating layout for geographic centering
@@ -250,21 +254,12 @@ def compute_pedestrian_velocity(df: pd.DataFrame) -> pd.DataFrame:
     return df
 
 
-def adjust_time(df: pd.DataFrame) -> pd.DataFrame:
-    """
-    Adjust the time values in the DataFrame to start from 0.
-
-    Args:
-        df (pd.DataFrame): DataFrame containing the pedestrian trajectory data.
-
-    Returns:
-        pd.DataFrame: DataFrame with adjusted time values.
-    """
-    # Subtract the initial time value from all time values
-    df["t/s"] = df["t/s"] - df["t/s"][0]
-    df["t/s"] = df["t/s"].round(1)
-
-    return df
+def adjust_time(df: pd.DataFrame, max_time: float) -> pd.DataFrame:
+    """Adjust the time values in the DataFrame to be less than max_time."""
+    # Subtract the initial time value from all time values and round them
+    df["t/s"] = (df["t/s"] - df["t/s"].iloc[0]).round(1)
+    # Filter the DataFrame to keep only rows where 't/s' is less than max_time and greater than 0
+    return df[(df["t/s"] < max_time) & (df["t/s"] > 0)]
 
 
 def degrees_to_meters(lat, lon):
@@ -285,6 +280,16 @@ def degrees_to_meters(lat, lon):
     return x, y
 
 
+def update_progress_bar(progress_bar: st.progress, status_text: st.empty, frac: float) -> None:
+    """Update the progress bar and status text."""
+    # Update progress bar
+    percent_complete = int(frac * 100)
+    progress_bar.progress(percent_complete)
+    # Update status text
+    progress_text = "Operation in progress. Please wait. ⏳"
+    status_text.text(f"{progress_text} {percent_complete}%")
+
+
 def prepare_data(traj_path: Path, geometry_path: Path, selected_traj_file: Path) -> None:
     """
     Prepare and convert trajectory data from RGF93 to WGS84 coordinates.
@@ -295,10 +300,17 @@ def prepare_data(traj_path: Path, geometry_path: Path, selected_traj_file: Path)
     Returns:
         None
     """
+
     selected_pickle = str(
         traj_path.parent / "pickle" / (str(Path(selected_traj_file).stem) + "_converted.pkl")
     )
+    max_time = 10  # maximum number of lines to read
     if not Path(selected_pickle).exists():
+        ########## PROGRESS BAR ##########
+        titel_text = st.text("Progress Bar")
+        my_progress_bar = st.progress(0)
+        status_text = st.empty()
+
         # Loop over files in trajectories that start with Topview or LargeView
         if str(selected_traj_file.stem).startswith("LargeView"):
             # Assuming the data starts at line 8 (adjust this as necessary)
@@ -309,17 +321,27 @@ def prepare_data(traj_path: Path, geometry_path: Path, selected_traj_file: Path)
                 skiprows=7,
                 names=["id", "frame", "x/m", "y/m", "z/m", "t/s", "x_RGF", "y_RGF"],
             )
+            update_progress_bar(my_progress_bar, status_text, 1 / 4)
             # Convert the coordinates from RGF93 to WGS84
             df_converted = trajs_from_rgf93_to_wgs84(df)
+            update_progress_bar(my_progress_bar, status_text, 2 / 4)
             # Subtract the initial time value from all time values
-            df_converted["t/s"] = adjust_time(df_converted)["t/s"]
+            df_converted = adjust_time(df_converted, max_time)
+            update_progress_bar(my_progress_bar, status_text, 3 / 4)
             # Add a column for pedestrian velocity
             df_converted = compute_pedestrian_velocity(df_converted)
+            update_progress_bar(my_progress_bar, status_text, 1)
             # Save the converted DataFrame to a pickle file
             PICKLE_SAVE_PATH = str(
                 traj_path.parent / "pickle" / (selected_traj_file.stem + "_converted.pkl")
             )
             df_converted.to_pickle(PICKLE_SAVE_PATH)
+
+            # Clear status text and progress bar after completion
+            status_text.text("Operation complete! ⌛")
+            my_progress_bar.empty()
+            titel_text.empty()
+            status_text.empty()
 
         if str(selected_traj_file.stem).startswith("Topview"):
             # Assuming the data starts at line 8 (adjust this as necessary)
@@ -332,23 +354,46 @@ def prepare_data(traj_path: Path, geometry_path: Path, selected_traj_file: Path)
             )
             df = df.drop(columns=["id"])
             df = df.rename(columns={"id_global": "id"})
+            update_progress_bar(my_progress_bar, status_text, 1 / 4)
             # Convert the coordinates from RGF93 to WGS84
             df_converted = trajs_from_rgf93_to_wgs84(df)
+            update_progress_bar(my_progress_bar, status_text, 2 / 4)
             # Subtract the initial time value from all time values
-            df_converted["t/s"] = adjust_time(df_converted)["t/s"]
+            df_converted = adjust_time(df_converted, max_time)
+            update_progress_bar(my_progress_bar, status_text, 3 / 4)
             # Add a column for pedestrian velocity
             df_converted = compute_pedestrian_velocity(df_converted)
+            update_progress_bar(my_progress_bar, status_text, 1)
             # Save the converted DataFrame to a pickle file
             PICKLE_SAVE_PATH = str(
                 traj_path.parent / "pickle" / (selected_traj_file.stem + "_converted.pkl")
             )
             df_converted.to_pickle(PICKLE_SAVE_PATH)
 
+            # Clear status text and progress bar after completion
+            status_text.text("Operation complete! ⌛")
+            my_progress_bar.empty()
+            titel_text.empty()
+            status_text.empty()
+
     # Geometry data
     geometry_pickle = geometry_path.parent / "pickle" / "geometry_converted.pkl"
     if not geometry_pickle.exists():
+        ########## PROGRESS BAR ##########
+        titel_text = st.text("Progress Bar")
+        my_progress_bar = st.progress(0)
+        status_text = st.empty()
+        update_progress_bar(my_progress_bar, status_text, 1 / 3)
         pd_geometry_converted = extract_gps_data_from_csv_geometry(geometry_path / "WKT.csv")
+        update_progress_bar(my_progress_bar, status_text, 2 / 3)
         pd_geometry_converted.to_pickle(geometry_pickle)
+        update_progress_bar(my_progress_bar, status_text, 1)
+
+        # Clear status text and progress bar after completion
+        status_text.text("Operation complete! ⌛")
+        my_progress_bar.empty()
+        titel_text.empty()
+        status_text.empty()
 
 
 def extract_gps_data_from_csv_geometry(file_path: Path) -> pd.DataFrame:
@@ -409,18 +454,16 @@ def main(selected_file: str) -> None:
     max_velocity = pd_trajs["velocity"].max()
 
     # Streamlit slider for frame duration
-    freq_topview = 30
-    freq_largeview = 10
-    frame_duration = st.sidebar.slider(
-        "Select frame duration (ms)",
-        min_value=int(1000 / (2 * freq_topview)),
-        max_value=int(1000 / (0.5 * freq_largeview)),
-        value=int(1000 / freq_topview) if is_topview else int(1000 / freq_largeview),
-        step=5,
-    )
-    fig = create_animation_plotly(
-        pd_trajs, pd_geometry, show_polygons, frame_duration, min_velocity, max_velocity
-    )
+    # freq_topview = 30
+    # freq_largeview = 10
+    # frame_duration = st.sidebar.slider(
+    #     "Select frame duration (ms)",
+    #     min_value=int(1000 / (2 * freq_topview)),
+    #     max_value=int(1000 / (0.5 * freq_largeview)),
+    #     value=int(1000 / freq_topview) if is_topview else int(1000 / freq_largeview),
+    #     step=5,
+    # )
+    fig = create_animation_plotly(pd_trajs, pd_geometry, show_polygons, min_velocity, max_velocity)
     st.plotly_chart(fig, use_container_width=True)
 
 
