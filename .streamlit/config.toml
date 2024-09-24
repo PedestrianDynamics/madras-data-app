@@ -1,0 +1,7 @@
+[theme]
+base="light"
+primaryColor="#000000"  # Black for primary elements
+backgroundColor="#FFFFFF"  # White background
+secondaryBackgroundColor="#F0F0F0"  # Slightly darker shade for secondary elements
+textColor="#000000"  # Black text for readability
+font="sans serif"
