@@ -1,4 +1,4 @@
-""" This module contains the functionality for the survey tab in the application."""
+"""This module contains the functionality for the survey tab in the application."""
 
 from pathlib import Path
 
@@ -10,7 +10,8 @@ from plotly.graph_objects import Figure
 
 def histogram_survey(df_survey: pd.DataFrame, remove_outlier: bool) -> Figure:
     """
-    Generates a histogram visualization of group sizes from a survey DataFrame.
+    Generate a histogram visualization of group sizes from a survey DataFrame.
+
     Parameters:
         df_survey (pd.DataFrame): The survey data containing group sizes.
         remove_outlier (bool): Flag to indicate whether to remove the maximum value as an outlier.
@@ -23,7 +24,6 @@ def histogram_survey(df_survey: pd.DataFrame, remove_outlier: bool) -> Figure:
         4. Updates the hover template with custom data for better interactivity.
         5. Configures the layout for improved visualization, including titles and axis labels.
     """
-
     # Extract values from the DataFrame
     values_children = df_survey["Children"].fillna(0).tolist()
     values_both = df_survey["total"].tolist()
@@ -41,12 +41,7 @@ def histogram_survey(df_survey: pd.DataFrame, remove_outlier: bool) -> Figure:
     fig.add_trace(go.Histogram(x=values_both, name="Adults and children", marker_color="blue"))
 
     # Create a DataFrame for custom data in hover templates
-    data = pd.DataFrame(
-        {
-            "Categories": ["Adults and children"] * len(values_both)
-            + ["Children"] * len(values_children)
-        }
-    )
+    data = pd.DataFrame({"Categories": ["Adults and children"] * len(values_both) + ["Children"] * len(values_children)})
 
     # Update hover template with custom data
     fig.update_traces(
@@ -63,20 +58,20 @@ def histogram_survey(df_survey: pd.DataFrame, remove_outlier: bool) -> Figure:
 
     # Update layout for better visualization
     fig.update_layout(
-        title=dict(text="Distribution of Group Sizes", font_size=28),
+        title={"text": "Distribution of Group Sizes", "font_size": 28},
         width=1000,
         height=700,
         xaxis=dict(
-            title=dict(text="Group Size", font_size=30, font_color="black"),
+            title={"text": "Group Size", "font_size": 30, "font_color": "black"},
             tickfont_size=30,
             tickfont_color="black",
         ),
         yaxis=dict(
-            title=dict(text="Counts", font_size=30, font_color="black"),
+            title={"text": "Counts", "font_size": 30, "font_color": "black"},
             tickfont_size=30,
             tickfont_color="black",
         ),
-        legend=dict(font_size=30, font_color="black"),
+        legend={"font_size": 30, "font_color": "black"},
     )
 
     return fig
@@ -84,7 +79,8 @@ def histogram_survey(df_survey: pd.DataFrame, remove_outlier: bool) -> Figure:
 
 def main() -> None:
     """
-    Main function to visualize survey results.
+    Visualize survey results.
+
     This function performs the following steps:
     1. Determines the path to the survey results CSV file and the pickle directory.
     2. Checks if a pickle file of the survey results exists:
@@ -95,7 +91,6 @@ def main() -> None:
     4. Generates and displays a histogram of the survey results.
     5. Provides a sidebar button to download the histogram as a PDF file.
     """
-
     path = Path(__file__).resolve()
     survey_path = path.parent.parent.parent.absolute() / "data" / "surveys" / "survey_results.csv"
     path_pickle = path.parent.parent.parent.absolute() / "data" / "pickle"
@@ -125,11 +120,10 @@ def main() -> None:
 
 def run_tab_survey() -> None:
     """
-    Executes the main function for the survey tab.
+    Execute the main function for the survey tab.
 
     This function serves as the entry point for running the survey tab
     functionality within the application. It calls the main() function
     to initiate the necessary processes.
     """
-
     main()
