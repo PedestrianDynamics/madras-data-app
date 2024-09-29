@@ -1,4 +1,4 @@
-""" This script computes the density and velocity fields from the trajectories of pedestrians. """
+"""This script computes the density and velocity fields from the trajectories of pedestrians."""
 
 import logging
 import pickle
@@ -117,9 +117,7 @@ def gaussian_kernel_scalar(r: float, r_c: float, xi: float) -> float:
 
 
 @njit
-def get_r(
-    i_line: int, j_column: int, r_cg: float, x_min: float, y_min: float
-) -> Tuple[float, float]:
+def get_r(i_line: int, j_column: int, r_cg: float, x_min: float, y_min: float) -> Tuple[float, float]:
     """
     Calculate the coordinates (x, y) of a point in a grid based on its indices and grid parameters.
 
@@ -155,9 +153,7 @@ def get_cell(r: tuple, x_min: float, y_min, r_cg: float) -> Tuple[int, int]:
     return (i_line, j_column)
 
 
-def butter_lowpass_filter(
-    pd_series: pd.Series, delta_t: float, order: int, cutoff: float
-) -> np.ndarray:
+def butter_lowpass_filter(pd_series: pd.Series, delta_t: float, order: int, cutoff: float) -> np.ndarray:
     """
     Applies a Butterworth lowpass filter to a pandas Series.
 
@@ -173,9 +169,7 @@ def butter_lowpass_filter(
     nyquist_freq = 0.5 / delta_t  # Nyquist Frequency
     normal_cutoff = cutoff / nyquist_freq  # Normalized cutoff frequency
     # Get the filter coefficients
-    b, a = butter(
-        order, normal_cutoff, btype="low", analog=False
-    )  # Generate the filter coefficients
+    b, a = butter(order, normal_cutoff, btype="low", analog=False)  # Generate the filter coefficients
     y = filtfilt(b, a, pd_series, padlen=int(1 / delta_t) + 1)  # Apply the filter.
     # This function performs forward and backward filtering to eliminate phase distortion,
     # ensuring that the output signal has no phase shift relative to the input.
@@ -210,10 +204,7 @@ def create_save_folder(pa: Parameters) -> Path:
         Path: The path of the created save folder.
 
     """
-    save_folder = (
-        pa.FOLDER_SAVE
-        / f"{pa.SELECTED_NAME}_start={pa.START_TIME:.1f}_dur={pa.DURATION:.1f}_dt={pa.DELTA_T:.1f}_xi={pa.XI:.1f}_rcg={pa.R_CG:.1f}"
-    )
+    save_folder = pa.FOLDER_SAVE / f"{pa.SELECTED_NAME}_start={pa.START_TIME:.1f}_dur={pa.DURATION:.1f}_dt={pa.DELTA_T:.1f}_xi={pa.XI:.1f}_rcg={pa.R_CG:.1f}"
     save_folder.mkdir(parents=True, exist_ok=True)
     return save_folder
 
@@ -293,10 +284,7 @@ def process_trajectories(all_datas: pd.DataFrame, pa: Parameters) -> Dict[str, p
         traj_data.loc[:, "y_m"] = (1.0 - alpha) * Y_bw + alpha * traj_data["y_m"].values
 
         # Filter the data to the desired time interval
-        traj_data = traj_data[
-            (traj_data["t_s"] >= pa.START_TIME)
-            & (traj_data["t_s"] < pa.START_TIME + pa.DURATION + 2.0 * pa.DT)
-        ]
+        traj_data = traj_data[(traj_data["t_s"] >= pa.START_TIME) & (traj_data["t_s"] < pa.START_TIME + pa.DURATION + 2.0 * pa.DT)]
 
         # If the trajectory is empty, skip it
         if traj_data.empty:
@@ -398,12 +386,7 @@ def initialize_dict(nb_cg_x: int, nb_cg_y: int) -> Dict[str, np.ndarray]:
     # List of field names
     field_names = ["X", "Y", "rho", "vxs", "vys", "vxs2", "vys2", "var_vs"]
 
-    # Initialize arrays using a dictionary comprehension
-    density_velocity_fields = {
-        name: np.zeros((nb_cg_x, nb_cg_y), dtype="d") for name in field_names
-    }
-
-    return density_velocity_fields
+    return {name: np.zeros((nb_cg_x, nb_cg_y), dtype="d") for name in field_names}
 
 
 def compute_fields(
@@ -425,10 +408,7 @@ def compute_fields(
     nb_traj = len(all_trajs)
     # Iterate over all trajectories
     for i_traj, traj in tqdm(enumerate(all_trajs.values()), desc="Processing grid"):
-        traj = traj.loc[
-            (traj["t_s"] >= pa.START_TIME)
-            & (traj["t_s"] < pa.START_TIME + pa.DURATION + 2.0 * pa.DT)
-        ]
+        traj = traj.loc[(traj["t_s"] >= pa.START_TIME) & (traj["t_s"] < pa.START_TIME + pa.DURATION + 2.0 * pa.DT)]
         if traj.shape[0] == 0:
             continue
         # Iterate over all rows in the trajectory (ie all time steps)
@@ -438,18 +418,14 @@ def compute_fields(
             # Iterate over the cells in the grid
             for i in range(i_rel - pa.DELTA, i_rel + pa.DELTA + 1):
                 for j in range(j_rel - pa.DELTA, j_rel + pa.DELTA + 1):
-                    if (
-                        i < 0 or i >= pa.NB_CG_X or j < 0 or j >= pa.NB_CG_Y
-                    ):  # Check if pedestrian is outside the grid
+                    if i < 0 or i >= pa.NB_CG_X or j < 0 or j >= pa.NB_CG_Y:  # Check if pedestrian is outside the grid
                         continue
 
                     # Compute the position of the grid cell
                     pos_grid_cell = get_r(i, j, pa.R_CG, pa.X_MIN, pa.Y_MIN)
 
                     # Compute the Gaussian kernel
-                    phi_r = gaussian_kernel_scalar(
-                        calculate_distance(pos_grid_cell, pos_ped), pa.R_C, pa.XI
-                    )
+                    phi_r = gaussian_kernel_scalar(calculate_distance(pos_grid_cell, pos_ped), pa.R_C, pa.XI)
 
                     # Update the fields
                     df_observables["X"][i, j] = pos_grid_cell[0]
@@ -502,9 +478,7 @@ def normalize_density(density: np.ndarray, pa: Parameters) -> np.ndarray:
     return density
 
 
-def update_figure(
-    df_observables: Dict[str, np.ndarray], pa: Parameters, plot_density: bool, zsmooth=False
-) -> go.Figure:
+def update_figure(df_observables: Dict[str, np.ndarray], pa: Parameters, plot_density: bool, zsmooth=False) -> go.Figure:
     """
     Update the figure with the given observables and parameters.
 
@@ -518,21 +492,14 @@ def update_figure(
 
     """
     # Create the X and Y axes
-    X_axis = np.linspace(
-        pa.X_MIN, pa.X_MIN + len(df_observables["rho"][0]) * pa.R_CG, len(df_observables["rho"][0])
-    )
-    Y_axis = np.linspace(
-        pa.Y_MIN, pa.Y_MIN + len(df_observables["rho"]) * pa.R_CG, len(df_observables["rho"])
-    )
+    X_axis = np.linspace(pa.X_MIN, pa.X_MIN + len(df_observables["rho"][0]) * pa.R_CG, len(df_observables["rho"][0]))
+    Y_axis = np.linspace(pa.Y_MIN, pa.Y_MIN + len(df_observables["rho"]) * pa.R_CG, len(df_observables["rho"]))
 
     # Create the heatmap
     if plot_density:
         hovertext = np.array(
             [
-                [
-                    f"x: {X_axis[i]:.2f} m<br>y: {Y_axis[j]:.2f} m<br>Density: {df_observables["rho"][j,i]:.2f} ped/m²"
-                    for i in range(df_observables["rho"].shape[1])
-                ]
+                [f"x: {X_axis[i]:.2f} m<br>y: {Y_axis[j]:.2f} m<br>Density: {df_observables['rho'][j,i]:.2f} ped/m²" for i in range(df_observables["rho"].shape[1])]
                 for j in range(df_observables["rho"].shape[0])
             ]
         )
@@ -546,7 +513,7 @@ def update_figure(
             zmin=pa.COLORBAR_MIN,  # Set the minimum value of the colorbar
             zmax=pa.COLORBAR_MAX,  # Set the maximum value of the colorbar
             zsmooth=zsmooth,  # Apply smoothing with 'best' interpolation
-            colorbar=dict(title="Density [ped/m²]", titleside="right"),
+            colorbar={"title": "Density [ped/m²]", "titleside": "right"},
             hoverinfo="text",  # Set hoverinfo to display just the hovertext
             hovertext=hovertext,  # Include hovertext
         )
@@ -554,10 +521,7 @@ def update_figure(
     else:
         hovertext = np.array(
             [
-                [
-                    f"x: {X_axis[i]:.2f} m<br>y: {Y_axis[j]:.2f} m<br>Var_v: {(df_observables["var_vs"][j,i]):.2f} m²/s²"
-                    for i in range(df_observables["var_vs"].shape[1])
-                ]
+                [f"x: {X_axis[i]:.2f} m<br>y: {Y_axis[j]:.2f} m<br>Var_v: {(df_observables['var_vs'][j,i]):.2f} m²/s²" for i in range(df_observables["var_vs"].shape[1])]
                 for j in range(df_observables["var_vs"].shape[0])
             ]
         )
@@ -571,7 +535,7 @@ def update_figure(
             zmin=pa.COLORBAR_MIN,  # Set the minimum value of the colorbar
             zmax=pa.COLORBAR_MAX_V,  # Set the maximum value of the colorbar
             zsmooth=zsmooth,  # Apply smoothing with 'best' interpolation
-            colorbar=dict(title="Var_v [m²/s²]", titleside="right"),
+            colorbar={"title": "Var_v [m²/s²]", "titleside": "right"},
             hoverinfo="text",  # Set hoverinfo to display just the hovertext
             hovertext=hovertext,  # Include hovertext
         )
@@ -585,7 +549,7 @@ def update_figure(
         scale=pa.QUIVER_SCALE,
         hoverinfo="skip",
         arrow_scale=0.2,
-        line=dict(width=1, color="black"),
+        line={"width": 1, "color": "black"},
     )
 
     # Combine both plots in a single figure
@@ -617,38 +581,26 @@ def update_figure(
     )
 
     # Add text annotation for the arrow
-    fig.add_annotation(
-        x=9.5, y=3.8, text="<b>1 m/s</b>", showarrow=False, font=dict(color="#009999", size=25)
-    )
+    fig.add_annotation(x=9.5, y=3.8, text="<b>1 m/s</b>", showarrow=False, font={"color": "#009999", "size": 25})
 
     # Correct layout update with proper domain
     fig.update_layout(
-        font=dict(
-            # family="Courier New, monospace",
-            size=20,
-        ),
-        title=dict(
-            text=(
-                "Velocity field for density heatmap"
-                if plot_density
-                else "Velocity field for variance velocity heatmap"
-            ),
-            font_size=20,
-        ),
-        xaxis=dict(
-            title=dict(text="x [m]", font_size=20),
-            scaleanchor="y",
-            scaleratio=1,
-            range=[0.0, 12.0],
-            tickfont_size=20,
-        ),
-        yaxis=dict(
-            title=dict(text="y [m]", font_size=20),
-            scaleanchor="x",
-            scaleratio=1,
-            range=[2.2, 23],
-            tickfont_size=20,
-        ),
+        font={"size": 20},
+        title={"text": ("Velocity field for density heatmap" if plot_density else "Velocity field for variance velocity heatmap"), "font_size": 20},
+        xaxis={
+            "title": {"text": "x [m]", "font_size": 20},
+            "scaleanchor": "y",
+            "scaleratio": 1,
+            "range": [0.0, 12.0],
+            "tickfont_size": 20,
+        },
+        yaxis={
+            "title": {"text": "y [m]", "font_size": 20},
+            "scaleanchor": "x",
+            "scaleratio": 1,
+            "range": [2.2, 23],
+            "tickfont_size": 20,
+        },
         width=650,
         height=900,
     )
@@ -702,16 +654,10 @@ def main(selected_file: str):
         QUIVER_SCALE=3.0,
     )
     pa.R_CG = slider_value_R_CG
-    pa.DELTA = (
-        int(ceil(pa.R_C / pa.R_CG)) + 1
-    )  # Number of cells to consider around the cell containing the point
+    pa.DELTA = int(ceil(pa.R_C / pa.R_CG)) + 1  # Number of cells to consider around the cell containing the point
     folder_save = create_save_folder(pa)
 
-    if (
-        not Path(folder_save / "traj_data.pkl").exists()
-        or not Path(folder_save / "parameters.pkl").exists()
-        or not Path(folder_save / "dictionnary_observables.pkl").exists()
-    ):
+    if not Path(folder_save / "traj_data.pkl").exists() or not Path(folder_save / "parameters.pkl").exists() or not Path(folder_save / "dictionnary_observables.pkl").exists():
         ########## PROGRESS BAR ##########
         title_text = st.text("Progress Bar")
         my_progress_bar = st.progress(0)
@@ -750,26 +696,16 @@ def main(selected_file: str):
     with col1:
         fig = update_figure(dict_observables, params, True, st.session_state["zsmooth"])
         st.plotly_chart(fig)
-        figname = (
-            pa.SELECTED_NAME
-            + f"_velocity_field_for_density_heatmap_zsmooth{st.session_state["zsmooth"]}.pdf"
-        )
+        figname = pa.SELECTED_NAME + f"_velocity_field_for_density_heatmap_zsmooth{st.session_state['zsmooth']}.pdf"
         img_bytes = fig.to_image(format="pdf")
-        st.sidebar.download_button(
-            label="Download Density Heatmap", data=img_bytes, file_name=figname
-        )
+        st.sidebar.download_button(label="Download Density Heatmap", data=img_bytes, file_name=figname)
         plt.close()
     with col2:
         fig = update_figure(dict_observables, params, False, st.session_state["zsmooth"])
         st.plotly_chart(fig)
-        figname = (
-            pa.SELECTED_NAME
-            + f"_velocity_field_for_density_heatmap_zsmooth{st.session_state["zsmooth"]}.pdf"
-        )
+        figname = pa.SELECTED_NAME + f"_velocity_field_for_density_heatmap_zsmooth{st.session_state['zsmooth']}.pdf"
         img_bytes = fig.to_image(format="pdf")
-        st.sidebar.download_button(
-            label="Download Variance Heatmap", data=img_bytes, file_name=figname
-        )
+        st.sidebar.download_button(label="Download Variance Heatmap", data=img_bytes, file_name=figname)
         plt.close()
 
 
