@@ -747,7 +747,7 @@ def read_and_plot_outflow(filename: str, sigma: float):
     fig.autofmt_xdate()
     # Save and return figure path
     st.pyplot(fig)
-    figname = Path(filename).stem + f"_sigma_{sigma}.pdf"
+    figname = st.session_state.config.processed_directory / (Path(filename).stem + f"_sigma_{sigma}.pdf")
     fig.savefig(figname, bbox_inches="tight", pad_inches=0.1)
     return Path(figname)
 
