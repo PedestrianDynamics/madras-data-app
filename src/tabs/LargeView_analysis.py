@@ -19,8 +19,6 @@ from tqdm import tqdm
 
 plt.rcParams["font.family"] = "STIXGeneral"
 
-########## DATA CLASSES ##########
-
 
 @dataclass
 class Parameters:
@@ -80,9 +78,6 @@ class Parameters:
     COLORBAR_MAX_V: float = 0.25
 
 
-########## FUNCTIONS ##########
-
-
 @njit
 def calculate_distance(pos1: Tuple[float, float], pos2: Tuple[float, float]) -> float:
     """
@@ -137,7 +132,7 @@ def get_r(i_line: int, j_column: int, r_cg: float, x_min: float, y_min: float) -
 @njit
 def get_cell(r: tuple, x_min: float, y_min, r_cg: float) -> Tuple[int, int]:
     """
-    Returns the cell indices corresponding to the given coordinates.
+    Return the cell indices corresponding to the given coordinates.
 
     Parameters:
     r (tuple): The coordinates (x, y) of the point.
@@ -153,9 +148,13 @@ def get_cell(r: tuple, x_min: float, y_min, r_cg: float) -> Tuple[int, int]:
     return (i_line, j_column)
 
 
+# This function performs forward and backward filtering to eliminate phase distortion,
+# ensuring that the output signal has no phase shift relative to the input.
+# The padlen parameter is set to int(1 / delta_t) + 1 to determine the number of samples for edge padding,
+# which helps in reducing boundary effects in the filtering process.
 def butter_lowpass_filter(pd_series: pd.Series, delta_t: float, order: int, cutoff: float) -> np.ndarray:
     """
-    Applies a Butterworth lowpass filter to a pandas Series.
+    Apply a Butterworth lowpass filter to a pandas Series.
 
     Parameters:
         pd_series (pd.Series): The input pandas Series to be filtered.
@@ -170,17 +169,12 @@ def butter_lowpass_filter(pd_series: pd.Series, delta_t: float, order: int, cuto
     normal_cutoff = cutoff / nyquist_freq  # Normalized cutoff frequency
     # Get the filter coefficients
     b, a = butter(order, normal_cutoff, btype="low", analog=False)  # Generate the filter coefficients
-    y = filtfilt(b, a, pd_series, padlen=int(1 / delta_t) + 1)  # Apply the filter.
-    # This function performs forward and backward filtering to eliminate phase distortion,
-    # ensuring that the output signal has no phase shift relative to the input.
-    # The padlen parameter is set to int(1 / delta_t) + 1 to determine the number of samples for edge padding,
-    # which helps in reducing boundary effects in the filtering process.
-    return y
+    return filtfilt(b, a, pd_series, padlen=int(1 / delta_t) + 1)  # Apply the filter.
 
 
 def read_and_process_file(filepath: Path) -> pd.DataFrame:
     """
-    Reads a CSV file from the given filepath and processes it into a pandas DataFrame.
+    Read a CSV file from the given filepath and processes it into a pandas DataFrame.
 
     Parameters:
         filepath (Path): The path to the CSV file.
@@ -195,7 +189,7 @@ def read_and_process_file(filepath: Path) -> pd.DataFrame:
 
 def create_save_folder(pa: Parameters) -> Path:
     """
-    Creates and returns a save folder path based on the given Parameters object.
+    Create and returns a save folder path based on the given Parameters object.
 
     Args:
         pa (Parameters): The Parameters object containing the necessary information.
@@ -398,6 +392,7 @@ def compute_fields(
 ) -> np.ndarray:
     """
     Compute the density field based on the given trajectories and parameters.
+
     Args:
         all_trajs (dict): A dictionary containing the trajectories.
         df_observables (Dict[str, np.ndarray]): A dictionary to store the computed observables.
@@ -630,7 +625,6 @@ def main(selected_file: str):
         step=0.1,  # Default value
     )
 
-    ########## PARAMETERS ##########
     path = Path(__file__)
 
     pa = Parameters(
@@ -658,12 +652,12 @@ def main(selected_file: str):
     folder_save = create_save_folder(pa)
 
     if not Path(folder_save / "traj_data.pkl").exists() or not Path(folder_save / "parameters.pkl").exists() or not Path(folder_save / "dictionnary_observables.pkl").exists():
-        ########## PROGRESS BAR ##########
+        # PROGRESS BAR
         title_text = st.text("Progress Bar")
         my_progress_bar = st.progress(0)
         status_text = st.empty()
 
-        ########## PROCESS TRAJECTORIES ##########
+        # PROCESS TRAJECTORIES
         all_data = read_and_process_file(selected_file)
         all_data["vx"] = np.nan  # Initialize the velocity columns
         all_data["vy"] = np.nan  # Initialize the velocity columns
@@ -672,7 +666,7 @@ def main(selected_file: str):
         save_data(all_trajs, folder_save, "traj_data.pkl")
         save_data(pa, folder_save, "parameters.pkl")
 
-        ########## FIELDS ##########
+        # FIELDS
         df_observables = initialize_dict(pa.NB_CG_X, pa.NB_CG_Y)
         compute_fields(all_trajs, df_observables, pa, my_progress_bar, status_text)
         save_data(df_observables, folder_save, "dictionnary_observables.pkl")
