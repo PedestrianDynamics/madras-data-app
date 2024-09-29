@@ -34,29 +34,31 @@ class Direction:
 class DataConfig:
     """Datastructure for the app."""
 
-    # trajectories
-    directory: Path
+    trajectories_directory: Path
+    flow_directory: Path
     # results
     processed_directory: Path
     files: List[str] = field(default_factory=list)
-    # data: Dict[str, List] = field(default_factory=lambda: defaultdict(list))
     url: str = "https://go.fzj.de/madras-data"
 
     def __post_init__(self) -> None:
         """Initialize the DataConfig instance by retrieving files for each country."""
-        self.directory.parent.mkdir(parents=True, exist_ok=True)
+        # self.data.parent.mkdir(parents=True, exist_ok=True)
         logging.info(f"Create {self.processed_directory}")
         self.processed_directory.mkdir(parents=True, exist_ok=True)
         self.retrieve_files()
 
     def retrieve_files(self) -> None:
         """Retrieve the files for each country specified in the countries list."""
-        if not self.directory.exists():
-            st.warning(f"{self.directory} does not exist yet!")
-            with st.status("Downloading ...", expanded=True):
-                download_and_unzip_files(self.url, "data.zip", self.directory)
+        logging.info("Retrieve data ...")
+        if not self.trajectories_directory.exists():
+            st.warning(f"{self.trajectories_directory} does not exist yet!")
+            with st.status("Downloading ...", expanded=False):
+                download_and_unzip_files(self.url, "data.zip", self.trajectories_directory)
 
-        self.files = sorted(glob.glob(f"{self.directory}/*.txt"))
+        else:
+            logging.info("Found trajectory directory. Nothing to retrieve!")
+        self.files = sorted(glob.glob(f"{self.trajectories_directory}/*.txt"))
 
 
 def increment_frame_start(page_size: int) -> None:
@@ -96,6 +98,7 @@ def init_session_state() -> None:
     """Init session_state throughout the app."""
     path = Path(__file__)
     trajectories_directory = path.parent.parent.parent.absolute() / "data" / "trajectories"
+    flow_directory = path.parent.parent.parent.absolute() / "data" / "flow"
     processed_directory = path.parent.parent.parent.absolute() / "data" / "processed"
 
     logging.info(f"{trajectories_directory = }")
@@ -127,7 +130,7 @@ def init_session_state() -> None:
     if not hasattr(st.session_state, "trajectory_data"):
         st.session_state.trajectoryData = pedpy.TrajectoryData
 
-    dataconfig = DataConfig(trajectories_directory, processed_directory)
+    dataconfig = DataConfig(trajectories_directory=trajectories_directory, processed_directory=processed_directory, flow_directory=flow_directory)
     st.session_state.files = dataconfig.files
     st.session_state.config = dataconfig
 
