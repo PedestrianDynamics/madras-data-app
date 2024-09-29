@@ -775,51 +775,35 @@ def handle_outflow(sigma: float):
 def run_tab3() -> None:
     """Run the main logic in tab analysis."""
     calculations, dv, _ = ui_tab3_analysis()
+
     if not calculations.startswith(("FD", "Outflow")):
         selected_file = select_file()
         trajectory_data, walkable_area = prepare_data(selected_file)
-    if calculations == "Outflow":
-        sigma = float(
-            st.sidebar.slider(
-                r"$\sigma$",
-                value=2.0,
-                max_value=10.0,
-                min_value=0.1,
-                step=1.0,
-                help="Standard deviation for Gaussian kernel used to smooth the curve.",
-            )
-        )
-        handle_outflow(sigma)
+    else:
+        selected_file = st.session_state.selected_file
+        trajectory_data, walkable_area = prepare_data(selected_file)
 
-    selected_file = st.session_state.selected_file
-    trajectory_data, walkable_area = prepare_data(selected_file)
-    if calculations == "N-T":
-        calculate_nt(
-            trajectory_data,
-            selected_file,
-        )
-    if calculations == "Density profile":
-        # if top view is in selected file
-        if "Topview" in selected_file:
-            calculate_density_profile(
-                trajectory_data,
-                walkable_area,
-                selected_file,
-            )
-        else:
-            run_cctv_analysis(selected_file)
+    # Dispatch the calculations to the appropriate handler
+    calculation_handlers = {
+        "Outflow": lambda: handle_outflow(
+            float(st.sidebar.slider(r"$\sigma$", value=2.0, max_value=10.0, min_value=0.1, step=1.0, help="Standard deviation for Gaussian kernel used to smooth the curve."))
+        ),
+        "N-T": lambda: calculate_nt(trajectory_data, selected_file),
+        "Density profile": lambda: handle_density_profile(trajectory_data, walkable_area, selected_file),
+        "Speed profile": lambda: calculate_speed_profile(trajectory_data, walkable_area, selected_file),
+        "Time series": lambda: calculate_time_series(trajectory_data, dv, walkable_area, selected_file),
+        "FD_classical": lambda: calculate_fd_classical(dv),
+        "FD_voronoi (calculate)": lambda: calculate_fd_voronoi_local(dv),
+        "FD_voronoi (load)": download_fd_voronoi,
+    }
 
-    if calculations == "Speed profile":
-        calculate_speed_profile(
-            trajectory_data,
-            walkable_area,
-            selected_file,
-        )
-    if calculations == "Time series":
-        calculate_time_series(trajectory_data, dv, walkable_area, selected_file)
-    if calculations == "FD_classical":
-        calculate_fd_classical(dv)
-    if calculations == "FD_voronoi (calculate)":
-        calculate_fd_voronoi_local(dv)
-    if calculations == "FD_voronoi (load)":
-        download_fd_voronoi()
+    if calculations in calculation_handlers:
+        calculation_handlers[calculations]()
+
+
+def handle_density_profile(trajectory_data, walkable_area, selected_file):
+    """Handle the logic for density profile calculation."""
+    if "Topview" in selected_file:
+        calculate_density_profile(trajectory_data, walkable_area, selected_file)
+    else:
+        run_cctv_analysis(selected_file)
