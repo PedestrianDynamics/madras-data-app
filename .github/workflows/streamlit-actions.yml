@@ -32,7 +32,7 @@ jobs:
         run: ruff check .
       
       - name: Analyze with Mypy
-        run: mypy --strict --jobs 4 $(git ls-files '*.py')
+        run: mypy --strict  $(git ls-files '*.py')
       
       - name: Run Streamlit app
         uses: streamlit/streamlit-app-action@v0.0.3

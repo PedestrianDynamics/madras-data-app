@@ -9,7 +9,6 @@ streamlit_drawable_canvas==0.8.0
 streamlit-option-menu
 gpxpy
 tqdm
-pygwalker
 pyproj
 kaleido
 numba
