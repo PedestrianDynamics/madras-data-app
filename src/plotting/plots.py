@@ -5,7 +5,6 @@ import io
 import logging
 from pathlib import Path
 from typing import Any, Dict, Optional, Tuple, TypeAlias
-
 import matplotlib
 import matplotlib.pyplot as plt
 import numpy as np
@@ -109,7 +108,9 @@ def plot_trajectories(
             line_width = 1.5
             plot_start = True
 
-        add_trace_for_direction(fig, df, id_, color_choice, line_width, framerate, plot_start)
+        add_trace_for_direction(
+            fig, df, id_, color_choice, line_width, framerate, plot_start
+        )
 
     # geometry
     fig.add_trace(
@@ -124,7 +125,9 @@ def plot_trajectories(
     count_direction = ""
     for name in ["Top", "Bottom", "Right", "Left"]:
         count = directions[directions["direction_name"] == name].shape[0]
-        count_direction += f"<span style='color:{get_color_by_name(name)};'> {name} {count}</span>."
+        count_direction += (
+            f"<span style='color:{get_color_by_name(name)};'> {name} {count}</span>."
+        )
 
     fig.update_layout(
         title=f" Trajectories: {num_agents}. {count_direction}",
@@ -253,7 +256,9 @@ def plot_time_series(density: pd.DataFrame, speed: pd.DataFrame, fps: int) -> go
     return fig
 
 
-def plt_plot_time_series(density: pd.DataFrame, speed: pd.DataFrame, fps: int) -> Tuple[matplotlib.figure.Figure, matplotlib.figure.Figure]:
+def plt_plot_time_series(
+    density: pd.DataFrame, speed: pd.DataFrame, fps: int
+) -> Tuple[matplotlib.figure.Figure, matplotlib.figure.Figure]:
     """Plot density and speed time series side-byside."""
     fs = 18
     # density
@@ -268,7 +273,7 @@ def plt_plot_time_series(density: pd.DataFrame, speed: pd.DataFrame, fps: int) -
 
     rmin = np.min(density.density) - 0.1
     rmax = np.max(density.density) + 0.1
-    ax1.set_ylim([rmin, rmax])
+    ax1.set_ylim((rmin, rmax))
     ax1.grid(alpha=0.4)
     # speed
     ax2.plot(speed.index / fps, speed, color="gray", lw=1.5)
@@ -279,13 +284,15 @@ def plt_plot_time_series(density: pd.DataFrame, speed: pd.DataFrame, fps: int) -
     ax2.tick_params(axis="both", which="major", labelsize=14)  # For major ticks
     vmax = np.max(speed) + 0.1
     vmin = np.min(speed) - 0.1
-    ax2.set_ylim([vmin, vmax])
+    ax2.set_ylim((vmin, vmax))
     ax2.grid(alpha=0.4)
 
     return fig1, fig2
 
 
-def plot_fundamental_diagram_all(density_dict: Dict[str, pd.DataFrame], speed_dict: Dict[str, pd.DataFrame]) -> go.Figure:
+def plot_fundamental_diagram_all(
+    density_dict: Dict[str, pd.DataFrame], speed_dict: Dict[str, pd.DataFrame]
+) -> go.Figure:
     """Plot fundamental diagram of all files."""
     fig = go.Figure()
     colors_const = [
@@ -317,7 +324,9 @@ def plot_fundamental_diagram_all(density_dict: Dict[str, pd.DataFrame], speed_di
         colors.append(color)
         filenames.append(filename)
 
-    for i, (density, speed) in enumerate(zip(density_dict.values(), speed_dict.values())):
+    for i, (density, speed) in enumerate(
+        zip(density_dict.values(), speed_dict.values())
+    ):
         if isinstance(speed, pd.Series):
             y = speed
         else:
@@ -351,7 +360,9 @@ def plot_fundamental_diagram_all(density_dict: Dict[str, pd.DataFrame], speed_di
     return fig
 
 
-def plot_x_y(x: pd.Series, y: pd.Series, title: str, xlabel: str, ylabel: str, color: str) -> Tuple[Scatter, Figure]:
+def plot_x_y(
+    x: pd.Series, y: pd.Series, title: str, xlabel: str, ylabel: str, color: str
+) -> Tuple[Scatter, Figure]:
     """Plot two arrays and return trace and fig."""
     fig = make_subplots(
         rows=1,
@@ -375,7 +386,9 @@ def plot_x_y(x: pd.Series, y: pd.Series, title: str, xlabel: str, ylabel: str, c
     return trace, fig
 
 
-def plot_fundamental_diagram_all_mpl(density_dict: Dict[str, pd.DataFrame], speed_dict: Dict[str, pd.DataFrame]) -> matplotlib.figure.Figure:
+def plot_fundamental_diagram_all_mpl(
+    density_dict: Dict[str, pd.DataFrame], speed_dict: Dict[str, pd.DataFrame]
+) -> matplotlib.figure.Figure:
     """Plot fundamental diagram of all files using Matplotlib."""
     # Define colors and marker styles
     colors_const = [
@@ -402,11 +415,15 @@ def plot_fundamental_diagram_all_mpl(density_dict: Dict[str, pd.DataFrame], spee
     ]  # Matplotlib marker styles
 
     fig, ax = plt.subplots()
-    for i, ((filename, density), (_, speed)) in enumerate(zip(density_dict.items(), speed_dict.items())):
+    for i, ((filename, density), (_, speed)) in enumerate(
+        zip(density_dict.items(), speed_dict.items())
+    ):
         if isinstance(speed, pd.Series):
             y = speed
         else:
-            y = speed["speed"]  # Adjust this if 'speed' DataFrame structure is different
+            y = speed[
+                "speed"
+            ]  # Adjust this if 'speed' DataFrame structure is different
 
         ax.scatter(
             density["density"],
@@ -448,15 +465,21 @@ def assign_direction_number(agent_data: pd.DataFrame) -> pd.DataFrame:
         # Determine primary direction of motion
         if abs(delta_x) > abs(delta_y):
             # Motion is primarily horizontal
-            direction_number = 3 if delta_x > 0 else 4  # East if delta_x positive, West otherwise
+            direction_number = (
+                3 if delta_x > 0 else 4
+            )  # East if delta_x positive, West otherwise
             direction_name = "Right" if delta_x > 0 else "Left"
         else:
             # Motion is primarily vertical
-            direction_number = 1 if delta_y > 0 else 2  # North if delta_y positive, South otherwise
+            direction_number = (
+                1 if delta_y > 0 else 2
+            )  # North if delta_y positive, South otherwise
             direction_name = "Top" if delta_x > 0 else "Bottom"
         direction_numbers.append((agent_id, direction_number, direction_name))
 
-    return pd.DataFrame(direction_numbers, columns=["id", "direction_number", "direction_name"])
+    return pd.DataFrame(
+        direction_numbers, columns=["id", "direction_number", "direction_name"]
+    )
 
 
 def show_fig(
@@ -480,12 +503,14 @@ def show_fig(
     if not html:
         st.plotly_chart(fig)
     else:
-        st.components.v1.html(fig.to_html(include_mathjax="cdn"), height=height)  # type: ignore
+        st.components.v1.html(fig.to_html(include_mathjax="cdn"), height=height)
     if write:
         fig.write_image(figname)
 
 
-def download_file(figname: Path, col: Optional[st_column] = None, label: str = "") -> None:
+def download_file(
+    figname: Path, col: Optional[st_column] = None, label: str = ""
+) -> None:
     """Make download button for file."""
     with open(figname, "rb") as pdf_file:
         if col is None:
@@ -508,7 +533,9 @@ def download_file(figname: Path, col: Optional[st_column] = None, label: str = "
             )
 
 
-def get_scaled_dimensions(geominX: float, geomaxX: float, geominY: float, geomaxY: float) -> Tuple[float, float, float]:
+def get_scaled_dimensions(
+    geominX: float, geomaxX: float, geominY: float, geomaxY: float
+) -> Tuple[float, float, float]:
     """Return with, height and scale for background image."""
     scale = np.amin((geomaxX - geominX, geomaxY - geominY))
     scale_max = 20
@@ -540,7 +567,9 @@ def plot_trajectories_mpl(
         )
 
 
-def draw_bg_img(data: pd.DataFrame, geominX: float, geomaxX: float, geominY: float, geomaxY: float) -> Tuple[Image, float, float, float, float]:
+def draw_bg_img(
+    data: pd.DataFrame, geominX: float, geomaxX: float, geominY: float, geomaxY: float
+) -> Tuple[Image.Image, float, float, float, float]:
     """Plot trajectories and create a background image."""
     logging.info("enter bg_img")
     width, height, scale = get_scaled_dimensions(geominX, geomaxX, geominY, geomaxY)
@@ -573,7 +602,7 @@ def draw_bg_img(data: pd.DataFrame, geominX: float, geomaxX: float, geominY: flo
     return bg_img, img_width, img_height, fig.dpi, scale
 
 
-def fig2img(fig: matplotlib.figure.Figure) -> Image:
+def fig2img(fig: matplotlib.figure.Figure) -> Image.Image:
     """Convert a Matplotlib figure to a PIL Image and return it."""
     buf = io.BytesIO()
     fig.savefig(buf)
