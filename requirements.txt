@@ -1,7 +1,7 @@
 streamlit
 streamlit_folium
 folium
-pedpy@git+https://github.com/PedestrianDynamics/PedPy.git
+pedpy
 pandas
 plotly
 matplotlib
