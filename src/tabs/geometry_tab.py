@@ -10,6 +10,9 @@ import streamlit as st
 from pyproj import Transformer
 from shapely.geometry import Polygon, mapping
 from shapely.wkt import loads
+from streamlit.delta_generator import DeltaGenerator
+
+from typing import Tuple
 
 
 def load_data(pickle_name: str) -> pd.DataFrame:
@@ -25,7 +28,7 @@ def load_data(pickle_name: str) -> pd.DataFrame:
     return pd.read_pickle(pickle_name)
 
 
-def transform_polygon(polygon):
+def transform_polygon(polygon: Polygon) -> Polygon:
     """
     Transform the coordinates of a polygon from RGF93 (EPSG:2154) to WGS84 (EPSG:4326).
 
@@ -267,7 +270,7 @@ def adjust_time(df: pd.DataFrame, max_time: float) -> pd.DataFrame:
     return df[(df["t/s"] < max_time) & (df["t/s"] > 0)]
 
 
-def degrees_to_meters(lat, lon):
+def degrees_to_meters(lat: float, lon: float) -> Tuple[float, float]:
     """
     Convert latitude and longitude coordinates from degrees to meters.
 
@@ -286,7 +289,7 @@ def degrees_to_meters(lat, lon):
 
 
 def update_progress_bar(
-    progress_bar: st.progress, status_text: st.empty, frac: float
+    progress_bar: DeltaGenerator, status_text: DeltaGenerator, frac: float
 ) -> None:
     """Update the progress bar and status text."""
     # Update progress bar
