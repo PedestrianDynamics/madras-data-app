@@ -2,7 +2,7 @@
 
 from io import BytesIO
 from pathlib import Path
-from typing import Tuple
+from typing import Tuple, List, Dict, Union, Optional
 
 import folium
 import gpxpy
@@ -16,6 +16,8 @@ import streamlit as st
 from matplotlib import colormaps
 from plotly.graph_objects import Figure
 from streamlit_folium import st_folium
+from datetime import datetime
+from matplotlib.figure import Figure as pltFigure
 
 
 def load_and_process_contacts_data(csv_path: Path, pickle_path: Path) -> None:
@@ -40,7 +42,9 @@ def load_and_process_contacts_data(csv_path: Path, pickle_path: Path) -> None:
     df.iloc[:, 5:] = df.iloc[:, 5:].map(convert_to_timedelta)
 
     # Convert 'Détail' entries to total seconds
-    df.iloc[:, 5:] = df.iloc[:, 5:].apply(lambda col: col.apply(lambda x: x.total_seconds() if pd.notna(x) else None))
+    df.iloc[:, 5:] = df.iloc[:, 5:].apply(
+        lambda col: col.apply(lambda x: x.total_seconds() if pd.notna(x) else None)
+    )
 
     # Save the DataFrame to a pickle file
     df.to_pickle(pickle_path / "contacts_data.pkl")
@@ -88,7 +92,10 @@ def process_contacts_data(df: pd.DataFrame) -> pd.DataFrame:
         pd.DataFrame: The processed DataFrame with melted and transformed data.
     """
     # Drop non-numeric 'Détail' columns
-    df.drop(columns=["Date", "Time-of-stop", "Total-number-of-collisions", "Duration"], inplace=True)
+    df.drop(
+        columns=["Date", "Time-of-stop", "Total-number-of-collisions", "Duration"],
+        inplace=True,
+    )
 
     # Transpose the DataFrame and rename columns
     df = df.transpose()
@@ -136,15 +143,17 @@ def process_gpx(gpx_path: Path, pickle_path: Path) -> None:
     process_tracks_data(pickle_path)
 
 
-def parse_gpx_file(filename: str) -> list[dict]:
+def parse_gpx_file(
+    filename: Path,
+) -> List[Dict[str, Union[str, float, Optional[datetime]]]]:
     """
     Parse a GPX file and returns a list of dictionaries containing the extracted data.
 
     Args:
-        filename (str): The path to the GPX file.
+        filename (Path): The path to the GPX file.
 
     Returns:
-        list[dict]: A list of dictionaries, where each dictionary represents a data point extracted from the GPX file.
+        List[Dict]: A list of dictionaries, where each dictionary represents a data point extracted from the GPX file.
             Each dictionary contains the following keys:
                 - name_subj (str): The name of the subject.
                 - latitude (float): The latitude coordinate.
@@ -153,7 +162,7 @@ def parse_gpx_file(filename: str) -> list[dict]:
 
     """
     name_subj = str(filename.stem)
-    data = []
+    data: List[Dict[str, Union[str, float, Optional[datetime]]]] = []
     with open(filename, "r", encoding="utf-8") as gpx_file:
         gpx = gpxpy.parse(gpx_file)
         for track in gpx.tracks:
@@ -258,7 +267,9 @@ def merge_contacts_and_gps_data(path_pickle: Path) -> None:
     df2["time_seconds"] = df2["time_seconds"].astype("float64")
 
     # Perform an asof merge
-    merged_df = pd.merge_asof(df1, df2, on="time_seconds", by="name_subj", direction="nearest")
+    merged_df = pd.merge_asof(
+        df1, df2, on="time_seconds", by="name_subj", direction="nearest"
+    )
     # - **Grouping**: The merge operation groups the data by `name_subj`.
     # - **Juxtaposition**: Within each group, it aligns rows from `df1` and `df2` based on the `time_seconds` column.
     # - **Merging**: For each subject (e.g., `subj7`), if the `time_seconds` values are similar (nearest match),
@@ -274,7 +285,7 @@ def merge_contacts_and_gps_data(path_pickle: Path) -> None:
     merged_df.to_pickle(path_pickle / "contacts_gps_merged.pkl")
 
 
-def interpolate_data(group):
+def interpolate_data(group: pd.DataFrame) -> pd.DataFrame:
     """
     Interpolates missing data in a group of GPS contacts.
 
@@ -294,7 +305,9 @@ def interpolate_data(group):
         group = group.reindex(range(int(group.index.min()), int(group.index.max()) + 1))
 
     # Interpolate latitude and longitude linearly, handling NaN values
-    group[["latitude", "longitude"]] = group[["latitude", "longitude"]].interpolate(method="linear", limit_direction="both")
+    group[["latitude", "longitude"]] = group[["latitude", "longitude"]].interpolate(
+        method="linear", limit_direction="both"
+    )
 
     # Reset index to return the DataFrame to its original structure
     group.reset_index(inplace=True)
@@ -369,10 +382,19 @@ def plot_gps_tracks(map_object: folium.Map, all_gps_tracks: pd.DataFrame) -> Non
         track_points = track_df[["latitude", "longitude"]].values.tolist()
         rgba_color = viridis(track_index / len(unique_tracks))
         hex_color = mcolors.to_hex(rgba_color)
-        folium.PolyLine(track_points, color=hex_color, weight=2.5, opacity=1, name=name_subj, popup=name_subj).add_to(map_object)
+        folium.PolyLine(
+            track_points,
+            color=hex_color,
+            weight=2.5,
+            opacity=1,
+            name=name_subj,
+            popup=name_subj,
+        ).add_to(map_object)
 
 
-def add_contact_markers(map_object: folium.Map, contact_gps_merged: pd.DataFrame, path_icon: str) -> None:
+def add_contact_markers(
+    map_object: folium.Map, contact_gps_merged: pd.DataFrame, path_icon: str
+) -> None:
     """
     Add markers for each contact point on the map.
 
@@ -381,7 +403,9 @@ def add_contact_markers(map_object: folium.Map, contact_gps_merged: pd.DataFrame
         contact_gps_merged (pd.DataFrame): DataFrame containing contact GPS merged data.
     """
     for _, row in contact_gps_merged.iterrows():
-        icon_person = folium.features.CustomIcon(icon_image=path_icon + "/contact_icon.png", icon_size=(30, 30))
+        icon_person = folium.features.CustomIcon(
+            icon_image=path_icon + "/contact_icon.png", icon_size=(30, 30)
+        )
         folium.Marker(
             location=[row["latitude"], row["longitude"]],
             icon=icon_person,
@@ -389,7 +413,9 @@ def add_contact_markers(map_object: folium.Map, contact_gps_merged: pd.DataFrame
         ).add_to(map_object)
 
 
-def plot_histogram(df: pd.DataFrame, bins: int, log_plot: Tuple[bool, bool]) -> plt.Figure:
+def plot_histogram(
+    df: pd.DataFrame, bins: int, log_plot: Tuple[bool, bool]
+) -> pltFigure:
     """
     Plot a histogram of the total number of collisions.
 
@@ -414,9 +440,13 @@ def plot_histogram(df: pd.DataFrame, bins: int, log_plot: Tuple[bool, bool]) -> 
     plt.xlabel("Number of contacts along the path")
     plt.ylabel("Number of people")
     plt.title("Histogram of the total number of collisions")
-    plt.savefig(Path(__file__).parent.parent.parent.absolute() / "data" / "processed" / f"histogram_{bins}.pdf")
+    plt.savefig(
+        Path(__file__).parent.parent.parent.absolute()
+        / "data"
+        / "processed"
+        / f"histogram_{bins}.pdf"
+    )
     plt.close(fig)
-
     return fig
 
 
@@ -446,14 +476,23 @@ def plot_cumulative_contacts(df: pd.DataFrame) -> Figure:
     for index, row in detail_data.iterrows():
         times = row.dropna().values  # Get the 'Détail' times for the person
         if len(times) > 0:
-            values = np.cumsum(np.concatenate(([0], np.ones(len(times), dtype="int"))))  # type: ignore
-            edges = np.concatenate((times, [df["Duration"].iloc[index].total_seconds()]))
+            values = np.cumsum(np.concatenate(([0], np.ones(len(times), dtype="int"))))
+            edges = np.concatenate(
+                (times, [df["Duration"].iloc[index].total_seconds()])
+            )
             # Add a trace for each person
-            fig.add_trace(go.Scatter(x=edges, y=values, mode="lines+markers", name=f"Subject {row.name}"))
+            fig.add_trace(
+                go.Scatter(
+                    x=edges, y=values, mode="lines+markers", name=f"Subject {row.name}"
+                )
+            )
 
     # Update layout of the figure
     fig.update_layout(
-        title={"text": "Cumulative Number of Contacts as a Function of Time", "font_size": 28},
+        title={
+            "text": "Cumulative Number of Contacts as a Function of Time",
+            "font_size": 28,
+        },
         width=600,
         height=600,
         xaxis={"title": {"text": "Time [s]", "font_size": 20}, "tickfont_size": 20},
@@ -487,10 +526,19 @@ def main() -> None:
     """
     # TODO: we should handle these directories in Dataclass.
     path = Path(__file__).resolve()
-    path_csv = path.parent.parent.parent.absolute() / "data" / "GPS_traces_&_physical_contacts"
+    path_csv = (
+        path.parent.parent.parent.absolute() / "data" / "GPS_traces_&_physical_contacts"
+    )
     path_pickle = path.parent.parent.parent.absolute() / "data" / "pickle"
-    path_gpx = path.parent.parent.parent.absolute() / "data" / "GPS_traces_&_physical_contacts" / "GPSTracks"
-    path_icon = str(path.parent.parent.parent.absolute() / "data" / "assets" / "logo_contact")
+    path_gpx = (
+        path.parent.parent.parent.absolute()
+        / "data"
+        / "GPS_traces_&_physical_contacts"
+        / "GPSTracks"
+    )
+    path_icon = str(
+        path.parent.parent.parent.absolute() / "data" / "assets" / "logo_contact"
+    )
 
     # If "contacts_gps_merged.pkl" does not exist, run the following code
     if not Path(path_pickle / "contacts_gps_merged.pkl").exists():
@@ -516,17 +564,25 @@ def main() -> None:
             # Set a default value for the session state boolean variable
             st.session_state["bool_log"] = True
             # Checkbox to toggle log-x-scale, initially set to True
-            log_x_scale_checkbox = st.sidebar.checkbox("Log-x-scale", value=st.session_state["bool_log"])
+            log_x_scale_checkbox = st.sidebar.checkbox(
+                "Log-x-scale", value=st.session_state["bool_log"]
+            )
             # Update session state based on checkbox
             st.session_state["bool_log"] = log_x_scale_checkbox
             # Title for the histogram
             st.subheader("Histogram of the Total Number of Collisions\n")
             # Slider for selecting the number of bins
-            bins = st.sidebar.slider("Select number of bins:", min_value=4, max_value=8, value=6, step=1)
+            bins = st.sidebar.slider(
+                "Select number of bins:", min_value=4, max_value=8, value=6, step=1
+            )
             # Plot a histogram of the contacts data
-            histogram_fig = plot_histogram(contacts_data, bins, (st.session_state["bool_log"], False))
+            histogram_fig = plot_histogram(
+                contacts_data, bins, (st.session_state["bool_log"], False)
+            )
             # Define file path for saving the histogram
-            data_directory = Path(__file__).resolve().parent.parent.parent / "data" / "processed"
+            data_directory = (
+                Path(__file__).resolve().parent.parent.parent / "data" / "processed"
+            )
             histogram_filename = data_directory / f"histogram_{bins}.pdf"
             # Display the histgram in the first column
             st.pyplot(histogram_fig, clear_figure=True)
