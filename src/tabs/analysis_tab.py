@@ -446,12 +446,12 @@ def calculate_nt(
     c1.pyplot(fig1)
     c2.write("**Total number of pedestrians over the observed period.**")
     c2.dataframe(pd.DataFrame(nt_stats))
-    figname = Path(figname)
-    figname = figname.with_name(figname.stem + ".pdf")
+    figname_path = Path(figname)
+    figname = str(figname_path.with_name(figname_path.stem + ".pdf"))
     path = Path(__file__)
     data_directory = path.parent.parent.parent.absolute() / "data" / "processed"
     logging.info("Check existance %s: %s", data_directory, data_directory.exists())
-    figname = data_directory / Path(figname)
+    figname = str(data_directory / Path(figname))
     logging.info("Try to save %s", figname)
     fig1.savefig(figname, bbox_inches="tight", pad_inches=0.1)
     download_file(Path(figname))
@@ -776,9 +776,10 @@ def prepare_data(selected_file: str) -> Tuple[pedpy.TrajectoryData, List[List[fl
     return trajectory_data, walkable_area
 
 
-def read_and_plot_outflow(filename: str, sigma: float):
+def read_and_plot_outflow(filename: str, sigma: float) -> Path:
     """Read file, calculate flow and plot."""
-    st.info(filename.stem)
+    filename_path = Path(filename)
+    st.info(filename_path.stem)
     # setup and read file
     fig, ax = plt.subplots()
     df = pd.read_csv(filename)
@@ -801,7 +802,7 @@ def read_and_plot_outflow(filename: str, sigma: float):
     df["gaussian_flow"] = gaussian_filter(df["instant_flow"], sigma=sigma)
 
     # plotting
-    ax.xaxis.set_major_formatter(DateFormatter("%H:%M"))  # Format time as hours:minutes
+    ax.xaxis.set_major_formatter(DateFormatter("%H:%M"))  # type: ignore
     ax.plot(
         df["time"],
         df["instant_flow"],
@@ -813,7 +814,7 @@ def read_and_plot_outflow(filename: str, sigma: float):
     ax.plot(df["time"], df["gaussian_flow"], label="Smoothed outflow", color="black")
     legend = plt.legend(loc="upper right")
     plt.setp(legend.get_texts(), fontweight="bold")
-    ax.set_ylim([0.0, 12.5])
+    ax.set_ylim((0.0, 12.5))
     ax.tick_params(axis="x", which="major", labelsize=16)
     ax.tick_params(axis="y", which="major", labelsize=16)
     ax.set_xlabel("Time", fontsize=16)
@@ -839,12 +840,12 @@ def select_file() -> str:
             key="tab3_filename",
         )
     )
-    selected_file = file_name_to_path[filename]
+    selected_file = str(file_name_to_path[filename])
     st.session_state.selected_file = selected_file
     return selected_file
 
 
-def handle_outflow(sigma: float):
+def handle_outflow(sigma: float) -> None:
     """Handle outflow calculation and plotting."""
     files = [
         st.session_state.config.flow_directory / "chenavard_2022_1210.csv",
@@ -899,7 +900,11 @@ def run_tab3() -> None:
         calculation_handlers[calculations]()
 
 
-def handle_density_profile(trajectory_data, walkable_area, selected_file):
+def handle_density_profile(
+    trajectory_data: pedpy.TrajectoryData,
+    walkable_area: pedpy.WalkableArea,
+    selected_file: str,
+) -> None:
     """Handle the logic for density profile calculation."""
     if "Topview" in selected_file:
         calculate_density_profile(trajectory_data, walkable_area, selected_file)
