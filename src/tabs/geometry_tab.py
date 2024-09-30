@@ -22,13 +22,12 @@ def load_data(pickle_name: str) -> pd.DataFrame:
     Returns:
         pd.DataFrame: DataFrame containing the pedestrian trajectory data.
     """
-    pd_trajs = pd.read_pickle(pickle_name)
-    return pd_trajs
+    return pd.read_pickle(pickle_name)
 
 
 def transform_polygon(polygon):
     """
-    Transforms the coordinates of a polygon from RGF93 (EPSG:2154) to WGS84 (EPSG:4326).
+    Transform the coordinates of a polygon from RGF93 (EPSG:2154) to WGS84 (EPSG:4326).
 
     Args:
         polygon (Polygon): The polygon to be transformed.
@@ -42,13 +41,15 @@ def transform_polygon(polygon):
     if len(list(polygon.exterior.coords[0])) < 3:
         new_exterior = [transformer.transform(x, y) for x, y in polygon.exterior.coords]
     else:
-        new_exterior = [transformer.transform(x, y) for (x, y, z) in polygon.exterior.coords]
+        new_exterior = [
+            transformer.transform(x, y) for (x, y, z) in polygon.exterior.coords
+        ]
     return Polygon(new_exterior)
 
 
 def trajs_from_rgf93_to_wgs84(trajs: pd.DataFrame) -> pd.DataFrame:
     """
-    Converts the coordinates in the 'trajs' DataFrame from RGF93 (EPSG:2154) to WGS84 (EPSG:4326).
+    Convert the coordinates in the 'trajs' DataFrame from RGF93 (EPSG:2154) to WGS84 (EPSG:4326).
 
     Parameters:
     trajs (pd.DataFrame): DataFrame containing trajectory data with RGF93 coordinates.
@@ -110,13 +111,13 @@ def create_animation_plotly(
 
     # Set the scale of the color axis to logarithmic and adjust colorbar size
     fig.update_coloraxes(
-        colorbar=dict(
-            title="Velocity [m/s]",
-            title_font=dict(size=20),
-            lenmode="fraction",  # Use fraction mode for length
-            len=1.0,  # Set length to full height
-            tickfont=dict(size=20),  # Set font size for ticks
-        ),
+        colorbar={
+            "title": "Velocity [m/s]",
+            "title_font": {"size": 20},
+            "lenmode": "fraction",  # Use fraction mode for length
+            "len": 1.0,  # Set length to full height
+            "tickfont": {"size": 20},  # Set font size for ticks
+        },
         colorscale="Viridis",
         cmin=min_velocity,
         cmax=max_velocity,
@@ -175,7 +176,7 @@ def create_animation_plotly(
                     fill="toself",
                     mode="lines",
                     fillcolor="rgba(255, 0, 0, 0.3)",
-                    line=dict(width=1),
+                    line={"width": 1},
                     hoverinfo="text",  # Display hover text
                     hovertext=f"<b>Obstacle {row['Type']}</b><br><br>center of "
                     + f"mass<br>lon_wgs84={center_of_mass.x:.7f}°<br>lat_wgs84={center_of_mass.y:.7f}°",
@@ -193,10 +194,14 @@ def create_animation_plotly(
 
     # Updating layout for geographic centering
     fig.update_geos(
-        center=dict(lat=45.76751, lon=4.833584), projection_scale=200000.0, showland=False
+        center={"lat": 45.76751, "lon": 4.833584},
+        projection_scale=200000.0,
+        showland=False,
     )
     fig.update_layout(
-        xaxis_title="Longitude [WGS84]", yaxis_title="Latitude [WGS84]", showlegend=False
+        xaxis_title="Longitude [WGS84]",
+        yaxis_title="Latitude [WGS84]",
+        showlegend=False,
     )
 
     return fig
@@ -264,14 +269,14 @@ def adjust_time(df: pd.DataFrame, max_time: float) -> pd.DataFrame:
 
 def degrees_to_meters(lat, lon):
     """
-    Converts latitude and longitude coordinates from degrees to meters.
+    Convert latitude and longitude coordinates from degrees to meters.
+
     Parameters:
     lat (float): Latitude coordinate in degrees.
     lon (float): Longitude coordinate in degrees.
     Returns:
     tuple: A tuple containing the converted x and y coordinates in meters.
     """
-
     R = 6371000  # Radius of Earth in meters
     lat_rad = np.radians(lat)
     lon_rad = np.radians(lon)
@@ -280,7 +285,9 @@ def degrees_to_meters(lat, lon):
     return x, y
 
 
-def update_progress_bar(progress_bar: st.progress, status_text: st.empty, frac: float) -> None:
+def update_progress_bar(
+    progress_bar: st.progress, status_text: st.empty, frac: float
+) -> None:
     """Update the progress bar and status text."""
     # Update progress bar
     percent_complete = int(frac * 100)
@@ -290,7 +297,9 @@ def update_progress_bar(progress_bar: st.progress, status_text: st.empty, frac: 
     status_text.text(f"{progress_text} {percent_complete}%")
 
 
-def prepare_data(traj_path: Path, geometry_path: Path, selected_traj_file: Path) -> None:
+def prepare_data(
+    traj_path: Path, geometry_path: Path, selected_traj_file: Path
+) -> None:
     """
     Prepare and convert trajectory data from RGF93 to WGS84 coordinates.
 
@@ -302,7 +311,9 @@ def prepare_data(traj_path: Path, geometry_path: Path, selected_traj_file: Path)
     """
 
     selected_pickle = str(
-        traj_path.parent / "pickle" / (str(Path(selected_traj_file).stem) + "_converted.pkl")
+        traj_path.parent
+        / "pickle"
+        / (str(Path(selected_traj_file).stem) + "_converted.pkl")
     )
     max_time = 10  # maximum number of lines to read
     if not Path(selected_pickle).exists():
@@ -333,7 +344,9 @@ def prepare_data(traj_path: Path, geometry_path: Path, selected_traj_file: Path)
             update_progress_bar(my_progress_bar, status_text, 1)
             # Save the converted DataFrame to a pickle file
             PICKLE_SAVE_PATH = str(
-                traj_path.parent / "pickle" / (selected_traj_file.stem + "_converted.pkl")
+                traj_path.parent
+                / "pickle"
+                / (selected_traj_file.stem + "_converted.pkl")
             )
             df_converted.to_pickle(PICKLE_SAVE_PATH)
 
@@ -350,7 +363,17 @@ def prepare_data(traj_path: Path, geometry_path: Path, selected_traj_file: Path)
                 sep=" ",
                 header=None,
                 skiprows=7,
-                names=["id", "frame", "x/m", "y/m", "z/m", "id_global", "t/s", "x_RGF", "y_RGF"],
+                names=[
+                    "id",
+                    "frame",
+                    "x/m",
+                    "y/m",
+                    "z/m",
+                    "id_global",
+                    "t/s",
+                    "x_RGF",
+                    "y_RGF",
+                ],
             )
             df = df.drop(columns=["id"])
             df = df.rename(columns={"id_global": "id"})
@@ -366,7 +389,9 @@ def prepare_data(traj_path: Path, geometry_path: Path, selected_traj_file: Path)
             update_progress_bar(my_progress_bar, status_text, 1)
             # Save the converted DataFrame to a pickle file
             PICKLE_SAVE_PATH = str(
-                traj_path.parent / "pickle" / (selected_traj_file.stem + "_converted.pkl")
+                traj_path.parent
+                / "pickle"
+                / (selected_traj_file.stem + "_converted.pkl")
             )
             df_converted.to_pickle(PICKLE_SAVE_PATH)
 
@@ -384,7 +409,9 @@ def prepare_data(traj_path: Path, geometry_path: Path, selected_traj_file: Path)
         my_progress_bar = st.progress(0)
         status_text = st.empty()
         update_progress_bar(my_progress_bar, status_text, 1 / 3)
-        pd_geometry_converted = extract_gps_data_from_csv_geometry(geometry_path / "WKT.csv")
+        pd_geometry_converted = extract_gps_data_from_csv_geometry(
+            geometry_path / "WKT.csv"
+        )
         update_progress_bar(my_progress_bar, status_text, 2 / 3)
         pd_geometry_converted.to_pickle(geometry_pickle)
         update_progress_bar(my_progress_bar, status_text, 1)
@@ -423,12 +450,12 @@ def main(selected_file: str) -> None:
     Main function to run the Streamlit app.
     """
     path = Path(__file__)
-
+    # TODO: use session_state
     TRAJ_PATH = Path(path.parent.parent.parent.absolute() / "data" / "trajectories")
     GEOMETRY_PATH = Path(path.parent.parent.parent.absolute() / "data" / "geometry")
 
     # is topview or largeview
-    is_topview = str(Path(selected_file).stem).startswith("Topview")
+    # is_topview = str(Path(selected_file).stem).startswith("Topview")
 
     # select the pickle file
     selected_pickle = str(
@@ -463,7 +490,9 @@ def main(selected_file: str) -> None:
     #     value=int(1000 / freq_topview) if is_topview else int(1000 / freq_largeview),
     #     step=5,
     # )
-    fig = create_animation_plotly(pd_trajs, pd_geometry, show_polygons, min_velocity, max_velocity)
+    fig = create_animation_plotly(
+        pd_trajs, pd_geometry, show_polygons, min_velocity, max_velocity
+    )
     st.plotly_chart(fig, use_container_width=True)
 
 

@@ -26,7 +26,7 @@ tile_layers = {
     "Open Street Map": "openstreetmap",
     "CartoDB Positron": "CartoDB positron",
     "CartoDB Dark_Matter": "CartoDB dark_matter",
-    "Google Satellite": "google_satellite"
+    "Google Satellite": "google_satellite",
 }
 
 
@@ -55,14 +55,20 @@ def load_cameras_from_json(file_path: str) -> Dict[str, Camera]:
         try:
             # Ensure the data structure is as expected
             location = tuple(info["location"])
-            assert isinstance(location, tuple) and len(location) == 2, "Location must be a tuple of two floats."
-            assert all(isinstance(x, float) for x in location), "Location elements must be floats."
+            assert (
+                isinstance(location, tuple) and len(location) == 2
+            ), "Location must be a tuple of two floats."
+            assert all(
+                isinstance(x, float) for x in location
+            ), "Location elements must be floats."
             location = cast(Tuple[float, float], location)
             url = info["url"]
             name = info["name"]
             field = info["field"]
             logo = info["logo"]
-            cameras[key] = Camera(location=location, url=url, name=name, field=field, logo=logo)
+            cameras[key] = Camera(
+                location=location, url=url, name=name, field=field, logo=logo
+            )
 
         except KeyError as e:
             # Handle missing keys in the data
@@ -106,8 +112,10 @@ def create_map(
         google_satellite.add_to(m)
     else:
         # Assuming 'tile_layers' is a dictionary that maps layer names to their tile URLs
-        folium.TileLayer(tile_layers[selected_layer], attr="Attribution for the tile source").add_to(m)
-    
+        folium.TileLayer(
+            tile_layers[selected_layer], attr="Attribution for the tile source"
+        ).add_to(m)
+
     camera_layers = []
     for name in cameras.keys():
         camera_layers.append(
@@ -186,12 +194,9 @@ def main(cameras: Dict[str, Camera], selected_layer: str) -> None:
     cameras (Dict[str, Camera]): A dictionary of Camera objects.
     """
     center = [45.76322690683106, 4.83001470565796]  # Coordinates for Lyon, France
-    
+
     m = create_map(center, selected_layer=selected_layer, cameras=cameras)
 
-   
-    
-    
     c1, c2 = st.columns((0.8, 0.2))
     with c1:
         map_data = st_folium(m, width=800, height=700)
