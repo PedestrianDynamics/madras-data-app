@@ -5,19 +5,18 @@ import pickle
 from dataclasses import dataclass
 from math import ceil, floor
 from pathlib import Path
-from typing import Dict, Tuple, Any
+from typing import Any, Dict, Tuple
 
 import matplotlib.pyplot as plt
 import numpy as np
-
 import pandas as pd
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
 import streamlit as st
 from numba import njit
+from numpy.typing import NDArray
 from scipy.signal import butter, filtfilt
 from tqdm import tqdm
-from numpy.typing import NDArray
 
 plt.rcParams["font.family"] = "STIXGeneral"
 

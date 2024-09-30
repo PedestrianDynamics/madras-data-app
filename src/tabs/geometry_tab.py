@@ -1,6 +1,7 @@
 """Streamlit app to create an animation of pedestrian movements."""
 
 from pathlib import Path
+from typing import Tuple
 
 import numpy as np
 import pandas as pd
@@ -11,8 +12,6 @@ from pyproj import Transformer
 from shapely.geometry import Polygon, mapping
 from shapely.wkt import loads
 from streamlit.delta_generator import DeltaGenerator
-
-from typing import Tuple
 
 
 def load_data(pickle_name: str) -> pd.DataFrame:

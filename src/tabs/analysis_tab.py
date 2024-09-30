@@ -19,7 +19,6 @@ from scipy.ndimage import gaussian_filter
 
 from ..classes.datafactory import load_file
 from ..docs.docs import density_speed, flow
-
 from ..helpers.utilities import (
     download,
     get_measurement_lines,

@@ -5,7 +5,7 @@ repos:
     # Run the linter.
       - id: ruff
         types_or: [ python, pyi ]  # Target Python files and type stub files
-        args: [ --fix ]  # Automatically fix linting issues if possible
+        args: ['check', '--select', 'I', '--fix', '.']
     # Run the formatter.
       - id: ruff-format
         types_or: [ python, pyi ]  # Format Python and stub files

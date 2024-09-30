@@ -1,8 +1,9 @@
 """Map of the gps trajectories coupled with the contacts locations."""
 
+from datetime import datetime
 from io import BytesIO
 from pathlib import Path
-from typing import Tuple, List, Dict, Union, Optional
+from typing import Dict, List, Optional, Tuple, Union
 
 import folium
 import gpxpy
@@ -14,10 +15,9 @@ import plotly.graph_objects as go
 import seaborn as sns
 import streamlit as st
 from matplotlib import colormaps
+from matplotlib.figure import Figure as pltFigure
 from plotly.graph_objects import Figure
 from streamlit_folium import st_folium
-from datetime import datetime
-from matplotlib.figure import Figure as pltFigure
 
 
 def load_and_process_contacts_data(csv_path: Path, pickle_path: Path) -> None:
