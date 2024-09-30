@@ -38,10 +38,17 @@ def histogram_survey(df_survey: pd.DataFrame, remove_outlier: bool) -> Figure:
 
     # Add histogram traces for each category
     fig.add_trace(go.Histogram(x=values_children, name="Children", marker_color="pink"))
-    fig.add_trace(go.Histogram(x=values_both, name="Adults and children", marker_color="blue"))
+    fig.add_trace(
+        go.Histogram(x=values_both, name="Adults and children", marker_color="blue")
+    )
 
     # Create a DataFrame for custom data in hover templates
-    data = pd.DataFrame({"Categories": ["Adults and children"] * len(values_both) + ["Children"] * len(values_children)})
+    data = pd.DataFrame(
+        {
+            "Categories": ["Adults and children"] * len(values_both)
+            + ["Children"] * len(values_children)
+        }
+    )
 
     # Update hover template with custom data
     fig.update_traces(
@@ -61,16 +68,16 @@ def histogram_survey(df_survey: pd.DataFrame, remove_outlier: bool) -> Figure:
         title={"text": "Distribution of Group Sizes", "font_size": 28},
         width=1000,
         height=700,
-        xaxis=dict(
-            title={"text": "Group Size", "font_size": 30, "font_color": "black"},
-            tickfont_size=30,
-            tickfont_color="black",
-        ),
-        yaxis=dict(
-            title={"text": "Counts", "font_size": 30, "font_color": "black"},
-            tickfont_size=30,
-            tickfont_color="black",
-        ),
+        xaxis={
+            "title": {"text": "Group Size", "font_size": 30, "font_color": "black"},
+            "tickfont_size": 30,
+            "tickfont_color": "black",
+        },
+        yaxis={
+            "title": {"text": "Counts", "font_size": 30, "font_color": "black"},
+            "tickfont_size": 30,
+            "tickfont_color": "black",
+        },
         legend={"font_size": 30, "font_color": "black"},
     )
 
@@ -92,7 +99,9 @@ def main() -> None:
     5. Provides a sidebar button to download the histogram as a PDF file.
     """
     path = Path(__file__).resolve()
-    survey_path = path.parent.parent.parent.absolute() / "data" / "surveys" / "survey_results.csv"
+    survey_path = (
+        path.parent.parent.parent.absolute() / "data" / "surveys" / "survey_results.csv"
+    )
     path_pickle = path.parent.parent.parent.absolute() / "data" / "pickle"
 
     # Check if survey.pkl exists, if not create it, else load it
