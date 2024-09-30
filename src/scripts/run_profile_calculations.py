@@ -17,7 +17,9 @@ def run_all() -> None:
     """Initialize the configuration."""
     path = Path(__file__)
     data_directory = path.parent.parent.parent.absolute() / "data" / "processed"
-    trajectories_directory = path.parent.parent.parent.absolute() / "data" / "trajectories"
+    trajectories_directory = (
+        path.parent.parent.parent.absolute() / "data" / "trajectories"
+    )
     area = [[-6, 0], [5, 0], [5, 7], [-6, 7]]
     config = Config(
         files=sorted(glob.glob(f"{str(trajectories_directory)}/*.txt")),

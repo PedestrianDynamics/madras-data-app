@@ -12,9 +12,13 @@ import pandas as pd
 import pedpy as pp
 from joblib import Parallel, delayed
 from log_config import setup_logging
-from pedpy import (DensityMethod, SpeedMethod,
-                   compute_grid_cell_polygon_intersection_area,
-                   compute_speed_profile, get_grid_cells)
+from pedpy import (
+    DensityMethod,
+    SpeedMethod,
+    compute_grid_cell_polygon_intersection_area,
+    compute_speed_profile,
+    get_grid_cells,
+)
 from profile_config_data import Config
 from tqdm import tqdm
 

@@ -27,16 +27,26 @@ def prepare_data(selected_file: str, delta_frame: int) -> pd.DataFrame:
                 frame_step=delta_frame,
                 speed_calculation=pedpy.SpeedCalculation.BORDER_SINGLE_SIDED,
             )
-            individual = pedpy.compute_individual_voronoi_polygons(traj_data=trajectory_data, walkable_area=walkable_area, cut_off=pedpy.Cutoff(radius=1.0, quad_segments=3))
-            density_voronoi, intersecting = pedpy.compute_voronoi_density(individual_voronoi_data=individual, measurement_area=walkable_area)
+            individual = pedpy.compute_individual_voronoi_polygons(
+                traj_data=trajectory_data,
+                walkable_area=walkable_area,
+                cut_off=pedpy.Cutoff(radius=1.0, quad_segments=3),
+            )
+            density_voronoi, intersecting = pedpy.compute_voronoi_density(
+                individual_voronoi_data=individual, measurement_area=walkable_area
+            )
             voronoi_speed = pedpy.compute_voronoi_speed(
                 traj_data=trajectory_data,
                 individual_voronoi_intersection=intersecting,
                 individual_speed=speed,
                 measurement_area=walkable_area,
             )
-            data_with_speed = voronoi_speed.merge(trajectory_data.data, on=["frame"], how="left")
-            data_with_speed_density = density_voronoi.merge(data_with_speed, on=["frame"], how="left")
+            data_with_speed = voronoi_speed.merge(
+                trajectory_data.data, on=["frame"], how="left"
+            )
+            data_with_speed_density = density_voronoi.merge(
+                data_with_speed, on=["frame"], how="left"
+            )
             with open(result_file, "wb") as f:
                 pickle.dump(data_with_speed_density, f)
     else:
@@ -52,7 +62,12 @@ def run_walker(df: pd.DataFrame) -> None:
     @st.cache_resource
     def get_pyg_renderer(df: pd.DataFrame) -> "StreamlitRenderer":
         # If you want to use feature of saving chart config, set `spec_io_mode="rw"`
-        return StreamlitRenderer(df, spec="./gw_config.json", spec_io_mode="rw", field_specs={"frame": pyg.FieldSpec(analyticType="dimension")})
+        return StreamlitRenderer(
+            df,
+            spec="./gw_config.json",
+            spec_io_mode="rw",
+            field_specs={"frame": pyg.FieldSpec(analyticType="dimension")},
+        )
 
     renderer = get_pyg_renderer(df)
     renderer.render_explore()

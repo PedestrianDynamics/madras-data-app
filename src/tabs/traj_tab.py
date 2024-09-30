@@ -11,8 +11,11 @@ from streamlit.delta_generator import DeltaGenerator
 
 from ..classes.datafactory import load_file
 from ..plotting.anim import animate
-from ..plotting.plots import (download_file, plot_trajectories,
-                              plot_trajectories_figure_mpl)
+from ..plotting.plots import (
+    download_file,
+    plot_trajectories,
+    plot_trajectories_figure_mpl,
+)
 
 # import cProfile
 # import pstats
@@ -42,7 +45,9 @@ def run_tab2(selected_file: str, msg: DeltaGenerator) -> None:
         frame_step=5,
         speed_calculation=pedpy.SpeedCalculation.BORDER_SINGLE_SIDED,
     )
-    data_with_speed = data_with_speed.merge(trajectory_data.data, on=["id", "frame"], how="left")
+    data_with_speed = data_with_speed.merge(
+        trajectory_data.data, on=["id", "frame"], how="left"
+    )
 
     ids = trajectory_data.data["id"].unique()
     start_time = time.time()
@@ -112,7 +117,9 @@ def run_tab2(selected_file: str, msg: DeltaGenerator) -> None:
             max_value=5.0,
         )
         # TODO: remove
-        fig2 = plot_trajectories_figure_mpl(trajectory_data, walkable_area, with_colors=True, alpha=alpha, lw=lw)
+        fig2 = plot_trajectories_figure_mpl(
+            trajectory_data, walkable_area, with_colors=True, alpha=alpha, lw=lw
+        )
         c1.pyplot(fig2)
         path = Path(__file__)
         data_directory = path.parent.parent.parent.absolute() / "data" / "processed"

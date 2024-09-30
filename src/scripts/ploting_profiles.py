@@ -49,7 +49,8 @@ def init_parameters(config: Config) -> Tuple[List[Any], pp.WalkableArea, List[st
             "title": "Flow profile",
             "ylabel": r"$J\, /\, 1/ms$",
             "vmax": jmax,
-            "data_func": lambda file_: np.array(density_profiles[file_]) * np.array(speed_profiles[file_]),
+            "data_func": lambda file_: np.array(density_profiles[file_])
+            * np.array(speed_profiles[file_]),
         },
     ]
     return plot_params, walkable_area, files

@@ -1,0 +1,21 @@
+repos:
+  - repo: https://github.com/astral-sh/ruff-pre-commit  
+    rev: v0.6.8  # Make sure you're using the correct version of Ruff
+    hooks:
+    # Run the linter.
+      - id: ruff
+        types_or: [ python, pyi ]  # Target Python files and type stub files
+        args: [ --fix ]  # Automatically fix linting issues if possible
+    # Run the formatter.
+      - id: ruff-format
+        types_or: [ python, pyi ]  # Format Python and stub files
+
+  # Mypy type checker
+  - repo: local
+    hooks:
+      - id: mypy
+        name: Analyze with Mypy
+        entry: mypy --strict  # Runs Mypy with the strictest settings
+        language: python
+        types: ['python']  # Targets Python files
+        files: \.py$  # Only .py files

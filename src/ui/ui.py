@@ -44,7 +44,9 @@ def init_app_looks() -> None:
     repo_name = f"[![Repo]({gh})]({repo})"
     c1, c2 = st.sidebar.columns((1.2, 0.5))
     c2.markdown(repo_name, unsafe_allow_html=True)
-    c1.write("[![DOI](https://zenodo.org/badge/760394097.svg)](https://zenodo.org/doi/10.5281/zenodo.10694866)")
+    c1.write(
+        "[![DOI](https://zenodo.org/badge/760394097.svg)](https://zenodo.org/doi/10.5281/zenodo.10694866)"
+    )
     st.sidebar.image(str(logo_path), use_column_width=True)
 
 

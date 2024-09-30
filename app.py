@@ -30,8 +30,12 @@ if __name__ == "__main__":
 
     if selected_tab == "Trajectories":
         msg = st.empty()
-        file_name_to_path = {path.split("/")[-1]: path for path in st.session_state.files}
-        filename = str(st.selectbox(":open_file_folder: **Select a file**", file_name_to_path))
+        file_name_to_path = {
+            path.split("/")[-1]: path for path in st.session_state.files
+        }
+        filename = str(
+            st.selectbox(":open_file_folder: **Select a file**", file_name_to_path)
+        )
         st.session_state.selected_file = file_name_to_path[filename]
         run_tab2(file_name_to_path[filename], msg)
 
@@ -48,7 +52,11 @@ if __name__ == "__main__":
     #     run_explorer()
 
     if selected_tab == "Geometry":
-        file_name_to_path = {path.split("/")[-1]: path for path in st.session_state.files}
-        filename = str(st.selectbox(":open_file_folder: **Select a file**", file_name_to_path))
+        file_name_to_path = {
+            path.split("/")[-1]: path for path in st.session_state.files
+        }
+        filename = str(
+            st.selectbox(":open_file_folder: **Select a file**", file_name_to_path)
+        )
         st.session_state.selected_file = file_name_to_path[filename]
         run_tab_animation(file_name_to_path[filename])

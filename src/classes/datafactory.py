@@ -54,7 +54,9 @@ class DataConfig:
         if not self.trajectories_directory.exists():
             st.warning(f"{self.trajectories_directory} does not exist yet!")
             with st.status("Downloading ...", expanded=False):
-                download_and_unzip_files(self.url, "data.zip", self.trajectories_directory)
+                download_and_unzip_files(
+                    self.url, "data.zip", self.trajectories_directory
+                )
 
         else:
             logging.info("Found trajectory directory. Nothing to retrieve!")
@@ -97,7 +99,9 @@ def init_state_bg_image() -> None:
 def init_session_state() -> None:
     """Init session_state throughout the app."""
     path = Path(__file__)
-    trajectories_directory = path.parent.parent.parent.absolute() / "data" / "trajectories"
+    trajectories_directory = (
+        path.parent.parent.parent.absolute() / "data" / "trajectories"
+    )
     flow_directory = path.parent.parent.parent.absolute() / "data" / "flow"
     processed_directory = path.parent.parent.parent.absolute() / "data" / "processed"
 
@@ -130,7 +134,11 @@ def init_session_state() -> None:
     if not hasattr(st.session_state, "trajectory_data"):
         st.session_state.trajectoryData = pedpy.TrajectoryData
 
-    dataconfig = DataConfig(trajectories_directory=trajectories_directory, processed_directory=processed_directory, flow_directory=flow_directory)
+    dataconfig = DataConfig(
+        trajectories_directory=trajectories_directory,
+        processed_directory=processed_directory,
+        flow_directory=flow_directory,
+    )
     st.session_state.files = dataconfig.files
     st.session_state.config = dataconfig
 
@@ -151,16 +159,23 @@ def unzip_files(zip_path: Union[str, Path], destination: Union[str, Path]) -> No
             # Extract only if file (ignores directories)
             if not member.is_dir():
                 # Build target filename path
-                target_path = os.path.join(destination, os.path.basename(member.filename))
+                target_path = os.path.join(
+                    destination, os.path.basename(member.filename)
+                )
                 st.info(f"targe_path {target_path}")
                 # Ensure target directory exists (e.g., if not extracting directories)
                 os.makedirs(os.path.dirname(target_path), exist_ok=True)
                 # Extract file
-                with zip_ref.open(member, "r") as source, open(target_path, "wb") as target:
+                with (
+                    zip_ref.open(member, "r") as source,
+                    open(target_path, "wb") as target,
+                ):
                     shutil.copyfileobj(source, target)
 
 
-def download_and_unzip_files(url: str, destination: Union[str, Path], unzip_destination: Union[str, Path]) -> None:
+def download_and_unzip_files(
+    url: str, destination: Union[str, Path], unzip_destination: Union[str, Path]
+) -> None:
     """
     Download a ZIP file from a specified URL.
 

@@ -20,8 +20,11 @@ from plotly.graph_objs import Figure, Scatter
 from plotly.graph_objs.layout import Shape
 from shapely import Polygon
 
-from ..classes.datafactory import (decrement_frame_start,
-                                   increment_frame_start, reset_frame_start)
+from ..classes.datafactory import (
+    decrement_frame_start,
+    increment_frame_start,
+    reset_frame_start,
+)
 
 DUMMY_SPEED = -1000
 
@@ -40,7 +43,9 @@ def _get_line_color(disk_color: str) -> str:
     return "black" if brightness > 127 else "white"
 
 
-def _create_orientation_line(row: pd.DataFrame, line_length: float = 0.2, color: str = "black") -> Shape:
+def _create_orientation_line(
+    row: pd.DataFrame, line_length: float = 0.2, color: str = "black"
+) -> Shape:
     """Create orientation Shape object."""
     end_x = row["x"] + line_length * 0
     end_y = row["y"] + line_length * 0
@@ -111,7 +116,9 @@ def _get_colormap(frame_data: pd.DataFrame, max_speed: float) -> List[Scatter]:
     return [scatter_trace]
 
 
-def _get_shapes_for_frame(frame_data: pd.DataFrame, min_speed: float, max_speed: float) -> Tuple[Shape, Scatter, Shape]:
+def _get_shapes_for_frame(
+    frame_data: pd.DataFrame, min_speed: float, max_speed: float
+) -> Tuple[Shape, Scatter, Shape]:
     """Construct circles as Shapes for agents, Hover and Directions."""
 
     def create_shape(row: pd.DataFrame) -> Shape:
@@ -206,7 +213,9 @@ def _create_fig(
     fig = go.Figure(
         data=geometry_traces + initial_scatter_trace + initial_hover_trace,
         frames=frames,
-        layout=go.Layout(shapes=initial_shapes + initial_arrows, title=title, title_x=0.5),
+        layout=go.Layout(
+            shapes=initial_shapes + initial_arrows, title=title, title_x=0.5
+        ),
     )
     fig.update_layout(
         updatemenus=[_get_animation_controls()],
@@ -269,7 +278,9 @@ def _get_slider_controls(steps: List[Dict[str, Any]]) -> Dict[str, Any]:
     }
 
 
-def _get_processed_frame_data(data_df: pd.DataFrame, frame_num: int, max_agents: int) -> Tuple[pd.DataFrame, int]:
+def _get_processed_frame_data(
+    data_df: pd.DataFrame, frame_num: int, max_agents: int
+) -> Tuple[pd.DataFrame, int]:
     """Process frame data and ensure it matches the maximum agent count."""
     frame_data = data_df[data_df["frame"] == frame_num]
     agent_count = len(frame_data)
@@ -342,7 +353,9 @@ def animate(
     # Calculate page_end
     frame_end = st.session_state.start_frame + page_size
     frame_start = st.session_state.start_frame
-    data_df = data_df0[(data_df0["frame"] >= frame_start) & (data_df0["frame"] <= frame_end)]
+    data_df = data_df0[
+        (data_df0["frame"] >= frame_start) & (data_df0["frame"] <= frame_end)
+    ]
 
     min_speed = data_df["speed"].min()
     max_speed = data_df["speed"].max()
@@ -361,8 +374,12 @@ def animate(
     ) = _get_shapes_for_frame(initial_frame_data, min_speed, max_speed)
     color_map_trace = _get_colormap(initial_frame_data, max_speed)
     for frame_num in selected_frames:
-        frame_data, agent_count = _get_processed_frame_data(data_df, frame_num, max_agents)
-        shapes, hover_traces, arrows = _get_shapes_for_frame(frame_data, min_speed, max_speed)
+        frame_data, agent_count = _get_processed_frame_data(
+            data_df, frame_num, max_agents
+        )
+        shapes, hover_traces, arrows = _get_shapes_for_frame(
+            frame_data, min_speed, max_speed
+        )
         # title = f"<b>{title_note + '  |  ' if title_note else ''}N: {agent_count}</b>"
         title = f"<b>{title_note + '  |  ' if title_note else ''}Number of Agents: {initial_agent_count}. Frame: {frame_num}</b>"
         frame_name = str(int(frame_num))
