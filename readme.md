@@ -2,8 +2,9 @@
 [![madras-data-app](https://github.com/PedestrianDynamics/madras-data-app/actions/workflows/streamlit-actions.yml/badge.svg?branch=main)](https://github.com/PedestrianDynamics/madras-data-app/actions/workflows/streamlit-actions.yml)
 [![Streamlit App](https://static.streamlit.io/badges/streamlit_badge_black_white.svg)](https://madras-data-app.streamlit.app/)
 [![DOI](https://zenodo.org/badge/760394097.svg)](https://zenodo.org/doi/10.5281/zenodo.10694866)
-
-
+[![License](https://img.shields.io/pypi/l/pedpy.svg)](https://github.com/MADRAS-crowds/madras-data-app/blob/main/LICENSE)
+[![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
+[![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
 
 This application presents an interactive visualization of field observations conducted by 
 the MADRAS team during the Festival of Lights in Lyon, 2022, on December 8th. 
