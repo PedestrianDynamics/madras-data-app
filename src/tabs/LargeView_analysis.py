@@ -5,10 +5,11 @@ import pickle
 from dataclasses import dataclass
 from math import ceil, floor
 from pathlib import Path
-from typing import Dict, Tuple
+from typing import Dict, Tuple, Any
 
 import matplotlib.pyplot as plt
 import numpy as np
+
 import pandas as pd
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
@@ -16,6 +17,7 @@ import streamlit as st
 from numba import njit
 from scipy.signal import butter, filtfilt
 from tqdm import tqdm
+from numpy.typing import NDArray
 
 plt.rcParams["font.family"] = "STIXGeneral"
 
@@ -78,7 +80,7 @@ class Parameters:
     COLORBAR_MAX_V: float = 0.25
 
 
-@njit
+@njit  # type: ignore
 def calculate_distance(pos1: Tuple[float, float], pos2: Tuple[float, float]) -> float:
     """
     Calculate the distance between two points.
@@ -90,10 +92,10 @@ def calculate_distance(pos1: Tuple[float, float], pos2: Tuple[float, float]) -> 
     Returns:
     - float: The distance between the two points.
     """
-    return np.sqrt((pos2[0] - pos1[0]) ** 2 + (pos2[1] - pos1[1]) ** 2)
+    return float(np.sqrt((pos2[0] - pos1[0]) ** 2 + (pos2[1] - pos1[1]) ** 2))
 
 
-@njit
+@njit  # type: ignore
 def gaussian_kernel_scalar(r: float, r_c: float, xi: float) -> float:
     """
     Calculate the value of a Gaussian kernel for a given distance.
@@ -108,10 +110,12 @@ def gaussian_kernel_scalar(r: float, r_c: float, xi: float) -> float:
     """
     if r > r_c:
         return 0.0
-    return np.exp(-0.5 * (r / xi) ** 2)  # Prefactor is omitted because it cancels out
+    return float(
+        np.exp(-0.5 * (r / xi) ** 2)
+    )  # Prefactor is omitted because it cancels out
 
 
-@njit
+@njit  # type: ignore
 def get_r(
     i_line: int, j_column: int, r_cg: float, x_min: float, y_min: float
 ) -> Tuple[float, float]:
@@ -131,8 +135,10 @@ def get_r(
     return (i_line * r_cg + 0.5 * r_cg + x_min, j_column * r_cg + 0.5 * r_cg + y_min)
 
 
-@njit
-def get_cell(r: tuple, x_min: float, y_min, r_cg: float) -> Tuple[int, int]:
+@njit  # type: ignore
+def get_cell(
+    r: Tuple[float, float], x_min: float, y_min, r_cg: float
+) -> Tuple[int, int]:
     """
     Return the cell indices corresponding to the given coordinates.
 
@@ -156,7 +162,7 @@ def get_cell(r: tuple, x_min: float, y_min, r_cg: float) -> Tuple[int, int]:
 # which helps in reducing boundary effects in the filtering process.
 def butter_lowpass_filter(
     pd_series: pd.Series, delta_t: float, order: int, cutoff: float
-) -> np.ndarray:
+) -> NDArray[np.float64]:
     """
     Apply a Butterworth lowpass filter to a pandas Series.
 
@@ -167,7 +173,7 @@ def butter_lowpass_filter(
         cutoff (float): The cutoff frequency of the filter.
 
     Returns:
-        np.ndarray: The filtered output as a NumPy array.
+        NDArray[np.float64]: The filtered output as a NumPy array.
     """
     nyquist_freq = 0.5 / delta_t  # Nyquist Frequency
     normal_cutoff = cutoff / nyquist_freq  # Normalized cutoff frequency
@@ -175,7 +181,11 @@ def butter_lowpass_filter(
     b, a = butter(
         order, normal_cutoff, btype="low", analog=False
     )  # Generate the filter coefficients
-    return filtfilt(b, a, pd_series, padlen=int(1 / delta_t) + 1)  # Apply the filter.
+    filtered_data: NDArray[np.float64] = filtfilt(
+        b, a, pd_series, padlen=int(1 / delta_t) + 1
+    )  # Apply the filter.
+
+    return filtered_data
 
 
 def read_and_process_file(filepath: Path) -> pd.DataFrame:
@@ -342,7 +352,7 @@ def process_trajectories(
     return dict_all_datas
 
 
-def save_data(data_to_save, folder_save: Path, title: str) -> None:
+def save_data(data_to_save: Any, folder_save: Path, title: str) -> None:
     """
     Save the given data to a file.
 
@@ -358,7 +368,7 @@ def save_data(data_to_save, folder_save: Path, title: str) -> None:
         pickle.dump(data_to_save, mydumpfile)
 
 
-def load_data(folder_save: Path, title: str) -> Dict[str, np.ndarray]:
+def load_data(folder_save: Path, title: str) -> Any:
     """
     Load data from a file.
 
@@ -367,7 +377,7 @@ def load_data(folder_save: Path, title: str) -> Dict[str, np.ndarray]:
         title (str): The name of the file.
 
     Returns:
-        Dict[str, np.ndarray]: A dictionary containing the loaded data.
+        Any
 
     """
     with open(folder_save / title, "rb") as myloadfile:
@@ -384,11 +394,12 @@ def calculate_grid_dimensions(pa: Parameters) -> None:
     Returns:
         None
     """
-    pa.NB_CG_X = int((pa.X_MAX - pa.X_MIN) / pa.R_CG) + pa.DELTA + 2
-    pa.NB_CG_Y = int((pa.Y_MAX - pa.Y_MIN) / pa.R_CG) + pa.DELTA + 2
+    # TODO: Oscar: Check conversion of the float Delta to int.
+    pa.NB_CG_X = int((pa.X_MAX - pa.X_MIN) / pa.R_CG) + int(pa.DELTA) + 2
+    pa.NB_CG_Y = int((pa.Y_MAX - pa.Y_MIN) / pa.R_CG) + int(pa.DELTA) + 2
 
 
-def initialize_dict(nb_cg_x: int, nb_cg_y: int) -> Dict[str, np.ndarray]:
+def initialize_dict(nb_cg_x: int, nb_cg_y: int) -> Dict[str, NDArray[np.float64]]:
     """
     Initialize a dictionary of density and velocity fields.
 
@@ -402,29 +413,29 @@ def initialize_dict(nb_cg_x: int, nb_cg_y: int) -> Dict[str, np.ndarray]:
     # List of field names
     field_names = ["X", "Y", "rho", "vxs", "vys", "vxs2", "vys2", "var_vs"]
 
-    return {name: np.zeros((nb_cg_x, nb_cg_y), dtype="d") for name in field_names}
+    return {
+        name: np.zeros((nb_cg_x, nb_cg_y), dtype=np.float64) for name in field_names
+    }
 
 
 def compute_fields(
-    all_trajs: dict,
-    df_observables: Dict[str, np.ndarray],
+    all_trajs: Dict[str, Any],
+    df_observables: Dict[str, NDArray[np.float64]],
     pa: Parameters,
-    my_progress_bar,
-    status_text,
-) -> np.ndarray:
+    my_progress_bar: Any,
+    status_text: Any,
+) -> None:
     """
     Compute the density field based on the given trajectories and parameters.
 
     Args:
         all_trajs (dict): A dictionary containing the trajectories.
-        df_observables (Dict[str, np.ndarray]): A dictionary to store the computed observables.
+        df_observables (Dict[str, NDArray[np.float64]]): A dictionary to store the computed observables.
         pa (Parameters): An object containing the parameters.
-    Returns:
-        np.ndarray: The computed density field.
     """
     nb_traj = len(all_trajs)
     # Iterate over all trajectories
-    for i_traj, traj in tqdm(enumerate(all_trajs.values()), desc="Processing grid"):
+    for i_traj, traj in tqdm(enumerate(all_trajs.values()), desc="Processing grid..."):
         traj = traj.loc[
             (traj["t_s"] >= pa.START_TIME)
             & (traj["t_s"] < pa.START_TIME + pa.DURATION + 2.0 * pa.DT)
@@ -486,16 +497,18 @@ def compute_fields(
     df_observables["rho"] = normalize_density(np.copy(df_observables["rho"]), pa)
 
 
-def normalize_density(density: np.ndarray, pa: Parameters) -> np.ndarray:
+def normalize_density(
+    density: NDArray[np.float64], pa: Parameters
+) -> NDArray[np.float64]:
     """
     Normalize the density array based on the given parameters.
 
     Parameters:
-    - density (np.ndarray): The density array to be normalized.
+    - density (NDArray[np.float64]): The density array to be normalized.
     - pa (Parameters): The parameters object containing the necessary values.
 
     Returns:
-    - np.ndarray: The normalized density array.
+    - NDArray[np.float64]: The normalized density array.
     """
     N_nonrenormalised = pa.R_CG**2 * np.sum(density)
     density *= float(pa.CUM_TIME / pa.DURATION) / float(N_nonrenormalised)
@@ -503,16 +516,16 @@ def normalize_density(density: np.ndarray, pa: Parameters) -> np.ndarray:
 
 
 def update_figure(
-    df_observables: Dict[str, np.ndarray],
+    df_observables: Dict[str, NDArray[np.float64]],
     pa: Parameters,
     plot_density: bool,
-    zsmooth=False,
+    zsmooth: bool = False,
 ) -> go.Figure:
     """
     Update the figure with the given observables and parameters.
 
     Args:
-        df_observables (Dict[str, np.ndarray]): A dictionary containing the observables data.
+        df_observables (Dict[str, NDArray[np.float64]]): A dictionary containing the observables data.
             The keys are "X", "Y", "rho", "vxs", and "vys", and the values are numpy arrays.
         pa (Parameters): The parameters object containing the required parameters.
 
@@ -666,7 +679,7 @@ def update_figure(
     return fig
 
 
-def main(selected_file: str):
+def main(selected_file: str) -> None:
     """
     Run main function for the CCTV_analysis module.
 
@@ -729,7 +742,7 @@ def main(selected_file: str):
         status_text = st.empty()
 
         # PROCESS TRAJECTORIES
-        all_data = read_and_process_file(selected_file)
+        all_data = read_and_process_file(Path(selected_file))
         all_data["vx"] = np.nan  # Initialize the velocity columns
         all_data["vy"] = np.nan  # Initialize the velocity columns
         all_trajs = process_trajectories(all_data, pa)
@@ -761,7 +774,12 @@ def main(selected_file: str):
     # Double column layout with the density and variance heatmaps and velocity field
     col1, col2 = st.columns([1, 1])  # Adjust the ratio to control space allocation
     with col1:
-        fig = update_figure(dict_observables, params, True, st.session_state["zsmooth"])
+        fig = update_figure(
+            df_observables=dict_observables,
+            pa=params,
+            plot_density=True,
+            zsmooth=st.session_state["zsmooth"],
+        )
         st.plotly_chart(fig)
         figname = (
             pa.SELECTED_NAME
