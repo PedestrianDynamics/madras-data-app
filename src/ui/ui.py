@@ -36,17 +36,21 @@ def init_app_looks() -> None:
     - Displays a DOI badge with a link to the DOI.
     - Displays a logo image from the assets directory.
     """
-    path = Path(__file__)
-    ROOT_DIR = path.parent.parent.parent.absolute()
-    logo_path = ROOT_DIR / "data" / "assets" / "logo.png"
+    current_file_path = Path(__file__)
+    ROOT_DIR = current_file_path.parent.parent.absolute()
+    logo_path = ROOT_DIR / ".." / "data" / "assets" / "logo.png"
     gh = "https://badgen.net/badge/icon/GitHub?icon=github&label"
+    zenodo_badge = "[![DOI](https://zenodo.org/badge/760394097.svg)](https://zenodo.org/doi/10.5281/zenodo.10694866)"
+    data_badge = "[![DOI](https://zenodo.org/badge/DOI/10.5281/zenodo.13830435.svg)](https://doi.org/10.5281/zenodo.13830435)"
     repo = "https://github.com/PedestrianDynamics/madras-data-app"
     repo_name = f"[![Repo]({gh})]({repo})"
-    c1, c2 = st.sidebar.columns((1.2, 0.5))
+    c1, c2 = st.sidebar.columns((0.25, 0.8))
+    c1.write("**Code**")
+    c2.write(zenodo_badge)
+    c1.write("**Data**")
+    c2.write(data_badge)
+    c1.write("**Repo**")
     c2.markdown(repo_name, unsafe_allow_html=True)
-    c1.write(
-        "[![DOI](https://zenodo.org/badge/760394097.svg)](https://zenodo.org/doi/10.5281/zenodo.10694866)"
-    )
     st.sidebar.image(str(logo_path), use_column_width=True)
 
 
