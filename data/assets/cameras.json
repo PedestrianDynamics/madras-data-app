@@ -1,71 +1,328 @@
 {
     "camera1": {
-        "location": [45.767803, 4.833640],
-        "field" : [[45.767803, 4.833640], [45.767700, 4.833664], [45.767686, 4.833547], [45.767803, 4.833640]],
-        "url": "https://youtu.be/EVgS2sGqrMk?si=nnApDBU_RpagUwbC",
+        "location": [
+            45.76780187176188,
+            4.833614315120831
+        ],
+        "field": [
+            [
+                45.76780187176188,
+                4.833614315120831
+            ],
+            [
+                45.767667157958066,
+                4.833551283214036
+            ],
+            [
+                45.76768072290445,
+                4.833647172178627
+            ],
+            [
+                45.76780187176188,
+                4.833614315120831
+            ]
+        ],
+        "url": [
+            "https://www.youtube.com/watch?v=Fjj9cBunpFQ&list=PLYiH62IDwy5c3xnmFsP3Y-s0yB3TakgvD&index=1",
+            "https://www.youtube.com/watch?v=EdkjY8yKDDU&list=PLYiH62IDwy5c3xnmFsP3Y-s0yB3TakgvD&index=3"
+        ],
         "name": "airbnb terreaux 1",
-        "logo": "cam_airbnb_terreaux2.png"
-    },
-    "camera2": {
-        "location": [45.767807, 4.833659],
-        "field" : [[45.767807, 4.833659], [45.767708, 4.833739], [45.767700, 4.833664], [45.767807, 4.833659]],
-        "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6",
-        "name": "airbnb terreaux 2",
         "logo": "cam_airbnb_terreaux1.png"
     },
-    "camera3": {
-        "location": [45.767808, 4.833684],
-        "field" : [[45.767808, 4.833684], [45.767708, 4.833739], [45.767719, 4.833813], [45.767808, 4.833684]],
-        "url": "https://youtu.be/EVgS2sGqrMk?si=nnApDBU_RpagUwbC",
+    "camera2": {
+        "location": [
+            45.76780575213793,
+            4.833644357005296
+        ],
+        "field": [
+            [
+                45.76780575213793,
+                4.833644357005296
+            ],
+            [
+                45.76768072290445,
+                4.833647172178627
+            ],
+            [
+                45.76768727149807,
+                4.8336887464150236
+            ],
+            [
+                45.76780575213793,
+                4.833644357005296
+            ]
+        ],
+        "url": [
+            "https://www.youtube.com/watch?v=HdlyJQOV-VY&list=PLYiH62IDwy5c3xnmFsP3Y-s0yB3TakgvD&index=5",
+            "https://www.youtube.com/watch?v=Jepahgoin-8&list=PLYiH62IDwy5c3xnmFsP3Y-s0yB3TakgvD&index=4"
+        ],
         "name": "restaurant l'Etage",
         "logo": "cam_letage.png"
     },
+    "camera3": {
+        "location": [
+            45.76780888809693,
+            4.833675335371025
+        ],
+        "field": [
+            [
+                45.76780888809693,
+                4.833675335371025
+            ],
+            [
+                45.76768727149807,
+                4.8336887464150236
+            ],
+            [
+                45.76770457849178,
+                4.833830232929211
+            ],
+            [
+                45.76780888809693,
+                4.833675335371025
+            ]
+        ],
+        "url": [
+            "https://www.youtube.com/watch?v=-ViUegbTIkM&list=PLYiH62IDwy5c3xnmFsP3Y-s0yB3TakgvD&index=17"
+        ],
+        "name": "airbnb terreaux 2",
+        "logo": "cam_airbnb_terreaux2.png"
+    },
     "camera4": {
-        "location": [45.767562, 4.834459],
-        "field" : [[45.767562, 4.834459], [45.767090, 4.832775], [45.767700, 4.832677], [45.767562, 4.834459]],
-        "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6",
-        "name": "bell tower of the city hall" ,
+        "location": [
+            45.76758931644979,
+            4.834538457763105
+        ],
+        "field": [
+            [
+                45.76758931644979,
+                4.834538457763105
+            ],
+            [
+                45.76769276610628,
+                4.832679730850092
+            ],
+            [
+                45.76708429594685,
+                4.832788484390194
+            ],
+            [
+                45.76758931644979,
+                4.834538457763105
+            ]
+        ],
+        "url": [
+            "https://www.youtube.com/watch?v=1zqpJRnAqsM&list=PLYiH62IDwy5c3xnmFsP3Y-s0yB3TakgvD&index=2",
+            "https://www.youtube.com/watch?v=jIC3dNOZsk0&list=PLYiH62IDwy5c3xnmFsP3Y-s0yB3TakgvD&index=6",
+            "https://www.youtube.com/watch?v=XvIYwHxMO8E&list=PLYiH62IDwy5c3xnmFsP3Y-s0yB3TakgvD&index=9",
+            "https://www.youtube.com/watch?v=jhM5sBTCHUg&list=PLYiH62IDwy5c3xnmFsP3Y-s0yB3TakgvD&index=7",
+            "https://www.youtube.com/watch?v=ysF3-mB0lmE&list=PLYiH62IDwy5c3xnmFsP3Y-s0yB3TakgvD&index=8"
+        ],
+        "name": "bell tower of the city hall",
         "logo": "cam_bell_tower.png"
     },
-     "camera5": {
-        "location": [45.767026, 4.832412],
-         "field" : [[45.767026, 4.832412], [45.767124, 4.832372], [45.767136, 4.832460], [45.767026, 4.832412]],
-        "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6",
+    "camera5": {
+        "location": [
+            45.76702771297599,
+            4.832375438448497
+        ],
+        "field": [
+            [
+                45.76702771297599,
+                4.832375438448497
+            ],
+            [
+                45.76710924682193,
+                4.832281731735975
+            ],
+            [
+                45.76711978998296,
+                4.83237140805226
+            ],
+            [
+                45.76702771297599,
+                4.832375438448497
+            ]
+        ],
+        "url": [
+            "https://www.youtube.com/watch?v=zq9Zamiy3zs&list=PLYiH62IDwy5c3xnmFsP3Y-s0yB3TakgvD&index=15"
+        ],
         "name": "airbnb street Constantine 1",
         "logo": "cam_airbnb_constantine1.png"
     },
-     "camera6": {
-        "location": [45.767021, 4.832376],
-        "field" : [[45.767021, 4.832376],  [45.767124, 4.832372], [45.767115, 4.832296], [45.767021, 4.832376]],
-        "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6",
+    "camera6": {
+        "location": [
+            45.76703263312526,
+            4.8324227956042884
+        ],
+        "field": [
+            [
+                45.76703263312526,
+                4.8324227956042884
+            ],
+            [
+                45.7671352532822,
+                4.8324610843685445
+            ],
+            [
+                45.76711978998296,
+                4.83237140805226
+            ],
+            [
+                45.76703263312526,
+                4.8324227956042884
+            ]
+        ],
+        "url": [
+            "https://www.youtube.com/watch?v=T2dxbr87tnA&list=PLYiH62IDwy5c3xnmFsP3Y-s0yB3TakgvD&index=16"
+        ],
         "name": "airbnb street Constantine 2",
         "logo": "cam_airbnb_constantine2.png"
     },
     "camera7": {
-        "location": [45.767109, 4.832911],
-        "field" : [[45.767109, 4.832911],  [45.76709387043264 , 4.832804203033448], [45.76703399691001, 4.832836389541627], [45.767109, 4.832911]],
-        "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6",
-        "name": "exit corner",
-        "logo": "cam_exit_corner.png"
+        "location": [
+            45.76711757265228,
+            4.832928270966093
+        ],
+        "field": [
+            [
+                45.76711757265228,
+                4.832928270966093
+            ],
+            [
+                45.76709387043264,
+                4.832804203033448
+            ],
+            [
+                45.76703399691001,
+                4.832836389541627
+            ],
+            [
+                45.76711757265228,
+                4.832928270966093
+            ]
+        ],
+        "url": [
+            "https://www.youtube.com/watch?v=NxiITzww7Xc&list=PLYiH62IDwy5c3xnmFsP3Y-s0yB3TakgvD&index=14"
+        ],
+        "name": "exit street Paul Chenavard",
+        "logo": "cam_exit_single_street.png"
     },
     "camera8": {
-        "location": [45.767353, 4.834343],
-        "field" : [[45.767353, 4.834343], [45.767275, 4.834433], [45.767372, 4.834200], [45.767353, 4.834343]],
-        "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6",
+        "location": [
+            45.76736134958548,
+            4.834343451019555
+        ],
+        "field": [
+            [
+                45.76736134958548,
+                4.834343451019555
+            ],
+            [
+                45.767348720080456,
+                4.8342220810659065
+            ],
+            [
+                45.76728931459253,
+                4.834380331392209
+            ],
+            [
+                45.76736134958548,
+                4.834343451019555
+            ]
+        ],
+        "url": [
+            "https://www.youtube.com/watch?v=tZk0Y3UDZ3w&list=PLYiH62IDwy5c3xnmFsP3Y-s0yB3TakgvD&index=12",
+            "https://www.youtube.com/watch?v=hEXKtokyumI&list=PLYiH62IDwy5c3xnmFsP3Y-s0yB3TakgvD&index=11",
+            "https://www.youtube.com/watch?v=84scF3Kqx9w&list=PLYiH62IDwy5c3xnmFsP3Y-s0yB3TakgvD&index=10"
+        ],
         "name": "city hall corner",
         "logo": "cam_city_hall_corner.png"
     },
     "camera9": {
-        "location": [45.761136, 4.826233],
-        "field" : [[45.761136, 4.826233], [45.761089, 4.826463], [45.761231, 4.826482], [45.761136, 4.826233]],
-        "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6",
+        "location": [
+            45.76731590314888,
+            4.832941682010695
+        ],
+        "field": [
+            [
+                45.76731590314888,
+                4.832941682010695
+            ],
+            [
+                45.76711383056067,
+                4.83270832983462
+            ],
+            [
+                45.76704460182045,
+                4.832901448876889
+            ],
+            [
+                45.76731590314888,
+                4.832941682010695
+            ]
+        ],
+        "url": [
+            "https://www.youtube.com/watch?v=PLEPWIuOyuQ&list=PLYiH62IDwy5c3xnmFsP3Y-s0yB3TakgvD&index=13"
+        ],
+        "name": "exit corner",
+        "logo": "cam_exit_corner.png"
+    },
+    "camera10": {
+        "location": [
+            45.76110334331453,
+            4.826232590996147
+        ],
+        "field": [
+            [
+                45.76110334331453,
+                4.826232590996147
+            ],
+            [
+                45.76123130557862,
+                4.826475208424552
+            ],
+            [
+                45.761072199015366,
+                4.826422803060017
+            ],
+            [
+                45.76110334331453,
+                4.826232590996147
+            ]
+        ],
+        "url": [
+            "https://www.youtube.com/watch?v=XvIYwHxMO8E"
+        ],
         "name": "Saint Jean 1",
         "logo": "cam_saint_jean1.png"
     },
-    "camera10": {
-        "location": [45.761070, 4.826219],
-        "field" : [[45.761070, 4.826219], [45.761089, 4.826463], [45.760959, 4.826404], [45.761070, 4.826219]],
-        "url": "https://youtu.be/L__Rpl45gqU?si=s9OxC8m3pRiFpMQ6",
+    "camera11": {
+        "location": [
+            45.76109724986607,
+            4.826231620526434
+        ],
+        "field": [
+            [
+                45.76109724986607,
+                4.826231620526434
+            ],
+            [
+                45.760869760646194,
+                4.826316051391553
+            ],
+            [
+                45.761072199015366,
+                4.826422803060017
+            ],
+            [
+                45.76109724986607,
+                4.826231620526434
+            ]
+        ],
+        "url": [
+            "https://www.youtube.com/watch?v=XvIYwHxMO8E"
+        ],
         "name": "Saint Jean 2",
         "logo": "cam_saint_jean2.png"
     }
