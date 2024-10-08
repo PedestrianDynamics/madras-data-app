@@ -55,20 +55,14 @@ def load_cameras_from_json(file_path: str) -> Dict[str, Camera]:
         try:
             # Ensure the data structure is as expected
             location = tuple(info["location"])
-            assert (
-                isinstance(location, tuple) and len(location) == 2
-            ), "Location must be a tuple of two floats."
-            assert all(
-                isinstance(x, float) for x in location
-            ), "Location elements must be floats."
+            assert isinstance(location, tuple) and len(location) == 2, "Location must be a tuple of two floats."
+            assert all(isinstance(x, float) for x in location), "Location elements must be floats."
             location = cast(Tuple[float, float], location)
             url = info["url"]
             name = info["name"]
             field = info["field"]
             logo = info["logo"]
-            cameras[key] = Camera(
-                location=location, url=url, name=name, field=field, logo=logo
-            )
+            cameras[key] = Camera(location=location, url=url, name=name, field=field, logo=logo)
 
         except KeyError as e:
             # Handle missing keys in the data
@@ -112,9 +106,7 @@ def create_map(
         google_satellite.add_to(m)
     else:
         # Assuming 'tile_layers' is a dictionary that maps layer names to their tile URLs
-        folium.TileLayer(
-            tile_layers[selected_layer], attr="Attribution for the tile source"
-        ).add_to(m)
+        folium.TileLayer(tile_layers[selected_layer], attr="Attribution for the tile source").add_to(m)
 
     camera_layers = []
     for name in cameras.keys():
@@ -209,9 +201,13 @@ def main(cameras: Dict[str, Camera], selected_layer: str) -> None:
     video_name = map_data.get("last_object_clicked_tooltip")
     if video_name:
         placeholder.info(f"{video_name}")
-        camera = cameras.get(video_name.split(":")[0])
+        if ":" in video_name:
+            camera = cameras.get(video_name.split(":")[0])
+        else:
+            camera = cameras.get(video_name.split(" ")[1])
         if camera:
-            c2.video(camera.url)
+            for url in camera.url:
+                c2.video(url)
         else:
             placeholder.error(f"No video linked to {video_name}.")
     else:
