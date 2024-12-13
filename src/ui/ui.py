@@ -51,7 +51,7 @@ def init_app_looks() -> None:
     c2.write(data_badge)
     c1.write("**Repo**")
     c2.markdown(repo_name, unsafe_allow_html=True)
-    st.sidebar.image(str(logo_path), use_column_width=True)
+    st.sidebar.image(str(logo_path), use_container_width=True)
 
 
 def init_sidebar() -> Any:
