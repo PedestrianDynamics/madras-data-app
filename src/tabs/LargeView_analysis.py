@@ -644,9 +644,9 @@ def update_figure(
         font={"size": 20},
         title={
             "text": (
-                "Velocity field for density heatmap"
+                "Density field"
                 if plot_density
-                else "Velocity field for variance velocity heatmap"
+                else "Field of the variance of the velocity"
             ),
             "font_size": 20,
         },
@@ -794,7 +794,7 @@ def main(selected_file: str) -> None:
         )
         html_str = fig.to_html(full_html=True, include_plotlyjs="cdn")
         st.sidebar.download_button(
-            label="Download Variance Heatmap (HTML)",
+            label="Download Variance Velocity Heatmap (HTML)",
             data=html_str,
             file_name=figname,
             mime="text/html",
