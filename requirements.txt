@@ -10,7 +10,6 @@ streamlit-option-menu
 gpxpy
 tqdm
 pyproj
-kaleido
 numba
 selenium
 seaborn

@@ -12,6 +12,7 @@ import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd
 import plotly.graph_objects as go
+import plotly.io as pio
 import seaborn as sns
 import streamlit as st
 from matplotlib import colormaps
@@ -24,12 +25,9 @@ def load_and_process_contacts_data(csv_path: Path, pickle_path: Path) -> None:
     """
     Load and process contacts data from a CSV file.
 
-    Parameters:
-    - csv_path (Path): The path to the CSV file containing the contacts data.
-    - pickle_path (Path): The path to save the processed data as a pickle file.
-
-    Returns:
-    None
+    Args:
+        csv_path (Path): The path to the CSV file containing the contacts data.
+        pickle_path (Path): The path to save the processed data as a pickle file.
     """
     # Load the data
     df = pd.read_csv(csv_path / "Contacts.csv")
@@ -61,12 +59,11 @@ def convert_to_timedelta(time_str: str) -> pd.Timedelta:
     """
     Convert a string representation of time to a pandas Timedelta object.
 
-    Parameters:
+    Args:
         time_str (str): The string representation of time in the format "HH:MM:SS.micros".
 
     Returns:
         pd.Timedelta: The converted time as a pandas Timedelta object.
-
     """
     if pd.isna(time_str):
         return pd.NaT
@@ -121,9 +118,6 @@ def process_gpx(gpx_path: Path, pickle_path: Path) -> None:
     Args:
         gpx_path (Path): The path to the folder containing GPX files.
         pickle_path (Path): The path to save the pickle file.
-
-    Returns:
-        None
     """
     # Initialize an empty list to collect data
     data = []
@@ -159,7 +153,6 @@ def parse_gpx_file(
                 - latitude (float): The latitude coordinate.
                 - longitude (float): The longitude coordinate.
                 - time (datetime): The timestamp of the data point.
-
     """
     name_subj = str(filename.stem)
     data: List[Dict[str, Union[str, float, Optional[datetime]]]] = []
@@ -191,11 +184,8 @@ def process_tracks_data(pickle_path: Path) -> None:
     6. Drop duplicate rows where 'time_seconds' is the same but keep the first one.
     7. Save the processed DataFrame to a pickle file.
 
-    Parameters:
-    - pickle_path (Path): The path to the pickle file.
-
-    Returns:
-    - None
+    Args:
+        pickle_path (Path): The path to the pickle file.
     """
     # Load all tracks
     all_gps_tracks = pd.read_pickle(pickle_path / "all_gps_tracks.pkl")
@@ -231,9 +221,6 @@ def merge_contacts_and_gps_data(path_pickle: Path) -> None:
     Args:
         contacts_path (Path): The path to the contacts data directory.
         output_path (Path): The path to the output directory.
-
-    Returns:
-        None
     """
     # Load all tracks
     df1 = pd.read_pickle(path_pickle / "contacts_data_melted.pkl")
@@ -289,8 +276,9 @@ def interpolate_data(group: pd.DataFrame) -> pd.DataFrame:
     """
     Interpolates missing data in a group of GPS contacts.
 
-    Parameters:
+    Args:
         group (DataFrame): A pandas DataFrame containing GPS contact data.
+
     Returns:
         DataFrame: A pandas DataFrame with missing data interpolated.
     """
@@ -334,10 +322,7 @@ def load_data(path_pickle: Path) -> Tuple[pd.DataFrame, pd.DataFrame, pd.DataFra
 
 def initialize_map() -> folium.Map:
     """
-    Initialize the map centered on the middle point of Ludovic-Gardre1's first track.
-
-    Args:
-        all_gps_tracks (pd.DataFrame): DataFrame containing all GPS tracks.
+    Initialize the map.
 
     Returns:
         folium.Map: A folium map object.
@@ -346,7 +331,7 @@ def initialize_map() -> folium.Map:
         45.76714745916146,
         4.833552178368124,
     ]
-    return folium.Map(location=map_center, zoom_start=17.5)
+    return folium.Map(location=map_center, zoom_start=17)
 
 
 def add_tile_layer(map_object: folium.Map) -> None:
@@ -389,7 +374,7 @@ def plot_gps_tracks(map_object: folium.Map, all_gps_tracks: pd.DataFrame) -> Non
             opacity=1,
             name=name_subj,
             popup=name_subj,
-        ).add_to(map_object)
+        ).add_to(map_object)  # type: ignore[no-untyped-call]
 
 
 def add_contact_markers(
@@ -401,6 +386,7 @@ def add_contact_markers(
     Args:
         map_object (folium.Map): The folium map object where markers will be added.
         contact_gps_merged (pd.DataFrame): DataFrame containing contact GPS merged data.
+        path_icon (str): The path to the directory containing the contact icon image.
     """
     for _, row in contact_gps_merged.iterrows():
         icon_person = folium.features.CustomIcon(
@@ -419,14 +405,14 @@ def plot_histogram(
     """
     Plot a histogram of the total number of collisions.
 
-    Parameters:
+    Args:
         df (pd.DataFrame): The DataFrame containing the data.
         bins (int): The number of bins for the histogram.
         log_plot (Tuple[bool, bool]): A tuple indicating whether to use a logarithmic scale for
                                       the x-axis and y-axis, respectively.
 
     Returns:
-        plt.Figure: The generated matplotlib Figure object.
+        pltFigure: The generated matplotlib Figure object.
     """
     # Remove the rows with zero collisions if log_plot is True
     if log_plot[0]:
@@ -456,6 +442,7 @@ def plot_cumulative_contacts(df: pd.DataFrame) -> Figure:
 
     Args:
         df (pd.DataFrame): The input DataFrame containing contact data.
+
     Returns:
         Figure: The generated plot.
     """
@@ -520,9 +507,6 @@ def main() -> None:
        - Displays a cumulative contacts plot.
        - Displays a map of GPS trajectories coupled with contact locations.
     6. Provides download buttons for the generated plots and map.
-
-    Returns:
-        None
     """
     # TODO: we should handle these directories in Dataclass.
     path = Path(__file__).resolve()
@@ -585,7 +569,7 @@ def main() -> None:
             )
             histogram_filename = data_directory / f"histogram_{bins}.pdf"
             # Display the histgram in the first column
-            st.pyplot(histogram_fig, clear_figure=True)
+            st.pyplot(histogram_fig, clear_figure=False)
             # Save the histogram to a BytesIO object in PDF format
             histogram_buffer = BytesIO()
             histogram_fig.savefig(histogram_buffer, format="pdf")
@@ -601,13 +585,18 @@ def main() -> None:
         # Plot cumulative contacts
         cumulative_fig = plot_cumulative_contacts(contacts_data)
         st.plotly_chart(cumulative_fig)
-        # Convert the Plotly figure to PDF bytes
-        cumulative_img_bytes = cumulative_fig.to_image(format="pdf")
+        # Convert the Plotly figure to HTML format for downloading
+        html_fig = pio.to_html(
+            cumulative_fig,
+            full_html=True,
+            include_plotlyjs="cdn",
+        )
         # Download button for the cumulative contacts chart
         st.sidebar.download_button(
-            label="Download Cumulative",
-            data=cumulative_img_bytes,
-            file_name="cumulative_contacts.pdf",
+            label="Download Cumulative (HTML)",
+            data=html_fig,
+            file_name="cumulative_contacts.html",
+            mime="text/html",
         )
 
     elif plot_option == "Contacts Map":
@@ -621,23 +610,13 @@ def main() -> None:
         st_folium(my_map, width=625, height=600)
         # Download the map as pdf file
         st.sidebar.download_button(
-            label="Download Map",
-            data=my_map._to_png(),
-            file_name="contacts_map.png",
-            mime="image/png",
+            label="Download Map (HTML)",
+            data=my_map.get_root().render(),
+            file_name="contacts_map.html",
+            mime="text/html",
         )
 
 
 def run_tab_contact() -> None:
-    """
-    Run the contact tab.
-
-    This function calls the main function to execute the contact tab.
-
-    Parameters:
-    None
-
-    Returns:
-    None
-    """
+    """Run the contact tab."""
     main()

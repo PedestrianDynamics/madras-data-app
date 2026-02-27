@@ -11,7 +11,6 @@ from joblib import Parallel, delayed
 from log_config import setup_logging
 from pedpy.column_identifier import FRAME_COL, ID_COL
 from profile_config_data import Config
-from tqdm import tqdm
 
 
 def process_trajectory(
@@ -59,7 +58,7 @@ def main(config: Config) -> None:
     logging.info("Process trajectories and create profile data ...")
     results = Parallel(n_jobs=-1)(
         delayed(process_trajectory)(file_, walkable_area, frame_step, fps)
-        for file_ in tqdm(files, desc="Processing files")
+        for file_ in files
     )
     # Aggregate results into 'profile_data'
     # profile_data = {file: data for file, data in results}

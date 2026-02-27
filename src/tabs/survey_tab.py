@@ -4,6 +4,7 @@ from pathlib import Path
 
 import pandas as pd
 import plotly.graph_objects as go
+import plotly.io as pio
 import streamlit as st
 from plotly.graph_objects import Figure
 
@@ -12,17 +13,20 @@ def histogram_survey(df_survey: pd.DataFrame, remove_outlier: bool) -> Figure:
     """
     Generate a histogram visualization of group sizes from a survey DataFrame.
 
-    Parameters:
+    Args:
         df_survey (pd.DataFrame): The survey data containing group sizes.
         remove_outlier (bool): Flag to indicate whether to remove the maximum value as an outlier.
+
     Returns:
         Figure: A Plotly Figure object containing the histogram visualization.
-    The function performs the following steps:
-        1. Extracts the 'Children' and 'total' columns from the DataFrame.
-        2. Optionally removes the maximum value from the 'total' column if outliers should be excluded.
-        3. Initializes a Plotly Figure and adds histogram traces for 'Children' and 'total' categories.
-        4. Updates the hover template with custom data for better interactivity.
-        5. Configures the layout for improved visualization, including titles and axis labels.
+
+    Note:
+        The function performs the following steps:
+            1. Extracts the 'Children' and 'total' columns from the DataFrame.
+            2. Optionally removes the maximum value from the 'total' column if outliers should be excluded.
+            3. Initializes a Plotly Figure and adds histogram traces for 'Children' and 'total' categories.
+            4. Updates the hover template with custom data for better interactivity.
+            5. Configures the layout for improved visualization, including titles and axis labels.
     """
     # Extract values from the DataFrame
     values_children = df_survey["Children"].fillna(0).tolist()
@@ -89,14 +93,13 @@ def main() -> None:
     Visualize survey results.
 
     This function performs the following steps:
-    1. Determines the path to the survey results CSV file and the pickle directory.
-    2. Checks if a pickle file of the survey results exists:
-       - If it exists, loads the survey results from the pickle file.
-       - If it does not exist, reads the survey results from the CSV file, fills missing values,
-         and saves it as a pickle file.
-    3. Provides a sidebar option to remove outliers from the survey results.
-    4. Generates and displays a histogram of the survey results.
-    5. Provides a sidebar button to download the histogram as a PDF file.
+        1. Determines the path to the survey results CSV file and the pickle directory.
+        2. Checks if a pickle file of the survey results exists:
+            - If it exists, loads the survey results from the pickle file.
+            - If it does not exist, reads the survey results from the CSV file, fills missing values, and saves it as a pickle file.
+        3. Provides a sidebar option to remove outliers from the survey results.
+        4. Generates and displays a histogram of the survey results.
+        5. Provides a sidebar button to download the histogram as a PDF file.
     """
     path = Path(__file__).resolve()
     survey_path = (
@@ -119,20 +122,20 @@ def main() -> None:
     # Histogram of the survey results
     fig = histogram_survey(df_survey, remove_outlier)
     st.plotly_chart(fig)
-    # Streamlit button in the sidebar to download the graph in PDF format
+    html_fig = pio.to_html(
+        fig,
+        full_html=True,
+        include_plotlyjs="cdn",
+    )
+    # Streamlit button in the sidebar to download the graph in HTML format
     st.sidebar.download_button(
-        label="Download Survey Histogram",
-        data=fig.to_image(format="pdf"),
-        file_name="survey_results.pdf",
+        label="Download Survey Histogram (HTML)",
+        data=html_fig,
+        file_name="survey_results.html",
+        mime="text/html",
     )
 
 
 def run_tab_survey() -> None:
-    """
-    Execute the main function for the survey tab.
-
-    This function serves as the entry point for running the survey tab
-    functionality within the application. It calls the main() function
-    to initiate the necessary processes.
-    """
+    """Execute the main function for the survey tab."""
     main()

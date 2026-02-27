@@ -20,7 +20,6 @@ from pedpy import (
     get_grid_cells,
 )
 from profile_config_data import Config
-from tqdm import tqdm
 
 
 def process_file(
@@ -74,7 +73,7 @@ def calculate(
     grid_cells, _, _ = get_grid_cells(walkable_area=walkable_area, grid_size=grid_size)
     results = Parallel(n_jobs=-1)(
         delayed(process_file)(file_, grid_cells, profile_data, walkable_area, grid_size)
-        for file_ in tqdm(files, desc="Processing files")
+        for file_ in files
     )
     logging.info("Aggregate results")
     density_profiles = {}

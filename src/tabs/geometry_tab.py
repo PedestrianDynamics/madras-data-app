@@ -36,7 +36,6 @@ def transform_polygon(polygon: Polygon) -> Polygon:
 
     Returns:
         Polygon: The transformed polygon.
-
     """
     # Initialize the transformer from RGF93 (EPSG:2154) to WGS84 (EPSG:4326)
     transformer = Transformer.from_crs("EPSG:2154", "EPSG:4326", always_xy=True)
@@ -53,11 +52,11 @@ def trajs_from_rgf93_to_wgs84(trajs: pd.DataFrame) -> pd.DataFrame:
     """
     Convert the coordinates in the 'trajs' DataFrame from RGF93 (EPSG:2154) to WGS84 (EPSG:4326).
 
-    Parameters:
-    trajs (pd.DataFrame): DataFrame containing trajectory data with RGF93 coordinates.
+    Args:
+        trajs (pd.DataFrame): DataFrame containing trajectory data with RGF93 coordinates.
 
     Returns:
-    pd.DataFrame: DataFrame with converted coordinates in WGS84 format.
+        pd.DataFrame: DataFrame with converted coordinates in WGS84 format.
     """
     # Initialize the transformer from RGF93 (EPSG:2154) to WGS84 (EPSG:4326)
     transformer = Transformer.from_crs("EPSG:2154", "EPSG:4326", always_xy=True)
@@ -84,6 +83,8 @@ def create_animation_plotly(
         pd_trajs (pd.DataFrame): DataFrame containing the pedestrian trajectory data.
         pd_geometry (pd.DataFrame): DataFrame containing geometric data for obstacles.
         show_polygons (bool): Flag to show polygons on the map.
+        min_velocity (float): Minimum velocity for color scaling in the animation.
+        max_velocity (float): Maximum velocity for color scaling in the animation.
 
     Returns:
         Figure: Plotly figure object with the pedestrian movement animation.
@@ -218,7 +219,6 @@ def compute_pedestrian_velocity(df: pd.DataFrame) -> pd.DataFrame:
 
     Returns:
         pd.DataFrame: DataFrame with additional columns for calculated velocities.
-
     """
     # Calculate velocities
     # Convert the coordinates from degrees to meters
@@ -262,7 +262,16 @@ def compute_pedestrian_velocity(df: pd.DataFrame) -> pd.DataFrame:
 
 
 def adjust_time(df: pd.DataFrame, max_time: float) -> pd.DataFrame:
-    """Adjust the time values in the DataFrame to be less than max_time."""
+    """
+    Adjust the time values in the DataFrame to be less than max_time.
+
+    Args:
+        df (pd.DataFrame): DataFrame containing the time values to be adjusted.
+        max_time (float): The maximum time value to filter the DataFrame.
+
+    Returns:
+        pd.DataFrame: DataFrame with adjusted time values, filtered to be less than max_time and greater than 0.
+    """
     # Subtract the initial time value from all time values and round them
     df["t/s"] = (df["t/s"] - df["t/s"].iloc[0]).round(1)
     # Filter the DataFrame to keep only rows where 't/s' is less than max_time and greater than 0
@@ -273,11 +282,12 @@ def degrees_to_meters(lat: float, lon: float) -> Tuple[float, float]:
     """
     Convert latitude and longitude coordinates from degrees to meters.
 
-    Parameters:
-    lat (float): Latitude coordinate in degrees.
-    lon (float): Longitude coordinate in degrees.
+    Args:
+        lat (float): Latitude coordinate in degrees.
+        lon (float): Longitude coordinate in degrees.
+
     Returns:
-    tuple: A tuple containing the converted x and y coordinates in meters.
+        Tuple[float, float]: A tuple containing the converted x and y coordinates in meters.
     """
     R = 6371000  # Radius of Earth in meters
     lat_rad = np.radians(lat)
@@ -307,9 +317,8 @@ def prepare_data(
 
     Args:
         traj_path (Path): The path to the directory containing trajectory files.
-
-    Returns:
-        None
+        geometry_path (Path): The path to the directory containing geometry files.
+        selected_traj_file (Path): The path to the selected trajectory file to be processed.
     """
 
     selected_pickle = str(
@@ -448,9 +457,8 @@ def extract_gps_data_from_csv_geometry(file_path: Path) -> pd.DataFrame:
 
 
 def main(selected_file: str) -> None:
-    """
-    Main function to run the Streamlit app.
-    """
+    """Main function to run the Streamlit app."""
+
     path = Path(__file__)
     # TODO: use session_state
     TRAJ_PATH = Path(path.parent.parent.parent.absolute() / "data" / "trajectories")
@@ -495,17 +503,9 @@ def main(selected_file: str) -> None:
     fig = create_animation_plotly(
         pd_trajs, pd_geometry, show_polygons, min_velocity, max_velocity
     )
-    st.plotly_chart(fig, use_container_width=True)
+    st.plotly_chart(fig, width="stretch")
 
 
 def run_tab_animation(selected_file: str) -> None:
-    """
-    Run the animation tab with the selected file.
-
-    Parameters:
-        selected_file (str): The path of the selected file.
-
-    Returns:
-        None
-    """
+    """Run the animation tab with the selected file."""
     main(selected_file)

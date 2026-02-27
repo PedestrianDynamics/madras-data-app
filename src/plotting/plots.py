@@ -36,13 +36,13 @@ def add_trace_for_direction(
     """
     Adds a trace to the figure for the given DataFrame and user ID.
 
-    Parameters:
-    - fig: The figure object to add the trace to.
-    - df: DataFrame containing the data points for the user.
-    - uid: The user ID.
-    - color: Color of the line.
-    - line_width: Width of the line.
-    - framerate: Interval for data point selection.
+    Args:
+        fig (Figure): The figure object to add the trace to.
+        df (pd.DataFrame): DataFrame containing the data points for the user.
+        uid (int): The user ID.
+        color (str): Color of the line.
+        line_width (float): Width of the line.
+        framerate (int): Interval for data point selection.
     """
     fig.add_trace(
         go.Scatter(
@@ -72,10 +72,7 @@ def plot_trajectories(
     show_direction: str,
     uid: Optional[float] = None,
 ) -> go.Figure:
-    """Plot trajectories and geometry.
-
-    framerate: sampling rate of the trajectories.
-    """
+    """Plot trajectories and geometry."""
     fig = go.Figure()
     c1, c2, c3 = st.columns((1, 1, 1))
     data = trajectory_data.data
@@ -147,10 +144,8 @@ def plot_trajectories_figure_mpl(
     alpha: float = 0.4,
     lw: float = 0.09,
 ) -> matplotlib.figure.Figure:
-    """Plot trajectories and geometry mpl version.
+    """Plot trajectories and geometry mpl version."""
 
-    framerate: sampling rate of the trajectories.
-    """
     fig, ax = plt.subplots()
     data = trajectory_data.data
     num_agents = len(np.unique(data["id"]))
@@ -342,7 +337,7 @@ def plot_fundamental_diagram_all(
                     "symbol": marker_shapes[i % len(marker_shapes)],
                 },
                 mode="markers",
-                name=f"{filenames[i%len(filenames)]}",
+                name=f"{filenames[i % len(filenames)]}",
                 showlegend=True,
             )
         )
@@ -447,12 +442,12 @@ def assign_direction_number(agent_data: pd.DataFrame) -> pd.DataFrame:
     """
     Assign a direction number to each agent based on their main direction of motion.
 
-    Parameters:
-    - agent_data (DataFrame): A DataFrame with columns 'id', 'frame', 'x', 'y', representing
-      agent IDs, frame numbers, and their positions at those frames.
+    Args:
+        agent_data (DataFrame): A DataFrame with columns 'id', 'frame', 'x', 'y', representing
+            agent IDs, frame numbers, and their positions at those frames.
 
     Returns:
-    - A DataFrame with an additional 'direction_number' column.
+        pd.DataFrame: A DataFrame with an additional 'direction_number' column.
     """
     # Group by agent ID and calculate the difference in position
     direction_numbers = []
@@ -494,12 +489,9 @@ def show_fig(
 
     Args:
         fig (Figure): A Plotly figure object to display.
-        html (bool, optional): Flag to determine if the figure should be shown as HTML. Defaults to False.
-        write (bool, optional): Flag to write the fig as a file and make a download button
-        height (int, optional): Height of the HTML component if displayed as HTML. Defaults to 500.
-
-    Returns:
-        None
+        html (bool): Flag to determine if the figure should be shown as HTML. Defaults to False.
+        write (bool): Flag to write the fig as a file and make a download button
+        height (int): Height of the HTML component if displayed as HTML. Defaults to 500.
     """
     if not html:
         st.plotly_chart(fig)

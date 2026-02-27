@@ -17,15 +17,10 @@ from ..plotting.plots import (
     plot_trajectories_figure_mpl,
 )
 
-# import cProfile
-# import pstats
-# import io
-
 
 def run_tab2(selected_file: str, msg: DeltaGenerator) -> None:
     """First tab. Plot original data, animatoin, neighborhood."""
     c1, c2 = st.columns((1, 1))
-    # todo
     msg.write("")
     if selected_file != st.session_state.file_changed:
         trajectory_data = load_file(selected_file)

@@ -51,14 +51,14 @@ def init_app_looks() -> None:
     c2.write(data_badge)
     c1.write("**Repo**")
     c2.markdown(repo_name, unsafe_allow_html=True)
-    st.sidebar.image(str(logo_path), use_container_width=True)
+    st.sidebar.image(str(logo_path), width="stretch")
 
 
 def init_sidebar() -> Any:
-    """Init sidebar and 5 tabs.
+    """
+    Init sidebar and 5 tabs.
 
-    To add more tabs, add the name of the tab and add an icon from
-    https://icons.getbootstrap.com/
+    To add more tabs, add the name of the tab and add an icon from https://icons.getbootstrap.com/
     """
     # Custom CSS to handle multi-line text alignment and indentation
     st.markdown(

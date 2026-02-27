@@ -14,7 +14,7 @@ def flow(directions: List[Direction]) -> None:
         r"""
         The N-t diagram shows how many pedestrian have crossed the measurement line at a specific time.
 
-        PedPy Computes the frame-wise cumulative number of pedestrians passing the line. For more information see [PedPy-documentation](https://pedpy.readthedocs.io/en/latest/api/methods.html#flow_calculator.compute_n_t).
+        PedPy Computes the frame-wise cumulative number of pedestrians passing the line. For more information see [PedPy-documentation](https://pedpy.readthedocs.io/latest/api/methods.html#flow_calculator.compute_n_t).
 
         **Measurement lines:**
         """
@@ -43,7 +43,7 @@ def density_speed() -> None:
             \rho = \frac{N}{A},
             $$
             where $N$ is the number of agents in the actual frame and $A$ the size of the observed area.
-            See :point_right: [pedpy compute_classic_density](https://pedpy.readthedocs.io/en/stable/api/methods.html#density_calculator.compute_classic_density)
+            See :point_right: [pedpy compute_classic_density](https://pedpy.readthedocs.io/stable/api/methods.html#profile_calculator.DensityMethod.CLASSIC).
             ## Speed
             The calculation of speed is based on the displacement in the $x$ and $y$ directions over time.
             """
@@ -57,7 +57,7 @@ def density_speed() -> None:
     )
     st.write(
         """
-        See:point_right: [pedpy individual speed](https://pedpy.readthedocs.io/en/stable/user_guide.html#individual-speed).
+        See:point_right: [pedpy individual speed](https://pedpy.readthedocs.io/stable/api/methods.html#speed_calculator.compute_individual_speed).
         """
     )
 
@@ -96,5 +96,5 @@ def about() -> None:
     st.markdown(text3)
     st.image(
         str(img_path_2),
-        caption="Emplacement of cameras for the video recording during the Festival of Lights 2022.",
+        caption="Location of cameras for the video recording during the Festival of Lights 2022.",
     )

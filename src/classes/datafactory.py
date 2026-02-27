@@ -150,9 +150,9 @@ def unzip_files(zip_path: Union[str, Path], destination: Union[str, Path]) -> No
 
     Ignoring the original directory structure in the ZIP file.
 
-    Parameters:
-    - zip_path (str): The path to the ZIP file.
-    - destination (str): The directory where files should be extracted.
+    Args:
+        zip_path (str): The path to the ZIP file.
+        destination (str): The directory where files should be extracted.
     """
     with zipfile.ZipFile(zip_path, "r") as zip_ref:
         for member in zip_ref.infolist():
@@ -210,16 +210,17 @@ def download_and_unzip_files(
 
 
 def load_file(filename: str) -> pedpy.TrajectoryData:
-    """Load and processes a file to create a TrajectoryData object.
+    """
+    Load and processes a file to create a TrajectoryData object.
 
     This function reads a space-separated values file into a pedpy-trajectoryData
     fps = 30 and unit=meters
 
-    Parameters:
-    - filename (str): The path to the file to be loaded.
+    Args:
+        filename (str): The path to the file to be loaded.
 
     Returns:
-    - An instance of TrajectoryData containing the processed data and frame rate.
+        pedpy.TrajectoryData: An instance of TrajectoryData containing the processed data and frame rate.
     """
     return pedpy.load_trajectory(
         trajectory_file=Path(filename),

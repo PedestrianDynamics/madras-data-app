@@ -256,9 +256,8 @@ def calculate_fd_classical(dv: Optional[int]) -> None:
     fig = plot_fundamental_diagram_all_mpl(densities, speeds)
     fig.savefig(figname, bbox_inches="tight", pad_inches=0.1)
     st.pyplot(fig)
-    st.info(figname)
+    st.info(figname.name)
     download_file(figname)
-    # plots.show_fig(fig, figname=figname, html=True, write=True)
 
 
 def calculate_fd_voronoi_local(dv: Optional[int]) -> None:
@@ -345,7 +344,7 @@ def calculate_fd_voronoi_local(dv: Optional[int]) -> None:
 
         show_fig(fig, figname=str(figname), html=True, write=True)
         end = time.time()
-        st.info(f"Computation time: {end-start:.2f} seconds.")
+        st.info(f"Computation time: {end - start:.2f} seconds.")
 
     if calculate and Path(figname).exists():
         download_file(figname, msg)
@@ -462,15 +461,10 @@ def calculate_density_profile(
     selected_file: str,
 ) -> None:
     """Calculate density profiles based on different methods."""
-    # chose_method = st.sidebar.radio(
-    #     "Method",
-    #     ["Gaussian", "Classic"],
-    #     help="See [PedPy-documentation](https://pedpy.readthedocs.io/en/latest/user_guide.html#density-profiles).",
-    # )
     with st.expander("Documentation"):
         st.write(
             "This profile is using 'Gaussian density profile' from [PedPy]"
-            + "(https://pedpy.readthedocs.io/en/latest/user_guide.html#density-profiles)."
+            + "(https://pedpy.readthedocs.io/stable/api/methods.html#profile_calculator.DensityMethod.GAUSSIAN)."
         )
     chose_method = "Gaussian"
     chose_method = str(chose_method)
@@ -564,7 +558,7 @@ def calculate_speed_profile(
     with st.expander("Documentation"):
         st.write(
             "This profile is using 'Gaussian speed profile' from [PedPy]"
-            + "(https://pedpy.readthedocs.io/en/latest/user_guide.html#speed-profiles)."
+            + "(https://pedpy.readthedocs.io/stable/api/methods.html#profile_calculator.SpeedMethod.GAUSSIAN)."
         )
     grid_size = st.sidebar.number_input(
         "Grid size",
