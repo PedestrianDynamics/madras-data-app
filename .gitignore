@@ -15,5 +15,8 @@ AppData
 *.csv
 *._*
 
+!/data/trajectories/LargeView_zoom_A.txt
+!/data/trajectories/LargeView_zoom_O.txt
+
 /data/processed/*.pkl
 /data/processed/*.pdf
