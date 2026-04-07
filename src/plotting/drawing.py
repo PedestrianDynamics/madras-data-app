@@ -11,9 +11,7 @@ from ..helpers.utilities import setup_measurement_area
 from .plots import draw_bg_img, draw_rects
 
 
-def drawing_canvas(
-    trajectory_data: pedpy.TrajectoryData, walkable_area: pedpy.WalkableArea
-) -> Tuple[Any, float, float, float]:
+def drawing_canvas(trajectory_data: pedpy.TrajectoryData, walkable_area: pedpy.WalkableArea) -> Tuple[Any, float, float, float]:
     """Draw trajectories as img and prepare canvas."""
     drawing_mode = st.sidebar.radio(
         "**Measurement:**",
@@ -36,9 +34,7 @@ def drawing_canvas(
         min_y = trajectory_data.data["y"].min()
         max_y = trajectory_data.data["y"].max()
 
-        bg_img, img_width, img_height, dpi, scale = draw_bg_img(
-            data, min_x, max_x, min_y, max_y
-        )
+        bg_img, img_width, img_height, dpi, scale = draw_bg_img(data, min_x, max_x, min_y, max_y)
         st.session_state.scale = scale
         st.session_state.dpi = dpi
         st.session_state.img_width = img_width
@@ -61,7 +57,7 @@ def drawing_canvas(
         width=img_width,
         height=img_height,
         drawing_mode=drawing_mode,
-        key="canvas",
+        key=f"canvas-{st.session_state.file_changed}-{int(img_width)}x{int(img_height)}",
     )
     return canvas, dpi, scale, img_height
 
