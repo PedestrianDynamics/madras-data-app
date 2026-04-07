@@ -5,15 +5,18 @@
 [![License](https://img.shields.io/pypi/l/pedpy.svg)](https://github.com/MADRAS-crowds/madras-data-app/blob/main/LICENSE)
 [![Ruff](https://img.shields.io/endpoint?url=https://raw.githubusercontent.com/astral-sh/ruff/main/assets/badge/v2.json)](https://github.com/astral-sh/ruff)
 [![Checked with mypy](https://www.mypy-lang.org/static/mypy_badge.svg)](https://mypy-lang.org/)
+[![Zenodo](https://img.shields.io/badge/Data-Zenodo-1682D4?logo=zenodo&logoColor=white)](https://zenodo.org/records/13830435)
+[![Article DOI](https://img.shields.io/badge/Article-10.1038%2Fs41597--025--04732--3-orange)](https://doi.org/10.1038/s41597-025-04732-3)
 
-This application presents an interactive visualization of field observations conducted by 
-the MADRAS team during the Festival of Lights in Lyon, 2022, on December 8th. 
+
+This application presents an interactive visualization of field observations conducted by
+the MADRAS team during the Festival of Lights in Lyon, 2022, on December 8th.
 It provides users with an engaging means to explore and analyze the data collected.
 
 
 
 ## Overview
-The **MADRAS Project Streamlit App** is analyse the field observations performed in the [Festival of Lights](https://www.madras-crowds.eu/Festival-of-Lights-Lyon-.h.htm) in Lyon, a distinguished open-air event that draws nearly two million visitors over four days. 
+The **MADRAS Project Streamlit App** is analyse the field observations performed in the [Festival of Lights](https://www.madras-crowds.eu/Festival-of-Lights-Lyon-.h.htm) in Lyon, a distinguished open-air event that draws nearly two million visitors over four days.
 This app is part of the [MADRAS project](https://www.madras-crowds.eu/), which focuses on developing models and on collecting and analyzing videos of crowded scenes during the festival. The primary goal is to extract valuable pedestrian dynamics measurements to enhance our understanding of crowd behaviors during such large-scale events.
 
 ## Features

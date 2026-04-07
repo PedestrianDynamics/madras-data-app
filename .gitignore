@@ -15,8 +15,7 @@ AppData
 *.csv
 *._*
 
-!/data/trajectories/LargeView_zoom_A.txt
-!/data/trajectories/LargeView_zoom_O.txt
+/data/zenodo
 
 /data/processed/*.pkl
 /data/processed/*.pdf

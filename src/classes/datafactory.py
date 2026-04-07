@@ -2,13 +2,12 @@
 
 import glob
 import logging
-import os
 import shutil
 import zipfile
 from dataclasses import dataclass, field
-from pathlib import Path
+from pathlib import Path, PurePosixPath
 from typing import List, Union
-
+import os
 import pedpy
 import requests  # type: ignore
 import streamlit as st
@@ -35,33 +34,37 @@ class Direction:
 class DataConfig:
     """Datastructure for the app."""
 
-    trajectories_directory: Path
+    zenodo_directory: Path
     flow_directory: Path
     # results
     processed_directory: Path
     files: List[str] = field(default_factory=list)
-    url: str = "https://go.fzj.de/madras-data"
+    url: str = "https://zenodo.org/records/13830435/files/Data_Madras.zip?download=1"  # "https://go.fzj.de/madras-data"
 
     def __post_init__(self) -> None:
-        """Initialize the DataConfig instance by retrieving files for each country."""
+        """Initialize the DataConfig instance by retrieving files."""
         # self.data.parent.mkdir(parents=True, exist_ok=True)
         logging.info(f"Create {self.processed_directory}")
         self.processed_directory.mkdir(parents=True, exist_ok=True)
         self.retrieve_files()
 
     def retrieve_files(self) -> None:
-        """Retrieve the files for each country specified in the countries list."""
+        """Retrieve the files for each country specified in the list."""
         logging.info("Retrieve data ...")
-        if not self.trajectories_directory.exists():
-            st.warning(f"{self.trajectories_directory} does not exist yet!")
+        if not self.zenodo_directory.exists():
+            st.warning(f"{self.zenodo_directory} does not exist yet!")
             with st.status("Downloading ...", expanded=False):
-                download_and_unzip_files(
-                    self.url, "data.zip", self.trajectories_directory
-                )
-
+                zip_path = "Data_Madras.zip"
+                unzip_root = self.zenodo_directory.parent
+                download_and_unzip_files(self.url, zip_path, unzip_root)
         else:
-            logging.info("Found trajectory directory. Nothing to retrieve!")
-        self.files = sorted(glob.glob(f"{self.trajectories_directory}/*.txt"))
+            logging.info("Found zenodo directory. Nothing to retrieve!")
+
+        self.files = sorted(
+            f
+            for f in glob.glob(f"{self.zenodo_directory}/**/*.txt", recursive=True)
+            if "density" not in os.path.basename(f).lower() and "tracers" not in os.path.basename(f).lower()
+        )
 
 
 def increment_frame_start(page_size: int) -> None:
@@ -100,13 +103,11 @@ def init_state_bg_image() -> None:
 def init_session_state() -> None:
     """Init session_state throughout the app."""
     path = Path(__file__)
-    trajectories_directory = (
-        path.parent.parent.parent.absolute() / "data" / "trajectories"
-    )
+    zenodo_directory = path.parent.parent.parent.absolute() / "data" / "zenodo"
     flow_directory = path.parent.parent.parent.absolute() / "data" / "flow"
     processed_directory = path.parent.parent.parent.absolute() / "data" / "processed"
 
-    logging.info(f"{trajectories_directory = }")
+    logging.info(f"{zenodo_directory = }")
     init_state_bg_image()
     # Initialize a list of DirectionInfo objects using the provided dictionaries
     if "direction_infos" not in st.session_state:
@@ -136,7 +137,7 @@ def init_session_state() -> None:
         st.session_state.trajectoryData = pedpy.TrajectoryData
 
     dataconfig = DataConfig(
-        trajectories_directory=trajectories_directory,
+        zenodo_directory=zenodo_directory,
         processed_directory=processed_directory,
         flow_directory=flow_directory,
     )
@@ -146,47 +147,47 @@ def init_session_state() -> None:
 
 def unzip_files(zip_path: Union[str, Path], destination: Union[str, Path]) -> None:
     """
-    Unzip a ZIP file directly into the specified destination directory.
-
-    Ignoring the original directory structure in the ZIP file.
-
-    Args:
-        zip_path (str): The path to the ZIP file.
-        destination (str): The directory where files should be extracted.
+    Unzip a ZIP file into the specified destination directory,
+    preserving the internal structure but renaming the top-level
+    folder to 'zenodo'.
     """
+    destination = Path(destination)
+    destination.mkdir(parents=True, exist_ok=True)
+
     with zipfile.ZipFile(zip_path, "r") as zip_ref:
         for member in zip_ref.infolist():
-            st.info(f"member: {member}")
-            # Extract only if file (ignores directories)
-            if not member.is_dir():
-                # Build target filename path
-                target_path = os.path.join(
-                    destination, os.path.basename(member.filename)
-                )
-                st.info(f"targe_path {target_path}")
-                # Ensure target directory exists (e.g., if not extracting directories)
-                os.makedirs(os.path.dirname(target_path), exist_ok=True)
-                # Extract file
-                with (
-                    zip_ref.open(member, "r") as source,
-                    open(target_path, "wb") as target,
-                ):
-                    shutil.copyfileobj(source, target)
+            member_path = PurePosixPath(member.filename)
+
+            if not member_path.parts:
+                continue
+
+            # Drop the original top-level folder (e.g. Data_Madras/)
+            relative_parts = member_path.parts[1:]
+
+            # Rebuild under destination/zenodo/
+            target_path = destination / "zenodo" / Path(*relative_parts)
+
+            if member.is_dir():
+                target_path.mkdir(parents=True, exist_ok=True)
+                continue
+
+            target_path.parent.mkdir(parents=True, exist_ok=True)
+            with zip_ref.open(member, "r") as source, open(target_path, "wb") as target:
+                shutil.copyfileobj(source, target)
 
 
-def download_and_unzip_files(
-    url: str, destination: Union[str, Path], unzip_destination: Union[str, Path]
-) -> None:
+def download_and_unzip_files(url: str, destination: str | Path, unzip_destination: str | Path) -> None:
     """
     Download a ZIP file from a specified URL.
 
     Saves it to a given destination, and unzips it into a specified directory.
     Displays the download and unzipping progress in a Streamlit app.
     """
-    # Send a GET request
-    response = requests.get(url, stream=True)
+    destination = Path(destination)
 
-    # Total size in bytes.
+    response = requests.get(url, stream=True)
+    response.raise_for_status()
+
     total_size = int(response.headers.get("content-length", 0))
     block_size = 1024  # 1 Kbyte
     progress_bar = st.progress(0)
@@ -197,16 +198,16 @@ def download_and_unzip_files(
         for data in response.iter_content(block_size):
             written += len(data)
             f.write(data)
-            # Update progress bar
-            progress = int(100 * written / total_size)
-            progress_bar.progress(progress)
-            progress_status.text(f"> {progress}%")
+            if total_size > 0:
+                progress = int(100 * written / total_size)
+                progress_bar.progress(progress)
+                progress_status.text(f"> {progress}%")
 
     progress_status.text("Download complete. Unzipping...")
     unzip_files(destination, unzip_destination)
 
     progress_status.text("Unzipping complete.")
-    progress_bar.empty()  # Clear the progress bar after completion
+    progress_bar.empty()
 
 
 def load_file(filename: str) -> pedpy.TrajectoryData:
