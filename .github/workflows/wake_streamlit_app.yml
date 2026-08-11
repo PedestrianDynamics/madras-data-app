@@ -1,0 +1,29 @@
+name: Wake Streamlit App
+
+on:
+  schedule:
+    - cron: "0 */8 * * *" # Every 8 hours
+
+  workflow_dispatch: # Allow manual triggering of the workflow
+
+jobs:
+  wake:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repo
+        uses: actions/checkout@v5
+
+      - name: Set up Python
+        uses: actions/setup-python@v6
+        with:
+          python-version: "3.14"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install selenium webdriver-manager
+
+      - name: Run Selenium script
+        env:
+          STREAMLIT_APP_URL: https://madras-data-app.streamlit.app/
+        run: python .github/workflows/keep_streamlit_app_awake.py
