@@ -5,7 +5,7 @@ import pickle
 from dataclasses import dataclass
 from math import ceil, floor
 from pathlib import Path
-from typing import Any, Dict, Tuple
+from typing import TYPE_CHECKING, Any, Callable, Dict, Tuple, TypeVar
 
 import matplotlib.pyplot as plt
 import numpy as np
@@ -13,9 +13,15 @@ import pandas as pd
 import plotly.figure_factory as ff
 import plotly.graph_objects as go
 import streamlit as st
-from numba import njit
 from numpy.typing import NDArray
 from scipy.signal import butter, filtfilt
+
+if TYPE_CHECKING:
+    _F = TypeVar("_F", bound=Callable[..., Any])
+
+    def njit(func: _F) -> _F: ...
+else:
+    from numba import njit
 
 plt.rcParams["font.family"] = "STIXGeneral"
 
@@ -72,13 +78,13 @@ class Parameters:
     CUM_TIME: float = 0.0
     NB_CG_X: int = 0
     NB_CG_Y: int = 0
-    DELTA: float = 0.0
+    DELTA: int = 0
     COLORBAR_MIN: float = 0.0
     COLORBAR_MAX: float = 4.0
     COLORBAR_MAX_V: float = 0.25
 
 
-@njit  # type: ignore
+@njit
 def calculate_distance(pos1: Tuple[float, float], pos2: Tuple[float, float]) -> float:
     """
     Calculate the distance between two points.
@@ -93,7 +99,7 @@ def calculate_distance(pos1: Tuple[float, float], pos2: Tuple[float, float]) -> 
     return float(np.sqrt((pos2[0] - pos1[0]) ** 2 + (pos2[1] - pos1[1]) ** 2))
 
 
-@njit  # type: ignore
+@njit
 def gaussian_kernel_scalar(r: float, r_c: float, xi: float) -> float:
     """
     Calculate the value of a Gaussian kernel for a given distance.
@@ -113,7 +119,7 @@ def gaussian_kernel_scalar(r: float, r_c: float, xi: float) -> float:
     )  # Prefactor is omitted because it cancels out
 
 
-@njit  # type: ignore
+@njit
 def get_r(
     i_line: int, j_column: int, r_cg: float, x_min: float, y_min: float
 ) -> Tuple[float, float]:
@@ -133,7 +139,7 @@ def get_r(
     return (i_line * r_cg + 0.5 * r_cg + x_min, j_column * r_cg + 0.5 * r_cg + y_min)
 
 
-@njit  # type: ignore
+@njit
 def get_cell(
     r: Tuple[float, float], x_min: float, y_min: float, r_cg: float
 ) -> Tuple[int, int]:

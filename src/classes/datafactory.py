@@ -9,7 +9,7 @@ from pathlib import Path, PurePosixPath
 from typing import List, Union
 import os
 import pedpy
-import requests  # type: ignore
+import requests
 import streamlit as st
 
 
