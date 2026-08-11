@@ -6,7 +6,7 @@ from typing import List, Union
 
 import pandas as pd
 import pedpy
-import requests  # type: ignore
+import requests
 import streamlit as st
 from shapely import Polygon
 
